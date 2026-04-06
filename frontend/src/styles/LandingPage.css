@@ -1,0 +1,30 @@
+.landing-container {
+  height: 100vh;
+  background: linear-gradient(to bottom, #0a1f44, #ffffff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-container {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 30px;
+}
+
+.admin-btn {
+  background: #0a1f44;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+footer {
+  position: absolute;
+  bottom: 10px;
+  color: #333;
+}
