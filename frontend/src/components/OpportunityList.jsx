@@ -7,11 +7,11 @@ const OpportunityList = ({ opportunities }) => {
   }
 
   return (
-    <div>
+    <ul>
       {opportunities.map((opp) => (
-        <OpportunityCard key={opp.id} opportunity={opp} />
+        <li key={opp.id}><OpportunityCard opportunity={opp} /></li>
       ))}
-    </div>
+    </ul>
   );
 };
 

@@ -25,7 +25,7 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="search-page">
+    <section className="search-page">
       <h1>Search Opportunities</h1>
 
       <SearchBar onSearch={handleSearch} />
@@ -35,7 +35,7 @@ const SearchPage = () => {
       ) : (
         <OpportunityList opportunities={results} />
       )}
-    </div>
+    </section>
   );
 };
 

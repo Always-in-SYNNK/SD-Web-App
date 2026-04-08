@@ -1,10 +1,4 @@
 {
-<<<<<<< HEAD
-  "scripts": {
-    "test": "echo \"No tests yet\" && exit 0"
-  }
-}
-=======
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
@@ -44,4 +38,3 @@
     ]
   }
 }
->>>>>>> main
