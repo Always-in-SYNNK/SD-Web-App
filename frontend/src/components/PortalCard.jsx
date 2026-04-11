@@ -27,7 +27,7 @@ export function PortalCard({ title, description, items, buttonText, accentColor 
             </li>
           ))}
         </ul>
-      </div>
+      </section>
       <button className="mt-8 bg-[#035b9d] text-white py-3 rounded-full font-semibold hover:opacity-90 transition">
         {buttonText}
       </button>
