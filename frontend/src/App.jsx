@@ -1,5 +1,22 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Home from "./pages/Home";
+import ValidationPipeline from "./pages/ValidationPipeline";
+import PostOpportunity from "./pages/PostOpportunity";
+import DefineRequirements from "./pages/DefineRequirements";
 
 export default function App() {
-  return <Home />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Home page */}
+        <Route path="/" element={<Home />} />
+
+        {/* Employer Portal */}
+        <Route path="/pipeline" element={<ValidationPipeline />} />
+        <Route path="/post" element={<PostOpportunity />} />
+        <Route path="/define" element={<DefineRequirements />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
