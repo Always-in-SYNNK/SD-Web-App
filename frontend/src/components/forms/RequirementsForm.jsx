@@ -2,9 +2,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
-import RoleSection from "./RoleSection";
-import EducationSection, { NQF_MAP } from "./EducationSection";
-import SkillsSection from "./SkillsSection";
+import RoleSection from "../requirements/RoleSection";
+import EducationSection, { NQF_MAP } from "../requirements/EducationSection";
+import SkillsSection from "../requirements/SkillsSection";
 
 const RequirementsForm = () => {
   const navigate = useNavigate();

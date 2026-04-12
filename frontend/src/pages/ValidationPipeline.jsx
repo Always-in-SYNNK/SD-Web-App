@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import Sidebar from "../components/layout/Sidebar";
-import Topbar from "../components/layout/TopBar";
+import Topbar from "../components/layout/Topbar";
 import StatsCard from "../components/dashboard/StatsCard";
 import JobCard from "../components/dashboard/JobCard";
 

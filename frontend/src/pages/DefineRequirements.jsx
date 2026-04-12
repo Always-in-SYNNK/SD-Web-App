@@ -1,5 +1,5 @@
 import Sidebar from "../components/layout/Sidebar";
-import Topbar from "../components/layout/TopBar";
+import Topbar from "../components/layout/Topbar";
 import RequirementsForm from "../components/forms/RequirementsForm";
 
 const DefineRequirements = () => {
@@ -13,7 +13,7 @@ const DefineRequirements = () => {
 
         <RequirementsForm />
       </main>
-    </div>
+    </main>
   );
 };
 
