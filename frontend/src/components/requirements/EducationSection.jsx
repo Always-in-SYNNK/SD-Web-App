@@ -10,7 +10,7 @@ const NQF_MAP = {
 
 const EducationSection = ({ value, onChange }) => {
   return (
-    <div className="bg-white p-6 rounded-lg">
+    <section className="bg-white p-6 rounded-lg">
       <h2 className="font-bold text-xl mb-4">Academic & Professional Standards</h2>
       <select
         className="w-full border p-3 rounded"
@@ -23,7 +23,7 @@ const EducationSection = ({ value, onChange }) => {
         <option value="Bachelors">Bachelors (NQF 7)</option>
        
       </select>
-    </div>
+    </section>
   );
 };
 

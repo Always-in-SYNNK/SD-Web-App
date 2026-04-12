@@ -1,81 +1,91 @@
+import { useState, useEffect } from "react";
+import { supabase } from "../../lib/supabaseClient";
 import { OpportunityCard } from "./OpportunityCard";
 
-const opportunities = [
-  {
-    title: "Junior Full Stack Developer Learnership",
-    company: "Standard Bank South Africa",
-    description: "Master modern web development with our intensive 12-month program. Gain hands-on experience in React, Node.js, and cloud deployments while working on real banking solutions.",
-    location: "Sandton, GP",
-    duration: "12 Months",
-    nqf: "NQF Level 5",
-    featured: true,
-  },
-  {
-    title: "Electrical Engineering Artisan Internship",
-    company: "Murray & Roberts Engineering",
-    description: "Join our renewable energy division for a hands-on apprenticeship in industrial electrical systems. Ideal for candidates with a passion for sustainable infrastructure.",
-    location: "Cape Town, WC",
-    duration: "18 Months",
-    nqf: "NQF Level 4",
-    featured: false,
-  },
-  {
-    title: "Commercial Banking & Compliance Learnership",
-    company: "First National Bank (FNB)",
-    description: "Develop deep expertise in regulatory compliance and commercial financial services. A comprehensive rotation-based program for future finance leaders.",
-    location: "Umhlanga, KZN",
-    duration: "12 Months",
-    nqf: "NQF Level 6",
-    featured: false,
-  },
-  {
-    title: "Digital Design & Multimedia Production",
-    company: "Ogilvy South Africa",
-    description: "Kickstart your creative career in a world-class agency environment. Learn motion graphics, UI design, and digital content strategy from industry veterans.",
-    location: "Remote, SA",
-    duration: "12 Months",
-    nqf: "NQF Level 5",
-    featured: false,
-  },
-];
+export function OpportunityList({ search, location, nqf, field }) {
+  const [opportunities, setOpportunities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export function OpportunityList() {
+  useEffect(() => {
+    const fetchOpportunities = async () => {
+      setLoading(true);
+      setError(null);
+
+      let query = supabase.from("opportunities").select("*");
+
+      if (search) {
+        query = query.or(
+          `title.ilike.%${search}%,description.ilike.%${search}%`
+        );
+      }
+
+      if (search) query = query.ilike("title", `%${search}%`);
+      if (location) query = query.ilike("location", `%${location}%`);
+      if (nqf) query = query.eq("nqf_level", nqf);
+      if (field) query = query.eq("field", field);
+
+      const { data, error } = await query;
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setOpportunities(data);
+      }
+
+      setLoading(false);
+    };
+
+    fetchOpportunities();
+  }, [search, location, nqf, field]);
+
+  if (loading) {
+    return (
+      <section className="flex items-center justify-center py-24">
+        <i className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin block" role="status" aria-label="Loading" />
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="flex flex-col items-center justify-center py-24 text-center">
+        <p className="font-bold text-red-600">Something went wrong</p>
+        <p className="text-sm text-gray-400 mt-1">{error}</p>
+      </section>
+    );
+  }
+
+  if (opportunities.length === 0) {
+    return (
+      <section className="flex flex-col items-center justify-center py-24 text-center">
+        <p className="font-bold text-gray-700">No opportunities found</p>
+        <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-6">
       <header className="flex items-center justify-between">
-        <small className="text-sm text-gray-500">Showing <strong>24</strong> verified opportunities</small>
+        <small className="text-sm text-gray-500">
+          Showing <strong>{opportunities.length}</strong> verified opportunities
+        </small>
         <nav className="flex items-center gap-2">
           <small className="text-xs font-bold uppercase tracking-widest text-gray-400">Sort by:</small>
           <select className="bg-transparent border-none text-sm font-bold text-[#035b9d] focus:ring-0">
             <option>Recently Added</option>
-            <option>Highest Stipend</option>
             <option>Closing Soon</option>
+            <option>Highest Stipend</option>
           </select>
         </nav>
       </header>
 
       <section className="flex flex-col gap-4">
         {opportunities.map((opp) => (
-          <OpportunityCard key={opp.title} {...opp} />
+          <OpportunityCard key={opp.id} {...opp} />
         ))}
       </section>
-
-      <nav className="pt-8 flex justify-center">
-        <nav className="flex items-center gap-2">
-          {["‹", "1", "2", "3", "...", "12", "›"].map((item, i) => (
-            <button
-              key={i}
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors ${
-                item === "1"
-                  ? "bg-[#035b9d] text-white"
-                  : "hover:bg-gray-100 text-gray-600"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
-        </nav>
-      </nav>
     </section>
   );
 }

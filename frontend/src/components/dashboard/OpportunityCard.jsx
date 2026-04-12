@@ -9,9 +9,9 @@ export function OpportunityCard() {
         />
       </figure>
       <section>
-        <mark className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded uppercase mb-2 inline-block">
+        <strong className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded uppercase mb-2 inline-block">
           Matched Opportunity
-        </mark>
+        </strong>
         <h5 className="font-bold text-lg mb-1">Senior Urban Designer</h5>
         <p className="text-sm text-gray-500 mb-4">
           Based on your Level 7 NQF verified architecture degree.

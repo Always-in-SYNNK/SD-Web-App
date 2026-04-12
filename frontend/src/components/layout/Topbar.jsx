@@ -8,8 +8,8 @@ const Topbar = () => {
       />
 
       <section className="flex items-center gap-4">
-        <span className="material-symbols-outlined">notifications</span>
-        <span className="material-symbols-outlined">chat_bubble</span>
+        <i className="material-symbols-outlined">notifications</i>
+        <i className="material-symbols-outlined">chat_bubble</i>
 
         <section>
           <p className="font-bold">Alex Thompson</p>
