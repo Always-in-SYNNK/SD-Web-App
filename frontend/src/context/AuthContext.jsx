@@ -1,48 +1,56 @@
 //AUTH CONTEXT - MANAGES AUTH STATE AND PERSISTENCE ACROSS THE APP
 
-import { createContext, useContext, useState, useEffect } from "react";
-
-const AuthContext = createContext();
+import { useState } from "react";
+import AuthContext from "./authContextValue";
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-
-  // Load from localStorage on app start
-  useEffect(() => {
+  const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("token");
 
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setToken(storedToken);
+    if (!storedUser || !storedToken) {
+      return null;
     }
-  }, []);
 
-  const login = (userData, jwtToken) => {
+    try {
+      return JSON.parse(storedUser);
+    } catch {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      return null;
+    }
+  });
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [role, setRole] = useState(() => localStorage.getItem("role"));
+
+  const login = (userData, jwtToken, userRole = null) => {
     setUser(userData);
     setToken(jwtToken);
+    setRole(userRole);
 
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("token", jwtToken);
+    if (userRole) {
+      localStorage.setItem("role", userRole);
+    } else {
+      localStorage.removeItem("role");
+    }
   };
 
   const logout = () => { //TASH CAN DOUBLE CHECK THIS IMPLEMENTATION
     setUser(null);
     setToken(null);
+    setRole(null);
 
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("role");
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, role, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-// Custom hook - auth accessible anywhere in app
-export function useAuth() {
-  return useContext(AuthContext);
 }

@@ -7,6 +7,8 @@ exports.googleAuth = async (req, res) => {
   try {
     const { token, role } = req.body;
 
+    console.log("REQ BODY:", req.body); //debugging
+
     if (!role) {
       return res.status(400).json({ error: "Role required" });
     }
