@@ -83,7 +83,7 @@ const RequirementsForm = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <form className="space-y-8">
       {error && <p className="text-red-500">{error}</p>}
 
       <RoleSection
@@ -94,14 +94,9 @@ const RequirementsForm = () => {
       <EducationSection value={formState.education} onChange={handleChange} />
       <SkillsSection skills={formState.skills} onChange={handleChange} />
 
-      <div className="flex justify-between bg-gray-100 p-6 rounded-lg">
-        <button
-          onClick={() => submitOpportunity(true)}
-          disabled={loading}
-          className="text-gray-500 disabled:opacity-50"
-        >
-          Save Draft
-        </button>
+      <nav className="flex justify-between bg-gray-100 p-6 rounded-lg">
+        <button className="text-gray-500">Save Draft</button>
+
         <button
           onClick={() => submitOpportunity(false)}
           disabled={loading}
@@ -109,8 +104,8 @@ const RequirementsForm = () => {
         >
           {loading ? "Submitting..." : "Initialize Pipeline"}
         </button>
-      </div>
-    </div>
+      </nav>
+    </form>
   );
 };
 

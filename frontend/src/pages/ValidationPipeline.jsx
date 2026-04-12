@@ -61,22 +61,22 @@ const ValidationPipeline = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50">
+
       <Sidebar />
       <Topbar />
 
       <main className="ml-72 p-8">
         <h1 className="text-3xl font-bold">Validation Pipeline</h1>
 
-        {/* Stats — now real numbers */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <StatsCard title="Validated Roles"  value={counts.approved} icon="verified" />
-          <StatsCard title="Pending Approval" value={counts.pending}  icon="hourglass_empty" />
-          <StatsCard title="Rejected"         value={counts.rejected} icon="cancel" />
-        </div>
+        <section className="grid grid-cols-3 gap-4 mt-6">
+          <StatsCard title="Validated Roles" value="24" icon="verified" />
+          <StatsCard title="Pending" value="08" icon="hourglass_empty" />
+          <StatsCard title="Drafts" value="04" icon="pending_actions" />
+        </section>
 
         {/* Filter tabs */}
-        <div className="flex gap-3 mt-8">
+        <section className="flex gap-3 mt-8">
           {["all", "pending", "approved", "rejected"].map((s) => (
             <button
               key={s}
@@ -88,27 +88,17 @@ const ValidationPipeline = () => {
               {s}
             </button>
           ))}
-        </div>
+        </section>
 
-        {/* Job list */}
-        <div className="mt-6 space-y-4">
-          {loading ? (
-            <p className="text-gray-400">Loading...</p>
-          ) : filteredJobs.length === 0 ? (
-            <p className="text-gray-400">No opportunities found.</p>
-          ) : (
-            filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                title={job.title}
-                location={job.location}
-                status={job.status}
-              />
-            ))
-          )}
-        </div>
+        {/* 🔴 BACKEND LOGIC NEEDED */}
+        {/* Filter jobs by:
+            - Draft
+            - Pending Approval
+            - Validated
+        */}
+
       </main>
-    </div>
+    </main>
   );
 };
 

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
@@ -15,6 +14,9 @@ export default function App() {
         {/* Home page */}
         <Route path="/" element={<Home />} />
 
+        <Route path="/dashboard" element={<StudentDashboard />} />
+        <Route path="/opportunities" element={<Opportunities />} />
+
         {/* Employer Portal */}
         <Route path="/pipeline" element={<ValidationPipeline />} />
         <Route path="/post" element={<PostOpportunity />} />
@@ -22,9 +24,4 @@ export default function App() {
       </Routes>
     </BrowserRouter>
   );
-  const [page, setPage] = useState("home");
-
-  if (page === "dashboard") return <StudentDashboard setPage={setPage} />;
-  if (page === "opportunities") return <Opportunities setPage={setPage} />;
-  return <Home onStudentPortalClick={() => setPage("dashboard")} />;
 }

@@ -16,13 +16,13 @@ const SkillsSection = ({ skills, onChange }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg">
+    <section className="bg-white p-6 rounded-lg">
+
       <h2 className="font-bold text-xl mb-4">Technical Skills</h2>
       {skills.map((skill, i) => (
-        <div key={i} className="flex justify-between p-2 border rounded mb-2">
-          <span>{skill}</span>
-          <button onClick={() => removeSkill(i)} className="text-red-400 text-sm">Remove</button>
-        </div>
+        <article key={i} className="p-2 border rounded mb-2">
+          {skill}
+        </article>
       ))}
       <div className="flex gap-2 mt-4">
         <input
@@ -34,7 +34,7 @@ const SkillsSection = ({ skills, onChange }) => {
         />
         <button onClick={addSkill} className="border px-4 py-2 rounded">Add</button>
       </div>
-    </div>
+    </section>
   );
 };
 

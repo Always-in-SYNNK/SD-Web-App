@@ -1,20 +1,20 @@
 const JobCard = ({ title, location, status }) => {
   return (
-    <div className="p-6 bg-white rounded-lg shadow flex justify-between">
-      
-      <div>
+    <article className="p-6 bg-white rounded-lg shadow flex justify-between">
+
+      <section>
         <h3 className="font-bold text-lg">{title}</h3>
         <p className="text-sm text-gray-500">{location}</p>
-      </div>
+      </section>
 
-      <div className="text-right">
+      <section className="text-right">
         <p className="text-sm font-bold">{status}</p>
         <button className="mt-2 px-3 py-1 bg-blue-100 rounded">
           Manage
         </button>
-      </div>
+      </section>
 
-    </div>
+    </article> 
   );
 };
 

@@ -1,7 +1,8 @@
 // src/components/requirements/RoleSection.jsx
 const RoleSection = ({ role, objective, onChange }) => {
   return (
-    <div className="bg-white p-6 rounded-lg">
+    <section className="bg-white p-6 rounded-lg">
+
       <h2 className="font-bold text-xl mb-4">Role Architecture</h2>
       <input
         placeholder="Role Title"
@@ -15,7 +16,7 @@ const RoleSection = ({ role, objective, onChange }) => {
         value={objective}
         onChange={(e) => onChange("objective", e.target.value)}
       />
-    </div>
+    </section>
   );
 };
 
