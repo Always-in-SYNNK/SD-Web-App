@@ -5,14 +5,14 @@ import { HowItWorks } from "../components/HowItWorks";
 
 export default function Home({ onStudentPortalClick }) {
   return (
-    <div className="bg-[#faf9f8] min-h-screen">
+    <main className="bg-[#faf9f8] min-h-screen">
       <Navbar onStudentPortalClick={onStudentPortalClick} />
       <Hero />
       <section className="py-24 px-8">
-        <div className="max-w-screen-xl mx-auto">
+        <article className="max-w-screen-xl mx-auto">
           <h2 className="text-4xl font-extrabold text-center mb-4">Choose Your Portal</h2>
           <p className="text-center text-gray-500 mb-12">Whether you're building a career or a team, we have a path for you.</p>
-          <div className="grid md:grid-cols-2 gap-8">
+          <section className="grid md:grid-cols-2 gap-8">
             <PortalCard
               title="Student Portal"
               description="Access accredited training, mentorship, and career opportunities tailored to your growth."
@@ -27,10 +27,10 @@ export default function Home({ onStudentPortalClick }) {
               buttonText="Enter Employer Portal"
               accentColor="border-t-yellow-600"
             />
-          </div>
-        </div>
+          </section>
+        </article>
       </section>
       <HowItWorks />
-    </div>
+    </main>
   );
 }

@@ -42,25 +42,25 @@ const opportunities = [
 export function OpportunityList() {
   return (
     <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">Showing <strong>24</strong> verified opportunities</span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Sort by:</span>
+      <header className="flex items-center justify-between">
+        <small className="text-sm text-gray-500">Showing <strong>24</strong> verified opportunities</small>
+        <nav className="flex items-center gap-2">
+          <small className="text-xs font-bold uppercase tracking-widest text-gray-400">Sort by:</small>
           <select className="bg-transparent border-none text-sm font-bold text-[#035b9d] focus:ring-0">
             <option>Recently Added</option>
             <option>Highest Stipend</option>
             <option>Closing Soon</option>
           </select>
-        </div>
-      </div>
+        </nav>
+      </header>
 
-      <div className="flex flex-col gap-4">
+      <section className="flex flex-col gap-4">
         {opportunities.map((opp) => (
           <OpportunityCard key={opp.title} {...opp} />
         ))}
-      </div>
+      </section>
 
-      <div className="pt-8 flex justify-center">
+      <nav className="pt-8 flex justify-center">
         <nav className="flex items-center gap-2">
           {["‹", "1", "2", "3", "...", "12", "›"].map((item, i) => (
             <button
@@ -75,7 +75,7 @@ export function OpportunityList() {
             </button>
           ))}
         </nav>
-      </div>
+      </nav>
     </section>
   );
 }
