@@ -22,7 +22,7 @@ const ValidationPipeline = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50">
 
       <Sidebar />
       <Topbar />
@@ -31,17 +31,17 @@ const ValidationPipeline = () => {
 
         <h1 className="text-3xl font-bold">Validation Pipeline</h1>
 
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <section className="grid grid-cols-3 gap-4 mt-6">
           <StatsCard title="Validated Roles" value="24" icon="verified" />
           <StatsCard title="Pending" value="08" icon="hourglass_empty" />
           <StatsCard title="Drafts" value="04" icon="pending_actions" />
-        </div>
+        </section>
 
-        <div className="mt-10 space-y-4">
+        <section className="mt-10 space-y-4">
           {jobs.map((job, index) => (
             <JobCard key={index} {...job} />
           ))}
-        </div>
+        </section>
 
         {/* 🔴 BACKEND LOGIC NEEDED */}
         {/* Filter jobs by:

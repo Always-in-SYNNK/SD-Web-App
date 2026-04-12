@@ -11,14 +11,14 @@ const SkillsSection = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg">
+    <section className="bg-white p-6 rounded-lg">
 
       <h2 className="font-bold text-xl mb-4">Technical Skills</h2>
 
       {skills.map((skill, i) => (
-        <div key={i} className="p-2 border rounded mb-2">
+        <article key={i} className="p-2 border rounded mb-2">
           {skill}
-        </div>
+        </article>
       ))}
 
       <button onClick={addSkill} className="mt-4 border px-4 py-2 rounded">

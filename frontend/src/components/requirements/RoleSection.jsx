@@ -4,7 +4,7 @@ const RoleSection = () => {
   const [role, setRole] = useState("");
 
   return (
-    <div className="bg-white p-6 rounded-lg">
+    <section className="bg-white p-6 rounded-lg">
 
       <h2 className="font-bold text-xl mb-4">Role Architecture</h2>
 

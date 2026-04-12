@@ -14,13 +14,13 @@ const RequirementsForm = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <form className="space-y-8">
 
       <RoleSection />
       <EducationSection />
       <SkillsSection />
 
-      <div className="flex justify-between bg-gray-100 p-6 rounded-lg">
+      <nav className="flex justify-between bg-gray-100 p-6 rounded-lg">
         <button className="text-gray-500">Save Draft</button>
 
         <button

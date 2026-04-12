@@ -5,10 +5,10 @@ import { QualificationsList } from "../components/dashboard/QualificationsList";
 import { OpportunityCard } from "../components/dashboard/OpportunityCard";
 import { VerificationCard } from "../components/dashboard/VerificationCard";
 
-export default function StudentDashboard({ setPage }) {
+export default function StudentDashboard() {
   return (
     <main className="flex min-h-screen bg-[#faf9f8]">
-      <Sidebar setPage={setPage} activePage="dashboard" />
+      <Sidebar activePage="/dashboard" />
       <main className="ml-64 min-h-screen p-12 w-full">
         <DashboardHeader />
         <UploadBanner />

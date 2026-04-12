@@ -1,10 +1,14 @@
-export function Sidebar({ setPage, activePage }) {
+import { useNavigate } from "react-router-dom";
+
+export function Sidebar() {
+  const navigate = useNavigate();
+
   const links = [
-    { icon: "🎓", label: "Qualifications", page: "dashboard" },
-    { icon: "💼", label: "Opportunities", page: "opportunities" },
-    { icon: "📄", label: "Applications", page: "dashboard" },
-    { icon: "📊", label: "Analytics", page: "dashboard" },
-    { icon: "✅", label: "Verification", page: "dashboard" },
+    { icon: "🎓", label: "Qualifications", path: "/dashboard" },
+    { icon: "💼", label: "Opportunities", path: "/opportunities" },
+    { icon: "📄", label: "Applications", path: "/applications" },
+    { icon: "📊", label: "Analytics", path: "/analytics" },
+    { icon: "✅", label: "Verification", path: "/verification" },
   ];
 
   return (
@@ -28,12 +32,12 @@ export function Sidebar({ setPage, activePage }) {
       </section>
 
       <nav className="flex-1 space-y-2">
-        {links.map(({ icon, label, page }) => (
+        {links.map(({ icon, label, path }) => (
           <button
             key={label}
-            onClick={() => setPage(page)}
+            onClick={() => navigate(path)}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
-              activePage === page && label === (activePage === "opportunities" ? "Opportunities" : "Qualifications")
+              window.location.pathname === path
                 ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
                 : "text-gray-500 hover:bg-gray-50"
             }`}
