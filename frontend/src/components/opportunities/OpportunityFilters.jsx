@@ -1,63 +1,133 @@
-export function OpportunityFilters() {
+export function OpportunityFilters({ location, setLocation, nqf, setNqf, field, setField }) {
+  const provinces = [
+    "All Provinces",
+    "Gauteng",
+    "Western Cape",
+    "KwaZulu-Natal",
+    "Eastern Cape",
+    "Free State",
+    "Limpopo",
+    "Mpumalanga",
+    "North West",
+    "Northern Cape",
+  ];
+
+  const nqfLevels = [
+    "All NQF Levels",
+    "NQF Level 1",
+    "NQF Level 2",
+    "NQF Level 3",
+    "NQF Level 4",
+    "NQF Level 5",
+    "NQF Level 6",
+    "NQF Level 7",
+    "NQF Level 8",
+    "NQF Level 9",
+    "NQF Level 10",
+  ];
+
+  const fields = [
+    "All Fields",
+    "Agriculture & Nature",
+    "Architecture & Construction",
+    "Arts, Culture & Design",
+    "Banking & Finance",
+    "Business & Management",
+    "Education & Training",
+    "Engineering & Technology",
+    "Health & Medical Sciences",
+    "Hospitality & Tourism",
+    "Human Resources",
+    "Information Technology",
+    "Law & Legal Studies",
+    "Logistics & Supply Chain",
+    "Manufacturing & Production",
+    "Marketing & Communications",
+    "Mining & Resources",
+    "Public Administration",
+    "Real Estate & Property",
+    "Retail & Sales",
+    "Social Work & Community",
+    "Trades & Artisan",
+    "Transport & Aviation",
+  ];
+
   return (
     <aside className="space-y-8">
       <section className="bg-[#f5f3f3] p-6 rounded-xl">
         <header className="flex items-center justify-between mb-6">
           <h3 className="font-bold text-lg">Filters</h3>
-          <button className="text-[#035b9d] text-xs font-bold uppercase tracking-widest">Reset</button>
+          <button
+            onClick={() => {
+              setLocation("");
+              setNqf("");
+              setField("");
+            }}
+            className="text-[#035b9d] text-xs font-bold uppercase tracking-widest hover:underline"
+          >
+            Reset
+          </button>
         </header>
-        <section className="space-y-6">
-          <section className="space-y-3">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Sector</label>
-            <section className="space-y-2">
-              {["Tech & IT", "Trades & Artisan", "Finance & Banking"].map((sector, i) => (
-                <label key={sector} className="flex items-center gap-3 cursor-pointer">
-                  <span className="w-5 h-5 rounded border border-gray-300 flex items-center justify-center">
-                    <span className={`w-3 h-3 bg-[#035b9d] rounded-sm ${i === 0 ? "opacity-100" : "opacity-0"}`} />
-                  </span>
-                  <strong className="text-sm font-medium">{sector}</strong>
-                </label>
-              ))}
-            </section>
-          </section>
 
-          <section className="space-y-3">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Province</label>
-            <select className="w-full bg-gray-100 border-none rounded-lg text-sm py-3 px-3">
-              <option>Gauteng</option>
-              <option>Western Cape</option>
-              <option>KwaZulu-Natal</option>
-              <option>Eastern Cape</option>
-              <option>Free State</option>
+        <section className="space-y-6">
+
+          {/* Location */}
+          <section className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+              Province
+            </label>
+            <select
+              value={location}
+              onChange={(e) => setLocation(e.target.value === "All Provinces" ? "" : e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-lg text-sm py-3 px-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              {provinces.map((p) => (
+                <option key={p} value={p === "All Provinces" ? "" : p}>{p}</option>
+              ))}
             </select>
           </section>
 
-          <section className="space-y-3">
-            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">NQF Level</label>
-            <nav className="flex flex-wrap gap-2">
-              {["NQF 4", "NQF 5", "NQF 6", "NQF 7"].map((level) => (
-                <button
-                  key={level}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition-colors ${
-                    level === "NQF 5"
-                      ? "bg-[#035b9d] text-white"
-                      : "bg-white text-gray-700 hover:bg-[#035b9d] hover:text-white"
-                  }`}
-                >
-                  {level}
-                </button>
+          {/* NQF Level */}
+          <section className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+              NQF Level
+            </label>
+            <select
+              value={nqf}
+              onChange={(e) => setNqf(e.target.value === "All NQF Levels" ? "" : e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-lg text-sm py-3 px-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              {nqfLevels.map((n) => (
+                <option key={n} value={n === "All NQF Levels" ? "" : n}>{n}</option>
               ))}
-            </nav>
+            </select>
           </section>
+
+          {/* Field */}
+          <section className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+              Field
+            </label>
+            <select
+              value={field}
+              onChange={(e) => setField(e.target.value === "All Fields" ? "" : e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-lg text-sm py-3 px-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              {fields.map((f) => (
+                <option key={f} value={f === "All Fields" ? "" : f}>{f}</option>
+              ))}
+            </select>
+          </section>
+
         </section>
       </section>
 
       <section className="bg-[#035b9d] p-6 rounded-xl text-white">
         <h4 className="font-bold text-lg">Premium Match</h4>
         <p className="text-sm text-blue-100 mt-2">
-          Based on your NQF 5 profile, you are eligible for the Cloud Architecture program.
+          Based on your NQF profile, you may be eligible for exclusive opportunities.
         </p>
-        <button className="mt-4 bg-green-200 text-green-900 w-full py-2 rounded-full font-bold text-sm">
+        <button className="mt-4 bg-green-200 text-green-900 w-full py-2 rounded-full font-bold text-sm hover:opacity-90 transition">
           View Match
         </button>
       </section>

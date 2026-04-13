@@ -28,7 +28,7 @@ export function Navbar() {
 
           {/* ✅ EMPLOYER (THIS IS THE NEW ENTRY POINT) */}
           <button
-            onClick={() => navigate("/pipeline")} // 👈 your employer flow starts here
+            onClick={() => navigate("/pipeline")} 
             className="px-6 py-2 rounded-full text-sm font-semibold bg-[#035b9d] text-white hover:opacity-90 transition"
           >
             Employer Portal

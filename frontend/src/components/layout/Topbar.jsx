@@ -44,8 +44,8 @@ const Topbar = () => {
       />
 
       <section className="flex items-center gap-4">
-        <span className="material-symbols-outlined cursor-pointer">notifications</span>
-        <span className="material-symbols-outlined cursor-pointer">chat_bubble</span>
+        <i className="material-symbols-outlined">notifications</i>
+        <i className="material-symbols-outlined">chat_bubble</i>
 
         <section>
           <p className="font-bold leading-tight">{fullName}</p>

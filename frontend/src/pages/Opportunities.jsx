@@ -5,14 +5,22 @@ import { OpportunityList } from "../components/opportunities/OpportunityList";
 
 export default function Opportunities() {
   const [search, setSearch] = useState("");
-  const [sector, setSector] = useState("");
-  const [province, setProvince] = useState("");
+  const [committedSearch, setCommittedSearch] = useState("");
+  const [location, setLocation] = useState("");
   const [nqf, setNqf] = useState("");
+  const [field, setField] = useState("");
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      setCommittedSearch(search);
+    }
+  };
 
   return (
     <main className="flex min-h-screen bg-[#faf9f8]">
       <Sidebar activePage="/opportunities" />
-      <main className="ml-64 min-h-screen w-full">
+      <section className="ml-64 min-h-screen w-full">
+
         <nav className="sticky top-0 z-50 flex items-center justify-between px-12 h-16 bg-white/80 backdrop-blur-md border-b border-gray-200">
           <section className="flex items-center gap-6 text-sm font-medium">
             <a href="/" className="text-gray-400 hover:text-[#035b9d]">Home</a>
@@ -20,19 +28,22 @@ export default function Opportunities() {
             <a href="/opportunities" className="text-[#035b9d] font-bold border-b-2 border-[#035b9d] pb-0.5">Opportunities</a>
           </section>
           <section className="flex items-center gap-3">
-            <aside className="relative">
+            <section className="relative">
               <i className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</i>
               <input
                 type="text"
-                placeholder="Search opportunities..."
+                placeholder="Search and press Enter..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="pl-9 pr-4 py-2 bg-gray-100 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-200 w-64"
               />
-            </aside>
+            </section>
             <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
             <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
-            <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">JD</figure>
+            <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
+              JD
+            </figure>
           </section>
         </nav>
 
@@ -48,17 +59,17 @@ export default function Opportunities() {
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <aside className="lg:col-span-3">
               <OpportunityFilters
-                sector={sector} setSector={setSector}
-                province={province} setProvince={setProvince}
+                location={location} setLocation={setLocation}
                 nqf={nqf} setNqf={setNqf}
+                field={field} setField={setField}
               />
             </aside>
             <section className="lg:col-span-9">
-              <OpportunityList search={search} sector={sector} province={province} nqf={nqf} />
+              <OpportunityList search={committedSearch} location={location} nqf={nqf} field={field} />
             </section>
           </section>
         </section>
-      </main>
+      </section>
     </main>
   );
 }
