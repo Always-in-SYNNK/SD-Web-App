@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
 const Topbar = () => {
-  const [fullName, setFullName] = useState("Natasha Dobah");
-  const [orgName, setOrgName] = useState("Test Company ZA");
+  const [fullName, setFullName] = useState("...");
+  const [orgName, setOrgName] = useState("...");
 
   useEffect(() => {
     const loadUser = async () => {
