@@ -11,7 +11,6 @@ const RequirementsForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // All form state lifted here — passed down as props
   const [formState, setFormState] = useState({
     role: "",
     objective: "",
@@ -23,35 +22,66 @@ const RequirementsForm = () => {
     setFormState((prev) => ({ ...prev, [field]: value }));
   };
 
-  const submitOpportunity = async (asDraft = false) => {
+  const submitOpportunity = async () => {
+    if (!formState.role.trim()) {
+      setError("Role title is required.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
-    // Get logged-in user → profile → provider_profile (same chain as OpportunityForm)
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data: profile } = await supabase
-      .from("profiles").select("id").eq("user_id", user.id).single();
-    const { data: providerProfile } = await supabase
-      .from("provider_profiles").select("id").eq("profile_id", profile.id).single();
-
-    if (!providerProfile) {
-      setError("Provider profile not found.");
+    // 1. Get logged-in user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      setError("You must be logged in.");
       setLoading(false);
       return;
     }
 
-    const nqfLevel = NQF_MAP[formState.education];
+    // 2. Get their profile
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
 
-    // Insert the opportunity — 'pending' means "pending admin approval"
+    if (profileError || !profile) {
+      setError("Could not find your profile.");
+      setLoading(false);
+      return;
+    }
+
+    // 3. Get their provider_profile
+    const { data: providerProfile, error: providerError } = await supabase
+      .from("provider_profiles")
+      .select("id")
+      .eq("profile_id", profile.id)
+      .single();
+
+    if (providerError || !providerProfile) {
+      setError("Only providers can post opportunities.");
+      setLoading(false);
+      return;
+    }
+
+    // 4. Build description — include skills so they aren't lost
+    const skillsText =
+      formState.skills.length > 0
+        ? `\n\nRequired Skills: ${formState.skills.join(", ")}`
+        : "";
+    const fullDescription = `${formState.objective}${skillsText}`;
+
+    // 5. Insert the opportunity
     const { data: opportunity, error: oppError } = await supabase
       .from("opportunities")
       .insert({
         provider_id: providerProfile.id,
         title: formState.role,
-        description: formState.objective,
+        description: fullDescription,
         status: "pending",
       })
-      .select()  // returns the created row with its new id
+      .select()
       .single();
 
     if (oppError) {
@@ -60,8 +90,9 @@ const RequirementsForm = () => {
       return;
     }
 
-    // Find a qualification that matches the NQF level selected
-    // This links opportunity_qualifications → qualifications table
+    // 6. Link qualifications that match the chosen NQF level
+    const nqfLevel = NQF_MAP[formState.education];
+
     const { data: matchingQuals } = await supabase
       .from("qualifications")
       .select("qual_id")
@@ -73,18 +104,24 @@ const RequirementsForm = () => {
         opportunity_id: opportunity.id,
         qualification_id: q.qual_id,
       }));
-
       await supabase.from("opportunity_qualifications").insert(qualLinks);
     }
 
-    // Navigate to validation pipeline after submit
-    navigate("/validation-pipeline");
+    navigate("/pipeline");
     setLoading(false);
   };
 
   return (
-    <form className="space-y-8">
-      {error && <p className="text-red-500">{error}</p>}
+    <form
+      className="space-y-8"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submitOpportunity();
+      }}
+    >
+      {error && (
+        <p className="text-red-500 bg-red-50 p-3 rounded">{error}</p>
+      )}
 
       <RoleSection
         role={formState.role}
@@ -95,10 +132,18 @@ const RequirementsForm = () => {
       <SkillsSection skills={formState.skills} onChange={handleChange} />
 
       <nav className="flex justify-between bg-gray-100 p-6 rounded-lg">
-        <button className="text-gray-500">Save Draft</button>
+        {/* Save Draft — inserts with status "pending" same as submit for now */}
+        <button
+          type="button"
+          onClick={submitOpportunity}
+          disabled={loading}
+          className="text-gray-500 disabled:opacity-50"
+        >
+          {loading ? "Saving..." : "Save Draft"}
+        </button>
 
         <button
-          onClick={() => submitOpportunity(false)}
+          type="submit"
           disabled={loading}
           className="bg-blue-600 text-white px-6 py-2 rounded disabled:opacity-50"
         >
