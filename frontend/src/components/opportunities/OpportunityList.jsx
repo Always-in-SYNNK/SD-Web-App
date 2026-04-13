@@ -1,42 +1,56 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { OpportunityCard } from "./OpportunityCard";
+import { QualificationCard } from "./QualificationCard";
 
 export function OpportunityList({ search, location, nqf, field }) {
-  const [opportunities, setOpportunities] = useState([]);
+  const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchOpportunities = async () => {
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
 
-      let query = supabase.from("opportunities").select("*");
+      try {
+        let query = supabase.from("opportunities").select("*");
 
-      if (search) {
-        query = query.or(
-          `title.ilike.%${search}%,description.ilike.%${search}%`
-        );
-      }
+        if (search)   query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+        if (location) query = query.ilike("location", `%${location}%`);
+        if (nqf)      query = query.eq("nqf_level", nqf);
+        if (field)    query = query.eq("field", field);
 
-      if (search) query = query.ilike("title", `%${search}%`);
-      if (location) query = query.ilike("location", `%${location}%`);
-      if (nqf) query = query.eq("nqf_level", nqf);
-      if (field) query = query.eq("field", field);
+        const { data: oppsData, error: oppsError } = await query;
+        if (oppsError) throw new Error(oppsError.message);
 
-      const { data, error } = await query;
+        let qualsData, qualsError;
 
-      if (error) {
-        setError(error.message);
-      } else {
-        setOpportunities(data);
+        if (search) {
+          ({ data: qualsData, error: qualsError } = await supabase.rpc("search_qualifications", { search_term: search }));
+        } else if (field) {
+          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_qualifications_by_field", { field_input: field }));
+        } else if (nqf) {
+          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_qualifications_by_nqf_level", { level_input: nqf }));
+        } else {
+          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_all_qualifications"));
+        }
+
+        if (qualsError) throw new Error(qualsError.message);
+
+        const taggedOpps  = oppsData.map((o) => ({ ...o, _type: "opportunity" }));
+        const taggedQuals = qualsData.map((q) => ({ ...q, _type: "qualification" }));
+        const combined    = [...taggedOpps, ...taggedQuals];
+
+        setItems(combined);
+      } catch (err) {
+        setError(err.message);
       }
 
       setLoading(false);
     };
 
-    fetchOpportunities();
+    fetchData();
   }, [search, location, nqf, field]);
 
   if (loading) {
@@ -56,20 +70,23 @@ export function OpportunityList({ search, location, nqf, field }) {
     );
   }
 
-  if (opportunities.length === 0) {
+  if (items.length === 0) {
     return (
       <section className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="font-bold text-gray-700">No opportunities found</p>
+        <p className="font-bold text-gray-700">No results found</p>
         <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
       </section>
     );
   }
 
+  const oppsCount  = items.filter((i) => i._type === "opportunity").length;
+  const qualsCount = items.filter((i) => i._type === "qualification").length;
+
   return (
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <small className="text-sm text-gray-500">
-          Showing <strong>{opportunities.length}</strong> verified opportunities
+          Showing <strong>{oppsCount}</strong> opportunities and <strong>{qualsCount}</strong> qualifications
         </small>
         <nav className="flex items-center gap-2">
           <small className="text-xs font-bold uppercase tracking-widest text-gray-400">Sort by:</small>
@@ -82,9 +99,13 @@ export function OpportunityList({ search, location, nqf, field }) {
       </header>
 
       <section className="flex flex-col gap-4">
-        {opportunities.map((opp) => (
-          <OpportunityCard key={opp.id} {...opp} />
-        ))}
+        {items.map((item) =>
+          item._type === "opportunity" ? (
+            <OpportunityCard key={`opp-${item.id}`} {...item} />
+          ) : (
+            <QualificationCard key={`qual-${item.qual_id}`} {...item} />
+          )
+        )}
       </section>
     </section>
   );

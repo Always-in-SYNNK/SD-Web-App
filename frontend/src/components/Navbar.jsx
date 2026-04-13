@@ -20,7 +20,7 @@ export function Navbar() {
           
           {/* STUDENT */}
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/dashboard")} //route configured in App.jsx
             className="px-6 py-2 rounded-full text-sm font-semibold text-[#035b9d] hover:bg-blue-50 transition"
           >
             Student Portal
