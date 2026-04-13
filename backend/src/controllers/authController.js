@@ -3,34 +3,56 @@
 const verifyGoogleToken = require("../config/googleAuth");
 const generateJWT = require("../utils/generateJWT");
 
+// TEMP: replace with DB later
+const users = []; 
+
 exports.googleAuth = async (req, res) => {
   try {
-    const { token, role } = req.body;
+    const { token, role: selectedRole } = req.body;
 
-    console.log("REQ BODY:", req.body); //debugging
-
-    if (!role) {
-      return res.status(400).json({ error: "Role required" });
+    if (!token) {
+      return res.status(400).json({ error: "Google token required" });
     }
 
     const payload = await verifyGoogleToken(token);
 
-    //temporary for now, will check DB later to see if the user exists and get their role
-    const userData = { 
-      id: payload.sub,
-      email: payload.email,
-      name: payload.name,
-      role: role,
-    };
+    const { sub, email, name } = payload;
 
-    const jwtToken = generateJWT(userData); //session token
+    //Check if user exists (TEMPORARY - REPLACE WITH DB QUERY LATER)
+    let user = users.find((u) => u.email === email);
+
+    if (user) {
+      console.log("Existing user login:", email);
+    } else {
+      if (!selectedRole) {
+        return res.status(400).json({ error: "Role required for new users" });
+      }
+
+      user = {
+        id: sub,
+        email,
+        name,
+        role: selectedRole,
+      };
+
+      users.push(user);
+
+      console.log("New user created:", user);
+    }
+
+    const jwtToken = generateJWT({ //session token
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     res.json({
-      user: userData,
+      user,
       token: jwtToken,
     });
 
   } catch (err) {
+    console.error("Auth error:", err);
     res.status(401).json({ error: "Invalid Google token" });
   }
 };

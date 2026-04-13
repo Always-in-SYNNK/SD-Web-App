@@ -1,11 +1,12 @@
 //GOOGLE LOGIN BUTTON COMPONENT - TRIGGERS GOOGLE OAUTH FLOW AND HANDLES RESPONSE
-
+import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/useAuth";
 import { loginWithGoogle } from "../../services/authService";
 
-export default function GoogleLoginButton({ setPage }) {
+export default function GoogleLoginButton() {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSuccess = async (res) => {
     try {
@@ -14,21 +15,24 @@ export default function GoogleLoginButton({ setPage }) {
 
       const data = await loginWithGoogle(googleToken, selectedRole);
 
-      login(data.user, data.token, data.user.role || selectedRole);
+      login(data.user, data.token);
 
       if (data.user.role === "applicant") {
-        setPage("dashboard");
-      } //add other roles and redirects as needed
+        navigate("/dashboard");
+      }
+      else if (data.user.role === "provider") {
+        navigate("/pipeline");
+      }
 
     } catch (err) {
       console.error("Login failed:", err);
-      setPage("autherror");
+      navigate("/auth-error");
     }
   };
 
   const handleError = () => {
     console.error("Google OAuth failed");
-    setPage("autherror");
+    navigate("/auth-error");
   };
 
   return <GoogleLogin onSuccess={handleSuccess} onError={handleError} />;

@@ -1,13 +1,4 @@
-/**
- * ApplicantLoginPage
- *
- * Props:
- *   setPage {function}  e.g. setPage('home')
- *
- * Usage in your app router:
- *   case 'applicant-login': return <ApplicantLogin setPage={setPage} />;
- */
-
+import { useNavigate } from "react-router-dom";
 import AuthLayout        from "../components/auth/AuthLayout";
 import AuthHeroPanel     from "../components/auth/AuthHeroPanel";
 import AuthFormPanel     from "../components/auth/AuthFormPanel";
@@ -16,7 +7,8 @@ import GoogleLoginButton from "../components/auth/GoogleLoginButton";
 const HERO_IMAGE_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuDxNPyShfIjVGSg0JRX5t6gMdYfWSad3-JBDqPllih_qCrvQI6gj0CkdUZ6FgGjkbWALsM8D8lnpJO1k3L3CKiApnRUHx53SVp-w0qKYzGb0PiezwFvCvQAeJltcACD3F_sFQytmH-BXopRUBDOUUVkz1hGSOOgrpHiHmDCITIhPQiEUhAbAT-czEzzxCJDgArueKQb7uYLuYJEeNx5F4nfdPkhKG36Nyxhajn-jkyO7wFtuj5646YpTAbsvwzASsMdGHvTMJABHVqA";
 
-export default function ApplicantLogin({ setPage }) {
+export default function ApplicantLogin() {
+  const navigate = useNavigate();
   return (
     <AuthLayout
       heroPanel={
@@ -31,7 +23,7 @@ export default function ApplicantLogin({ setPage }) {
         />
       }
       formPanel={
-        <AuthFormPanel onBack={() => setPage("home")}>
+        <AuthFormPanel onBack={() => navigate("/")}>
 
           <div className="text-center mb-10">
             <h2 className="text-blue-950 text-3xl font-bold mb-3">Welcome Back</h2>
@@ -41,7 +33,7 @@ export default function ApplicantLogin({ setPage }) {
           </div>
 
           <div className="max-w-md mx-auto w-full space-y-8">
-            <GoogleLoginButton setPage={setPage} />
+            <GoogleLoginButton />
 
             <div className="relative flex items-center justify-center" role="separator">
               <div className="flex-grow border-t border-slate-100" />

@@ -6,7 +6,7 @@ import Home from "./pages/Home";
 import StudentDashboard from "./pages/StudentDashboard";
 import Opportunities from "./pages/Opportunities";
 import OpportunityDetail from "./pages/OpportunityDetail";
-import ValidationPipeline from "./pages/ValidationPipeline";
+//import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
 import DefineRequirements from "./pages/DefineRequirements";
 import ApplicantLogin from "./pages/ApplicantLogin";
@@ -21,25 +21,53 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/opportunities" element={<Opportunities />} />
-            <Route path="/opportunities/:id" element={<OpportunityDetail />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <StudentDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/applications" element={<StudentDashboard />} />
-            <Route path="/analytics" element={<StudentDashboard />} />
-            <Route path="/verification" element={<StudentDashboard />} />
-
-            {/* Employer routes */}
-            <Route path="/pipeline" element={<ValidationPipeline />} />
-            <Route path="/post" element={<PostOpportunity />} />
-            <Route path="/define" element={<DefineRequirements />} />
 
             {/* Authentication routes */}
             <Route path="/app-login" element={<ApplicantLogin />} />
             <Route path="/auth-error" element={<AuthError />} />
+            <Route path="/unauthorized" element={<h1>Unauthorized</h1>} />
+
+            <Route path="/opportunities" element={<Opportunities />} />
+            <Route path="/opportunities/:id" element={<OpportunityDetail />} />
+
+            {/* Applicant routes */}
+            <Route path="/dashboard" element={ 
+              <ProtectedRoute requiredRole="applicant">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/applications" element={ 
+              <ProtectedRoute requiredRole="applicant">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={ 
+              <ProtectedRoute requiredRole="applicant">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/verification" element={ 
+              <ProtectedRoute requiredRole="applicant">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
+
+
+            {/* Employer routes 
+            <Route path="/pipeline" element={
+              <ProtectedRoute requiredRole="provider">
+                <ValidationPipeline />
+              </ProtectedRoute>
+            } />*/}
+            <Route path="/post" element={<ProtectedRoute requiredRole="provider">
+                <PostOpportunity />
+              </ProtectedRoute>
+            } />
+            <Route path="/define" element={
+              <ProtectedRoute requiredRole="provider">
+                <DefineRequirements />
+              </ProtectedRoute>
+            } />
 
           </Routes>
         </BrowserRouter>

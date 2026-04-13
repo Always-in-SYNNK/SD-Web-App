@@ -18,17 +18,17 @@ export function Navbar() {
 
         <nav className="flex items-center gap-3">
           
-          {/* STUDENT */}
+          {/* APPLICANT */}
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/app-login")}
             className="px-6 py-2 rounded-full text-sm font-semibold text-[#035b9d] hover:bg-blue-50 transition"
           >
-            Student Portal
+            Applicant Portal
           </button>
 
-          {/* ✅ EMPLOYER (THIS IS THE NEW ENTRY POINT) */}
+          {/* EMPLOYER */}
           <button
-            onClick={() => navigate("/pipeline")} 
+            onClick={() => navigate("/pipeline")} //provider login
             className="px-6 py-2 rounded-full text-sm font-semibold bg-[#035b9d] text-white hover:opacity-90 transition"
           >
             Employer Portal
