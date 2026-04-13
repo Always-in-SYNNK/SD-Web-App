@@ -1,25 +1,41 @@
-export function Navbar({ onStudentPortalClick }) {
+import { useNavigate } from "react-router-dom";
+
+export function Navbar() {
+  const navigate = useNavigate();
+
   return (
     <nav className="w-full sticky top-0 z-50 bg-[#f5f3f3]/80 backdrop-blur-xl border-b border-gray-200">
-      <div className="flex justify-between items-center px-8 py-4 max-w-screen-xl mx-auto">
-        <div className="flex items-center gap-12">
-          <a className="text-2xl font-bold text-[#0077B6]" href="#">Growthstage</a>
-          <div className="hidden md:flex gap-8">
-            <a className="text-[#0077B6] font-bold border-b-2 border-[#0077B6] pb-1 text-sm" href="#">Our Vision</a>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
+      <section className="flex justify-between items-center px-8 py-4 max-w-screen-xl mx-auto">
+        
+        <header className="flex items-center gap-12">
+          <a className="text-2xl font-bold text-[#0077B6]" href="/">Growthstage</a>
+          <nav className="hidden md:flex gap-8">
+            <a className="text-[#0077B6] font-bold border-b-2 border-[#0077B6] pb-1 text-sm">
+              Our Vision
+            </a>
+          </nav>
+        </header>
+
+        <nav className="flex items-center gap-3">
+          
+          {/* STUDENT */}
           <button
-            onClick={onStudentPortalClick}
+            onClick={() => navigate("/dashboard")}
             className="px-6 py-2 rounded-full text-sm font-semibold text-[#035b9d] hover:bg-blue-50 transition"
           >
             Student Portal
           </button>
-          <button className="px-6 py-2 rounded-full text-sm font-semibold bg-[#035b9d] text-white hover:opacity-90 transition">
+
+          {/* ✅ EMPLOYER (THIS IS THE NEW ENTRY POINT) */}
+          <button
+            onClick={() => navigate("/pipeline")} 
+            className="px-6 py-2 rounded-full text-sm font-semibold bg-[#035b9d] text-white hover:opacity-90 transition"
+          >
             Employer Portal
           </button>
-        </div>
-      </div>
+
+        </nav>
+      </section>
     </nav>
   );
 }
