@@ -1,23 +1,4 @@
-/**
- * AuthErrorPage
- * Shown when Google authentication fails.
- * Self-contained — no custom Tailwind tokens, no global CSS changes needed.
- *
- * Props:
- *   setPage      {function}  Your app's page switcher
- *   loginPage    {string}    Page key to go back to (default: 'applicant-login')
- *   message      {string}    Optional custom error message
- *
- * Usage:
- *   case 'auth-error': return <AuthErrorPage setPage={setPage} />;
- *
- * NOTE: The logo mark here (chevron/diamond shape) differs from the one on the
- * login page (wave shape). Double-check which is correct and align them.
- */
-
-import ApplicantLogin from "./ApplicantLogin";
-
-/* ─── Sub-components ──────────────────────────────────────────────────────── */
+import { useNavigate } from "react-router-dom";
 
 const LogoMark = () => ( //THIS IS THE CHEVRON/DIAMOND LOGO FROM THE ERROR PAGE MOCKUP. SWAP WITH YOUR GROWTHSTAGELOGO SVG IF YOU WANT THEM CONSISTENT.
   <div className="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white shrink-0">
@@ -48,10 +29,11 @@ const DEFAULT_MESSAGE =
   "We couldn't verify your credentials. Please try again or check your account details.";
 
 export default function AuthErrorPage({
-  setPage,
-  loginPage = "applogin",
+  loginPage = "app-login",
   message   = DEFAULT_MESSAGE,
 }) {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
 
@@ -69,7 +51,7 @@ export default function AuthErrorPage({
 
         <button
           type="button"
-          onClick={() => setPage("home")} //I THINK
+          onClick={() => navigate("/")} //I THINK
           className="flex items-center gap-2 text-sm font-semibold text-blue-900 hover:underline"
         >
           <span
@@ -107,7 +89,7 @@ export default function AuthErrorPage({
           <div className="w-full space-y-3">
             <button
               type="button"
-              onClick={() => setPage(loginPage)}
+              onClick={() => navigate(`/${loginPage}`)}
               className="w-full py-3 px-4 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition-colors flex items-center justify-center gap-2"
             >
               <span

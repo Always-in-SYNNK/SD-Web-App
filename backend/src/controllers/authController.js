@@ -2,9 +2,10 @@
 
 const verifyGoogleToken = require("../config/googleAuth");
 const generateJWT = require("../utils/generateJWT");
+const supabase = require("../config/supabaseClient");
 
 // TEMP: replace with DB later
-const users = []; 
+//const users = []; 
 
 exports.googleAuth = async (req, res) => {
   try {
@@ -15,10 +16,9 @@ exports.googleAuth = async (req, res) => {
     }
 
     const payload = await verifyGoogleToken(token);
-
     const { sub, email, name } = payload;
 
-    //Check if user exists (TEMPORARY - REPLACE WITH DB QUERY LATER)
+    /*
     let user = users.find((u) => u.email === email);
 
     if (user) {
@@ -38,16 +38,55 @@ exports.googleAuth = async (req, res) => {
       users.push(user);
 
       console.log("New user created:", user);
+    } */
+
+    // Check if user exists in DB
+    const { data: existingProfile, error: fetchError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("email", email)
+      .single();
+
+    let profile;
+
+    if (existingProfile){
+      profile = existingProfile;
+      console.log("Existing user login:", email);
+    } else {
+
+      if (!selectedRole) {
+        return res.status(400).json({ error: "Role required for new users" });
+      }
+      const { data: newProfile, error} = await supabase //move functionality to userService later
+        .from("profiles")
+        .insert([{ id: sub, user_id: null, role: selectedRole, full_name: name, email }]) // Ignore supabase authentication for now, delete later
+        .select()
+        .single();
+
+      profile = newProfile;
+
+      //Create role-specific profile
+      if (selectedRole === "applicant") {
+        await supabase.from("applicant_profiles").insert([
+          { profile_id: profile.id }  //as in sub
+        ]);
+      }
+
+      if (selectedRole === "provider") {
+        await supabase.from("provider_profiles").insert([
+          { profile_id: profile.id }
+        ]);
+      }
     }
 
     const jwtToken = generateJWT({ //session token
-      id: user.id,
-      email: user.email,
-      role: user.role,
+      id: profile.id,
+      email: profile.email,
+      role: profile.role,
     });
 
     res.json({
-      user,
+      user: profile,
       token: jwtToken,
     });
 

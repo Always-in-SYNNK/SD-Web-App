@@ -6,7 +6,7 @@ import Home from "./pages/Home";
 import StudentDashboard from "./pages/StudentDashboard";
 import Opportunities from "./pages/Opportunities";
 import OpportunityDetail from "./pages/OpportunityDetail";
-//import ValidationPipeline from "./pages/ValidationPipeline";
+import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
 import DefineRequirements from "./pages/DefineRequirements";
 import ApplicantLogin from "./pages/ApplicantLogin";
@@ -53,12 +53,12 @@ export default function App() {
             } />
 
 
-            {/* Employer routes 
+            {/* Employer routes */}
             <Route path="/pipeline" element={
               <ProtectedRoute requiredRole="provider">
                 <ValidationPipeline />
               </ProtectedRoute>
-            } />*/}
+            } />
             <Route path="/post" element={<ProtectedRoute requiredRole="provider">
                 <PostOpportunity />
               </ProtectedRoute>

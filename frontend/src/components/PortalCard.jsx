@@ -5,9 +5,9 @@ export function PortalCard({ title, description, items, buttonText, accentColor 
 
   const handleClick = () => {
     if (title === "Employer Portal") {
-      navigate("/pipeline"); //provider login
+      navigate("/pipeline", { state: { role: "provider" } }); //provider login
     } else if (title === "Applicant Portal") {
-      navigate("/app-login");
+      navigate("/app-login", { state: { role: "applicant" } });
     }
   };
 
@@ -32,7 +32,7 @@ export function PortalCard({ title, description, items, buttonText, accentColor 
 
       <button
         onClick={handleClick}
-       className="mt-8 bg-[#035b9d] text-white py-3 rounded-full font-semibold hover:opacity-90 transition"
+        className="mt-8 bg-[#035b9d] text-white py-3 rounded-full font-semibold hover:opacity-90 transition"
       >
         {buttonText}
       </button>

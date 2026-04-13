@@ -1,5 +1,6 @@
 //GOOGLE LOGIN BUTTON COMPONENT - TRIGGERS GOOGLE OAUTH FLOW AND HANDLES RESPONSE
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/useAuth";
 import { loginWithGoogle } from "../../services/authService";
@@ -7,11 +8,13 @@ import { loginWithGoogle } from "../../services/authService";
 export default function GoogleLoginButton() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   const handleSuccess = async (res) => {
     try {
       const googleToken = res.credential;
-      const selectedRole = localStorage.getItem("selectedRole");
+      const selectedRole = location.state?.role;
 
       const data = await loginWithGoogle(googleToken, selectedRole);
 

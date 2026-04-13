@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
     }
   });
   const [token, setToken] = useState(() => localStorage.getItem("token"));
-  const role = user?.role || localStorage.getItem("role") || null;
+  const role = user?.role || null;
 
   const login = (userData, jwtToken) => {
     setUser(userData);

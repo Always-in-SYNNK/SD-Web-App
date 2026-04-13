@@ -20,7 +20,7 @@ export function Navbar() {
           
           {/* APPLICANT */}
           <button
-            onClick={() => navigate("/app-login")}
+            onClick={() => navigate("/app-login", { state: { role: "applicant" } })}
             className="px-6 py-2 rounded-full text-sm font-semibold text-[#035b9d] hover:bg-blue-50 transition"
           >
             Applicant Portal
@@ -28,7 +28,7 @@ export function Navbar() {
 
           {/* EMPLOYER */}
           <button
-            onClick={() => navigate("/pipeline")} //provider login
+            onClick={() => navigate("/pipeline", { state: { role: "provider" } })} //provider login
             className="px-6 py-2 rounded-full text-sm font-semibold bg-[#035b9d] text-white hover:opacity-90 transition"
           >
             Employer Portal
