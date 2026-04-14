@@ -9,6 +9,8 @@ export function Sidebar() {
     { icon: "📄", label: "Applications", path: "/applications" },
     { icon: "📊", label: "Analytics", path: "/analytics" },
     { icon: "✅", label: "Verification", path: "/verification" },
+    { icon: "🛠️", label: "Admin console", path: "/admin" },
+    
   ];
 
   return (

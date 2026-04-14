@@ -6,6 +6,7 @@ import OpportunityDetail from "./pages/OpportunityDetail";
 import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
 import DefineRequirements from "./pages/DefineRequirements";
+import AdminConsole from "./pages/AdminConsole";
 
 export default function App() {
   return (
@@ -18,8 +19,8 @@ export default function App() {
         <Route path="/applications" element={<StudentDashboard />} />
         <Route path="/analytics" element={<StudentDashboard />} />
         <Route path="/verification" element={<StudentDashboard />} />
+        <Route path="/admin" element={<AdminConsole />} />
 
-        // Employer routes
         <Route path="/pipeline" element={<ValidationPipeline />} />
         <Route path="/post" element={<PostOpportunity />} />
         <Route path="/define" element={<DefineRequirements />} />
