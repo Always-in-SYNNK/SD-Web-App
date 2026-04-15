@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 export function PortalCard({ title, description, items, buttonText, accentColor }) {
   const navigate = useNavigate();
 
-  //const handleClick = () => {
-   // if (title === "Employer Portal") {
-    //  navigate("/pipeline"); // 👈 make sure route exists in App.jsx
-    //}
-  //};
+  const handleClick = () => {
+    if (title === "Employer Portal") {
+      navigate("/prov-login", { state: { role: "provider" } }); //Tash uses localStorage
+    } else if (title === "Applicant Portal") {
+      navigate("/app-login", { state: { role: "applicant" } });
+    }
+  };
 
   return (
     <article className={`bg-white rounded-3xl border border-gray-200 border-t-4 p-10 flex flex-col justify-between shadow-sm ${accentColor}`}>
@@ -29,8 +31,8 @@ export function PortalCard({ title, description, items, buttonText, accentColor 
       </section>
 
       <button
-       // onClick={handleClick}   // ✅ FIXED
-       // className="mt-8 bg-[#035b9d] text-white py-3 rounded-full font-semibold hover:opacity-90 transition"
+        onClick={handleClick}
+        className="mt-8 bg-[#035b9d] text-white py-3 rounded-full font-semibold hover:opacity-90 transition"
       >
         {buttonText}
       </button>

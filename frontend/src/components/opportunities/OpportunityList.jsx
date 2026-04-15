@@ -57,7 +57,7 @@ export function OpportunityList({ search, location, nqf, field }) {
     return (
       <section className="flex items-center justify-center py-24">
         <i className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin block" role="status" aria-label="Loading" />
-      </section>
+      </section>// loading spinner
     );
   }
 
