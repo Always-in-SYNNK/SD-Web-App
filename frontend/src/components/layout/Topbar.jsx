@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 
 const Topbar = () => {
   const [fullName, setFullName] = useState("...");
-  const [orgName, setOrgName] = useState("");
+  const [orgName, setOrgName] = useState("...");
 
   useEffect(() => {
     const loadUser = async () => {

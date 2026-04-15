@@ -27,6 +27,7 @@ const ValidationPipeline = () => {
       setLoading(false);
       return;
     }
+    //const TEMP_PROVIDER_ID = "96e03006-4350-4885-8b2e-f030e527d577";
 
     // Get their profile (role tells us if admin or provider)
     const { data: profile, error: profileError } = await supabase
@@ -53,6 +54,7 @@ const ValidationPipeline = () => {
           organisation_name
         )
       `)
+      // .eq("provider_id", TEMP_PROVIDER_ID) //REMEMEBER TO COMMENT THIS OUT
       .order("created_at", { ascending: false });
 
     // Providers only see their own opportunities; admins see all

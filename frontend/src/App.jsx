@@ -9,6 +9,7 @@ import OpportunityDetail from "./pages/OpportunityDetail";
 import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
 import DefineRequirements from "./pages/DefineRequirements";
+import AdminConsole from "./pages/AdminConsole";
 import ApplicantLogin from "./pages/ApplicantLogin";
 import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
@@ -54,6 +55,7 @@ export default function App() {
               </ProtectedRoute>
             } />
 
+        <Route path="/admin" element={<AdminConsole />} />
 
             {/* Employer routes - removed protected routing for now */}
             <Route path="/pipeline" element={
