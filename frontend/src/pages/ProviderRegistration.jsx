@@ -1,9 +1,3 @@
-/**
- * ProviderRegistration
- * Step 2 of provider signup - collects company details after email verification
- * Uses same AuthLayout + AuthHeroPanel + AuthFormPanel as login
- */
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
@@ -121,8 +115,8 @@ export default function ProviderRegistration() {
             </p>
           )}
 
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto w-full space-y-5">
-            <section className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="max-w-md mx-auto w-full">
+            <section className="grid grid-cols-2 gap-4 mb-4">
               <label className="block">
                 <strong className="text-sm font-semibold text-slate-700 block mb-1">
                   Company Name <small className="text-red-500">*</small>
@@ -133,7 +127,7 @@ export default function ProviderRegistration() {
                   value={formData.companyName}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 />
               </label>
 
@@ -146,12 +140,12 @@ export default function ProviderRegistration() {
                   name="regNumber"
                   value={formData.regNumber}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 />
               </label>
             </section>
 
-            <label className="block">
+            <label className="block mb-4">
               <strong className="text-sm font-semibold text-slate-700 block mb-1">
                 Industry <small className="text-red-500">*</small>
               </strong>
@@ -160,7 +154,7 @@ export default function ProviderRegistration() {
                 value={formData.industry}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100 transition-colors bg-white"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100 bg-white"
               >
                 <option value="">Select industry...</option>
                 <option value="technology">Technology & IT</option>
@@ -174,7 +168,7 @@ export default function ProviderRegistration() {
               </select>
             </label>
 
-            <section className="grid grid-cols-2 gap-4">
+            <section className="grid grid-cols-2 gap-4 mb-4">
               <label className="block">
                 <strong className="text-sm font-semibold text-slate-700 block mb-1">
                   Contact Person <small className="text-red-500">*</small>
@@ -185,7 +179,7 @@ export default function ProviderRegistration() {
                   value={formData.contactPerson}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 />
               </label>
 
@@ -199,12 +193,12 @@ export default function ProviderRegistration() {
                   value={formData.phoneNumber}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                 />
               </label>
             </section>
 
-            <label className="block">
+            <label className="block mb-4">
               <strong className="text-sm font-semibold text-slate-700 block mb-1">
                 Work Email
               </strong>
@@ -217,7 +211,7 @@ export default function ProviderRegistration() {
               />
             </label>
 
-            <label className="flex items-start gap-3 mt-6">
+            <label className="flex items-start gap-3 mt-6 mb-6">
               <input
                 type="checkbox"
                 required
@@ -231,7 +225,7 @@ export default function ProviderRegistration() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-[0.98] mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition-colors active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Processing..." : "Register and Continue →"}
             </button>

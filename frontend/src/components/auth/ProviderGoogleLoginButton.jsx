@@ -1,8 +1,3 @@
-/**
- * ProviderGoogleLoginButton
- * Uses Google Identity Services with credential response
- */
-
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -78,8 +73,6 @@ export default function ProviderGoogleLoginButton({
           width: "100%",
         }
       );
-    } else {
-      console.error("Google Identity Services not loaded");
     }
   }, [handleCredentialResponse]);
 
