@@ -5,7 +5,7 @@ export function PortalCard({ title, description, items, buttonText, accentColor 
 
   const handleClick = () => {
     if (title === "Employer Portal") {
-      navigate("/pipeline", { state: { role: "provider" } }); //provider login
+      navigate("/prov-login", { state: { role: "provider" } }); //Tash uses localStorage
     } else if (title === "Applicant Portal") {
       navigate("/app-login", { state: { role: "applicant" } });
     }

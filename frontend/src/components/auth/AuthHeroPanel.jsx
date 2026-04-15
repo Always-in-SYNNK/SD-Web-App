@@ -3,7 +3,7 @@
  * Left-side visual panel. Fully self-contained:
  *   - No custom Tailwind tokens (uses standard equivalents)
  *   - No changes to tailwind.config.js or index.html required
- *   - Fonts injected into <head> via useEffect on mount
+ *   - Fonts injected into <head> via useAuthFonts on mount
  *
  * Standard Tailwind → original brand values:
  *   blue-950  ≈ brand-dark   #002356
@@ -11,7 +11,7 @@
  *   sky-400   ≈ brand-accent #0ea5e9
  */
 
-import { useEffect } from "react";
+import useAuthFonts from "./useAuthFonts";
 
 /* Replaces .bg-grid-overlay — no global CSS class needed */
 const gridOverlayStyle = {
@@ -21,36 +21,6 @@ const gridOverlayStyle = {
   `,
   backgroundSize: "40px 40px",
 };
-
-/* Appended to <head> once on mount, removed on unmount */
-function useAuthFonts() {
-  useEffect(() => {
-    const toInject = [
-      {
-        id:   "auth-font-public-sans",
-        href: "https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;600;700;900&display=swap",
-      },
-      {
-        id:   "auth-font-material-symbols",
-        href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200",
-      },
-    ];
-
-    const injected = [];
-    toInject.forEach(({ id, href }) => {
-      if (!document.getElementById(id)) {
-        const link = Object.assign(document.createElement("link"), {
-          id, rel: "stylesheet", href,
-        });
-        document.head.appendChild(link);
-        injected.push(link);
-      }
-    });
-
-    // Clean up if the auth pages are ever unmounted entirely
-    return () => injected.forEach((el) => el.remove());
-  }, []);
-}
 
 const GrowthStageLogo = () => (
   <div className="size-10" aria-hidden="true">

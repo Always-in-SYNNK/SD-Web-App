@@ -28,7 +28,7 @@ export function Navbar() {
 
           {/* EMPLOYER */}
           <button
-            onClick={() => navigate("/pipeline", { state: { role: "provider" } })} //provider login
+            onClick={() => navigate("/prov-login", { state: { role: "provider" } })} //Tash actually uses localStorage
             className="px-6 py-2 rounded-full text-sm font-semibold bg-[#035b9d] text-white hover:opacity-90 transition"
           >
             Employer Portal

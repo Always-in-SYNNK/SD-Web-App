@@ -1,6 +1,9 @@
+import useAuthFonts from "../components/auth/useAuthFonts";
 import { useNavigate } from "react-router-dom";
 
-const LogoMark = () => ( //THIS IS THE CHEVRON/DIAMOND LOGO FROM THE ERROR PAGE MOCKUP. SWAP WITH YOUR GROWTHSTAGELOGO SVG IF YOU WANT THEM CONSISTENT.
+/* ─── Sub-components ──────────────────────────────────────────────────────── */
+
+const LogoMark = () => (
   <div className="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white shrink-0">
     {/* NOTE: This is the chevron/diamond logo from the error page mockup.
         Swap with your GrowthStageLogo SVG if you want them consistent. */}
@@ -23,6 +26,10 @@ const BackgroundLayers = () => (
   </div>
 );
 
+/* Shared inline style for all Material Symbols icons on this page */
+const iconStyle = { fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" };
+const iconStyleFilled = { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24", fontSize: "2.25rem" };
+
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 
 const DEFAULT_MESSAGE =
@@ -32,6 +39,7 @@ export default function AuthErrorPage({
   loginPage = "app-login",
   message   = DEFAULT_MESSAGE,
 }) {
+  useAuthFonts();
   const navigate = useNavigate();
 
   return (
@@ -45,21 +53,21 @@ export default function AuthErrorPage({
             className="text-blue-900 font-bold text-xl tracking-tight"
             style={{ fontFamily: "'Public Sans', system-ui, sans-serif" }}
           >
-            GrowthStage SA
+            GrowthStageSA
           </span>
         </div>
 
         <button
           type="button"
-          onClick={() => navigate("/")} //I THINK
+          onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-semibold text-blue-900 hover:underline"
         >
           <span
-            className="material-symbols-outlined align-middle"
+            className="material-symbols-outlined"
             aria-hidden="true"
-            style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+            style={iconStyle}
           >
-            arrow_back 
+            arrow_back
           </span>
           Back to Home
         </button>
@@ -73,8 +81,8 @@ export default function AuthErrorPage({
           <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-6" aria-hidden="true">
             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-900">
               <span
-                className="material-symbols-outlined text-4xl"
-                style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24", fontSize: "2.25rem" }}
+                className="material-symbols-outlined"
+                style={iconStyleFilled}
               >
                 lock_reset
               </span>
@@ -85,7 +93,6 @@ export default function AuthErrorPage({
 
           <p className="text-gray-600 mb-8 leading-relaxed">{message}</p>
 
-          {/* Actions */}
           <div className="w-full space-y-3">
             <button
               type="button"
@@ -93,9 +100,9 @@ export default function AuthErrorPage({
               className="w-full py-3 px-4 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition-colors flex items-center justify-center gap-2"
             >
               <span
-                className="material-symbols-outlined align-middle"
+                className="material-symbols-outlined"
                 aria-hidden="true"
-                style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                style={iconStyle}
               >
                 refresh
               </span>

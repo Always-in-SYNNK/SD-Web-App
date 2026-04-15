@@ -10,9 +10,18 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
   useEffect(() => {
     if (!token) {
-      navigate("/auth-error");
+      navigate("/auth-error", {
+        state: {
+          loginPage: requiredRole === "provider" ? "prov-login" : "app-login",
+          message: "You must be logged in to access this page.",
+        },
+      });
     } else if (requiredRole && role !== requiredRole) {
-      navigate("/unauthorized"); // make pretty page for this later
+      navigate("/unauthorized", {
+        state: {
+          message: "You are not authorized to access this page.",
+        },
+      });
     }
   }, [token, role, requiredRole, navigate]);
 

@@ -29,7 +29,7 @@ export default function Home() {
               items={["Verified Talent Shortlists", "Compliance Dashboards", "Payroll Solutions"]}
               buttonText="Enter Employer Portal"
               accentColor="border-t-yellow-600"
-              //onClick={() => navigate("/pipeline")} 
+              //onClick={() => navigate("/prov-login")} 
             />{/* provider login */}
           </section>
         </section>

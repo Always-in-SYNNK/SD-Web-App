@@ -6,7 +6,7 @@ const { googleAuth } = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const supabase = require("../config/supabaseClient");
 
-router.post("/google", googleAuth);
+router.post("/google", googleAuth); // POST /api/auth/applicant/google??
 
 //me endpoint for session testing - returns user info from JWT token if authenticated
 router.get("/me", authMiddleware, async (req, res) => {

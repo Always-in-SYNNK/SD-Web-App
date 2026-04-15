@@ -1,10 +1,16 @@
-//ENTRY POINT OF THE BACKEND, STARTS THE SERVER AND LISTENS ON PORT 5000
+// ============================================================
+// ENTRY POINT — Loads env vars and starts the HTTP server
+// ============================================================
 
 require("dotenv").config();
-const app = require("./app");
 
-const PORT = 5000;
+const app  = require("./app");
+
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`🔑 Google Client ID : ${process.env.GOOGLE_CLIENT_ID  ? "Configured ✓" : "MISSING ✗"}`);
+  console.log(`🗄️  Supabase URL     : ${process.env.SUPABASE_URL       ? "Configured ✓" : "MISSING ✗"}`);
+  console.log(`📧 Email user       : ${process.env.EMAIL_USER         ? "Configured ✓" : "MISSING ✗"}`);
 });

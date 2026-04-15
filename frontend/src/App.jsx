@@ -10,6 +10,7 @@ import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
 import DefineRequirements from "./pages/DefineRequirements";
 import ApplicantLogin from "./pages/ApplicantLogin";
+import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
 import ProtectedRoute from "./routes/protectedRoute";
 
@@ -24,6 +25,7 @@ export default function App() {
 
             {/* Authentication routes */}
             <Route path="/app-login" element={<ApplicantLogin />} />
+            <Route path="/prov-login" element={<ProviderLogin />} />
             <Route path="/auth-error" element={<AuthError />} />
             <Route path="/unauthorized" element={<h1>Unauthorized</h1>} />
 
@@ -53,20 +55,15 @@ export default function App() {
             } />
 
 
-            {/* Employer routes */}
+            {/* Employer routes - removed protected routing for now */}
             <Route path="/pipeline" element={
-              <ProtectedRoute requiredRole="provider">
                 <ValidationPipeline />
-              </ProtectedRoute>
             } />
-            <Route path="/post" element={<ProtectedRoute requiredRole="provider">
+            <Route path="/post" element={
                 <PostOpportunity />
-              </ProtectedRoute>
             } />
             <Route path="/define" element={
-              <ProtectedRoute requiredRole="provider">
                 <DefineRequirements />
-              </ProtectedRoute>
             } />
 
           </Routes>

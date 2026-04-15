@@ -28,7 +28,7 @@ export default function ApplicantLogin() {
           <div className="text-center mb-10">
             <h2 className="text-blue-950 text-3xl font-bold mb-3">Welcome Back</h2>
             <p className="text-slate-500 font-medium">
-              One click to sign in or create your candidate account.
+              Sign in or create your account and apply for opportunities.
             </p>
           </div>
 
