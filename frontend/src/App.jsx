@@ -14,6 +14,7 @@ import ApplicantLogin from "./pages/ApplicantLogin";
 import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
 import ProtectedRoute from "./routes/protectedRoute";
+import ProviderRegistration from "./pages/ProviderRegistration";
 
 export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/define" element={
                 <DefineRequirements />
             } />
+            <Route path="/provider-registration" element={<ProviderRegistration />} />
 
           </Routes>
         </BrowserRouter>

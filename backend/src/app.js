@@ -7,8 +7,8 @@ const cors    = require("cors");
 const session = require("express-session");
 const path    = require("path");
 
-const applicantAuthRoutes = require("./routes/applicantAuthRoutes"); // your JWT-based flow
-const providerAuthRoutes  = require("./routes/providerAuthRoutes");  // Tash's session-based flow
+const applicantAuthRoutes = require("./routes/applicantAuthRoutes");
+const providerAuthRoutes  = require("./routes/providerAuthRoutes");
 
 const app = express();
 
@@ -24,7 +24,6 @@ const allowedOrigins = [
 // ─── Core middleware ──────────────────────────────────────────────────────────
 
 app.use(cors({
-  // "credentials: include" in fetch requires a specific allowed origin, not "*".
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
@@ -36,9 +35,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// ─── Session middleware (required by Tash's provider flow) ───────────────────
-// Your applicant flow uses stateless JWTs so this doesn't affect it,
-// but it must be registered before the provider routes are mounted.
+// ─── Session middleware ───────────────────────────────────────────────────────
 
 app.use(session({
   secret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
@@ -46,36 +43,17 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // true in prod (HTTPS), false in dev
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 24 * 60 * 60 * 1000,
   },
 }));
 
-// ─── Static files (Tash's frontend pages, if still served from here) ─────────
-// Remove this block if your frontend is served by a separate dev server (e.g. Vite).
-
-app.use(express.static(path.join(__dirname, "../public")));
-
 // ─── Auth routes ─────────────────────────────────────────────────────────────
-// Separate prefixes keep the two flows completely isolated.
-//
-//  Applicant (your flow)  →  POST /api/auth/applicant/google
-//                             GET  /api/auth/applicant/me
-//
-//  Provider  (Tash's flow) → POST /api/auth/provider/check-user
-//                             POST /api/auth/provider/signup
-//                             GET  /api/auth/provider/pending-registration
-//                             POST /api/auth/provider/complete-registration
-//                             POST /api/auth/provider/signin
-//                             POST /api/auth/provider/logout
-//                             GET  /api/auth/provider/me
 
 app.use("/api/auth/applicant", applicantAuthRoutes);
 app.use("/api/auth/provider",  providerAuthRoutes);
 
-// ─── Email verification (Tash's flow) ────────────────────────────────────────
-// Kept here (not inside the router) because it lives at a top-level path and
-// relies on req.session, which needs to be set before the redirect to /register.
+// ─── Email verification ───────────────────────────────────────────────────────
 
 const supabase = require("./config/supabaseClient");
 
@@ -86,7 +64,7 @@ app.get("/verify-email", async (req, res) => {
   console.log("Token:", token);
 
   if (!token) {
-    return res.status(400).send(errorPage("Missing token", "No verification token was provided."));
+    return res.redirect("http://localhost:5173/auth-error?message=missing-token");
   }
 
   try {
@@ -97,12 +75,12 @@ app.get("/verify-email", async (req, res) => {
       .single();
 
     if (error || !pending) {
-      return res.send(errorPage("Invalid or Expired Link", "The verification link is invalid or has already been used."));
+      return res.redirect("http://localhost:5173/auth-error?message=invalid-link");
     }
 
     if (new Date(pending.token_expires) < new Date()) {
       await supabase.from("pending_verifications").delete().eq("verification_token", token);
-      return res.send(errorPage("Link Expired", "The link expired after 24 hours. Please sign up again."));
+      return res.redirect("http://localhost:5173/auth-error?message=expired-link");
     }
 
     await supabase
@@ -116,25 +94,146 @@ app.get("/verify-email", async (req, res) => {
 
     return res.send(`
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
       <head>
-        <title>Email Verified – SA Learnerships Portal</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verified | GrowthStageSA</title>
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f3f4f6; }
-          main { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-          h1 { color: #4F46E5; }
-          .email { background: #f3f4f6; padding: 10px; border-radius: 5px; font-family: monospace; margin: 20px 0; word-break: break-all; }
-          button { background: #4F46E5; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 20px; }
-          button:hover { background: #4338ca; }
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          body {
+            font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f0eeea 0%, #e8e5df 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+          }
+          main {
+            max-width: 480px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+          }
+          header {
+            background: #002356;
+            padding: 2rem;
+            text-align: center;
+          }
+          .logo {
+            width: 64px;
+            height: 64px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+          }
+          .logo svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+          }
+          h1 {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+          }
+          section {
+            padding: 2rem;
+            text-align: center;
+          }
+          .checkmark {
+            width: 72px;
+            height: 72px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+            color: white;
+          }
+          h2 {
+            color: #002356;
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+          }
+          p {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+          }
+          .email {
+            background: #f1f5f9;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #002356;
+            margin: 1.5rem 0;
+            word-break: break-all;
+          }
+          button {
+            background: #002356;
+            color: white;
+            border: none;
+            padding: 0.875rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+          }
+          button:hover {
+            background: #003b8e;
+            transform: translateY(-1px);
+          }
+          footer {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+          }
+          footer small {
+            color: #94a3b8;
+            font-size: 0.75rem;
+          }
         </style>
       </head>
       <body>
         <main>
-          <h1>📝 Almost Done!</h1>
-          <p>Your email has been verified successfully!</p>
-          <p class="email">${pending.email}</p>
-          <p>Please complete your registration form to finish setting up your account.</p>
-          <button onclick="window.location.href='/employer/registration.html'">Continue to Registration →</button>
+          <header>
+            <figure class="logo">
+              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"/>
+              </svg>
+            </figure>
+            <h1>GrowthStageSA</h1>
+          </header>
+          <section>
+            <figure class="checkmark">✓</figure>
+            <h2>Email Verified</h2>
+            <p>Your email has been successfully verified.</p>
+            <p class="email">${pending.email}</p>
+            <button onclick="window.location.href='http://localhost:5173/provider-registration'">
+              Continue to Registration →
+            </button>
+          </section>
+          <footer>
+            <small>Secure verification • Link expires in 24 hours</small>
+          </footer>
         </main>
       </body>
       </html>
@@ -142,24 +241,147 @@ app.get("/verify-email", async (req, res) => {
 
   } catch (err) {
     console.error("Verification error:", err);
-    return res.send(errorPage("Something Went Wrong", "Please try again or contact support."));
+    return res.redirect("http://localhost:5173/auth-error?message=server-error");
   }
 });
 
-// ─── HTML page routes (Tash's static pages) ──────────────────────────────────
-// Remove these if the frontend is fully handled by Vite / a separate server.
+// ─── Helper: Error page (redirects to React home) ────────────────────────────
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
-});
-
-app.get("/employer/registration.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/employer/registration.html"));
-});
-
-app.get("/employer/dashboard.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/employer/dashboard.html"));
-});
+function errorPage(title, message) {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title} | GrowthStageSA</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+          background: linear-gradient(135deg, #f0eeea 0%, #e8e5df 100%);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1rem;
+        }
+        main {
+          max-width: 420px;
+          width: 100%;
+          background: white;
+          border-radius: 2rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          overflow: hidden;
+          text-align: center;
+        }
+        header {
+          background: #002356;
+          padding: 2rem;
+        }
+        .logo {
+          width: 56px;
+          height: 56px;
+          background: rgba(255,255,255,0.1);
+          border-radius: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 0.75rem;
+        }
+        .logo svg {
+          width: 32px;
+          height: 32px;
+          color: white;
+        }
+        h1 {
+          color: white;
+          font-size: 1.25rem;
+          font-weight: 600;
+        }
+        section {
+          padding: 2rem;
+        }
+        .error-icon {
+          width: 64px;
+          height: 64px;
+          background: #ef4444;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 1.25rem;
+          font-size: 2rem;
+          color: white;
+          font-weight: bold;
+        }
+        h2 {
+          color: #002356;
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-bottom: 0.75rem;
+        }
+        p {
+          color: #475569;
+          line-height: 1.5;
+          margin-bottom: 1.5rem;
+        }
+        button {
+          background: #002356;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.5rem;
+          border-radius: 0.75rem;
+          font-weight: 600;
+          font-size: 0.875rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          width: 100%;
+        }
+        button:hover {
+          background: #003b8e;
+        }
+        footer {
+          background: #f8fafc;
+          padding: 0.75rem;
+          border-top: 1px solid #e2e8f0;
+        }
+        footer small {
+          color: #94a3b8;
+          font-size: 0.7rem;
+        }
+      </style>
+    </head>
+    <body>
+      <main>
+        <header>
+          <figure class="logo">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"/>
+            </svg>
+          </figure>
+          <h1>GrowthStageSA</h1>
+        </header>
+        <section>
+          <figure class="error-icon">!</figure>
+          <h2>${title}</h2>
+          <p>${message}</p>
+          <button onclick="window.location.href='http://localhost:5173'">
+            Return to Home
+          </button>
+        </section>
+        <footer>
+          <small>GrowthStage South Africa</small>
+        </footer>
+      </main>
+    </body>
+    </html>
+  `;
+}
 
 // ─── 404 fallback ─────────────────────────────────────────────────────────────
 
@@ -173,21 +395,5 @@ app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
   res.status(500).json({ error: "Internal server error" });
 });
-
-// ─── Helper: plain HTML error page for the email verification flow ────────────
-
-function errorPage(title, message) {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head><title>${title}</title></head>
-    <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-      <h1>${title}</h1>
-      <p>${message}</p>
-      <a href="/">Return Home</a>
-    </body>
-    </html>
-  `;
-}
 
 module.exports = app;
