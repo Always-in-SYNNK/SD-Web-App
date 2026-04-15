@@ -3,43 +3,50 @@ import { useNavigate } from "react-router-dom";
 const Sidebar = () => {
   const navigate = useNavigate();
 
+  const links = [
+    { icon: "🏠", label: "Home", path: "/" },
+    { icon: "📋", label: "Define Requirements", path: "/define" },
+    { icon: "🔍", label: "Validation Pipeline", path: "/pipeline" },
+    { icon: "🛠️", label: "Admin Console", path: "/admin" },
+  ];
+
   return (
-    <nav className="fixed left-0 top-0 h-full w-72 bg-slate-50 p-6">
+    <aside className="h-screen w-64 fixed left-0 top-0 bg-white flex flex-col p-6 space-y-8 shadow-xl text-sm font-medium z-50">
+      <header>
+        <strong className="text-xl font-extrabold text-[#0077B6]">
+          Growthstage
+        </strong>
+        <p className="text-xs text-gray-400 mt-1">Employer Portal</p>
+      </header>
 
-      <h1 className="text-xl font-bold mb-6">Employer Portal</h1>
-
-      {/* 🏠 NEW HOME BUTTON */}
-      <button
-        onClick={() => navigate("/")}
-        className="block w-full text-left p-3 hover:bg-gray-200 rounded"
-      >
-        Home
-      </button>
-
-      <button
-        onClick={() => navigate("/define")}
-        className="block w-full text-left p-3 hover:bg-gray-200 rounded"
-      >
-        Define Requirements
-      </button>
-
-      <button
-        onClick={() => navigate("/pipeline")}
-        className="block w-full text-left p-3 hover:bg-gray-200 rounded"
-      >
-        Validation Pipeline
-      </button>
+      <nav className="flex-1 space-y-2">
+        {links.map(({ icon, label, path }) => (
+          <button
+            key={label}
+            onClick={() =>
+              label === "Admin Console"
+                ? navigate("/admin", { state: { source: "employer" } })
+                : navigate(path)
+            }
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
+              window.location.pathname === path
+                ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
+                : "text-gray-500 hover:bg-gray-50"
+            }`}
+          >
+            <i>{icon}</i>
+            <strong>{label}</strong>
+          </button>
+        ))}
+      </nav>
 
       <button
         onClick={() => navigate("/post")}
-        className="mt-10 w-full py-3 bg-blue-600 text-white rounded-full"
+        className="w-full bg-[#035b9d] text-white py-3 rounded-full text-sm font-semibold hover:opacity-90 transition"
       >
         Post New Opportunity
       </button>
-
-      {/* 🔴 BACKEND NOTE:
-          Could show different menu based on user role */}
-    </nav>
+    </aside>
   );
 };
 
