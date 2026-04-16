@@ -1,63 +1,14 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
 import { OpportunityCard } from "./OpportunityCard";
 import { QualificationCard } from "./QualificationCard";
 
-export function OpportunityList({ search, location, nqf, field }) {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        let query = supabase.from("opportunities").select("*");
-
-        if (search)   query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-        if (location) query = query.ilike("location", `%${location}%`);
-        if (nqf)      query = query.eq("nqf_level", nqf);
-        if (field)    query = query.eq("field", field);
-
-        const { data: oppsData, error: oppsError } = await query;
-        if (oppsError) throw new Error(oppsError.message);
-
-        let qualsData, qualsError;
-
-        if (search) {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("search_qualifications", { search_term: search }));
-        } else if (field) {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_qualifications_by_field", { field_input: field }));
-        } else if (nqf) {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_qualifications_by_nqf_level", { level_input: nqf }));
-        } else {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_all_qualifications"));
-        }
-
-        if (qualsError) throw new Error(qualsError.message);
-
-        const taggedOpps  = oppsData.map((o) => ({ ...o, _type: "opportunity" }));
-        const taggedQuals = qualsData.map((q) => ({ ...q, _type: "qualification" }));
-        const combined    = [...taggedOpps, ...taggedQuals];
-
-        setItems(combined);
-      } catch (err) {
-        setError(err.message);
-      }
-
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [search, location, nqf, field]);
+export function OpportunityList({items = [], loading = false, error = "", summary = { opportunities: 0, qualifications: 0 },pagination = null, onPageChange,
+}) {
 
   if (loading) {
     return (
       <section className="flex items-center justify-center py-24">
         <i className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin block" role="status" aria-label="Loading" />
-      </section>// loading spinner
+      </section>
     );
   }
 
@@ -79,14 +30,11 @@ export function OpportunityList({ search, location, nqf, field }) {
     );
   }
 
-  const oppsCount  = items.filter((i) => i._type === "opportunity").length;
-  const qualsCount = items.filter((i) => i._type === "qualification").length;
-
   return (
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <small className="text-sm text-gray-500">
-          Showing <strong>{oppsCount}</strong> opportunities and <strong>{qualsCount}</strong> qualifications
+          Showing <strong>{summary.opportunities}</strong> opportunities and <strong>{summary.qualifications}</strong> qualifications
         </small>
         <nav className="flex items-center gap-2">
           <small className="text-xs font-bold uppercase tracking-widest text-gray-400">Sort by:</small>
@@ -107,6 +55,31 @@ export function OpportunityList({ search, location, nqf, field }) {
           )
         )}
       </section>
+
+      {pagination && pagination.totalPages > 1 && (
+        <section className="flex items-center justify-center gap-4 pt-4">
+          <button
+            onClick={() => onPageChange(pagination.page - 1)}
+            disabled={pagination.page <= 1}
+            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm text-gray-600">
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
+
+          <button
+            onClick={() => onPageChange(pagination.page + 1)}
+            disabled={pagination.page >= pagination.totalPages}
+            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </section>
+      )}
+      
     </section>
   );
 }
