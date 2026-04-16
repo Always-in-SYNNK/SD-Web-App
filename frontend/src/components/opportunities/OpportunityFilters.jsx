@@ -1,57 +1,5 @@
-export function OpportunityFilters({ location, setLocation, nqf, setNqf, field, setField }) {
-  const provinces = [
-    "All Provinces",
-    "Gauteng",
-    "Western Cape",
-    "KwaZulu-Natal",
-    "Eastern Cape",
-    "Free State",
-    "Limpopo",
-    "Mpumalanga",
-    "North West",
-    "Northern Cape",
-  ];
-
-  const nqfLevels = [
-    "All NQF Levels",
-    "NQF Level 1",
-    "NQF Level 2",
-    "NQF Level 3",
-    "NQF Level 4",
-    "NQF Level 5",
-    "NQF Level 6",
-    "NQF Level 7",
-    "NQF Level 8",
-    "NQF Level 9",
-    "NQF Level 10",
-  ];
-
-  const fields = [
-    "All Fields",
-    "Agriculture & Nature",
-    "Architecture & Construction",
-    "Arts, Culture & Design",
-    "Banking & Finance",
-    "Business & Management",
-    "Education & Training",
-    "Engineering & Technology",
-    "Health & Medical Sciences",
-    "Hospitality & Tourism",
-    "Human Resources",
-    "Information Technology",
-    "Law & Legal Studies",
-    "Logistics & Supply Chain",
-    "Manufacturing & Production",
-    "Marketing & Communications",
-    "Mining & Resources",
-    "Public Administration",
-    "Real Estate & Property",
-    "Retail & Sales",
-    "Social Work & Community",
-    "Trades & Artisan",
-    "Transport & Aviation",
-  ];
-
+export function OpportunityFilters({ location, nqfLevel, field, setLocation, setNqfLevel, setField, locations = [], nqfLevels = [], fields = [], onReset, loading = false,
+}) {
   return (
     <aside className="space-y-8">
       <section className="bg-[#f5f3f3] p-6 rounded-xl">
@@ -59,9 +7,7 @@ export function OpportunityFilters({ location, setLocation, nqf, setNqf, field, 
           <h3 className="font-bold text-lg">Filters</h3>
           <button
             onClick={() => {
-              setLocation("");
-              setNqf("");
-              setField("");
+              onReset
             }}
             className="text-[#035b9d] text-xs font-bold uppercase tracking-widest hover:underline"
           >
@@ -78,11 +24,15 @@ export function OpportunityFilters({ location, setLocation, nqf, setNqf, field, 
             </label>
             <select
               value={location}
-              onChange={(e) => setLocation(e.target.value === "All Provinces" ? "" : e.target.value)}
+              onChange={(e) => setLocation(e.target.value)}
+              disabled={loading}
               className="w-full bg-white border border-gray-200 rounded-lg text-sm py-3 px-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
-              {provinces.map((p) => (
-                <option key={p} value={p === "All Provinces" ? "" : p}>{p}</option>
+              <option value="">All Provinces</option>
+              {locations.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
               ))}
             </select>
           </section>
@@ -93,12 +43,15 @@ export function OpportunityFilters({ location, setLocation, nqf, setNqf, field, 
               NQF Level
             </label>
             <select
-              value={nqf}
-              onChange={(e) => setNqf(e.target.value === "All NQF Levels" ? "" : e.target.value)}
+              value={nqfLevel}
+              onChange={(e) => setNqfLevel(e.target.value)}
               className="w-full bg-white border border-gray-200 rounded-lg text-sm py-3 px-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
-              {nqfLevels.map((n) => (
-                <option key={n} value={n === "All NQF Levels" ? "" : n}>{n}</option>
+              <option value="">All NQF Levels</option>
+              {nqfLevels.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
               ))}
             </select>
           </section>
@@ -110,15 +63,17 @@ export function OpportunityFilters({ location, setLocation, nqf, setNqf, field, 
             </label>
             <select
               value={field}
-              onChange={(e) => setField(e.target.value === "All Fields" ? "" : e.target.value)}
+              onChange={(e) => setField(e.target.value)}
               className="w-full bg-white border border-gray-200 rounded-lg text-sm py-3 px-3 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
-              {fields.map((f) => (
-                <option key={f} value={f === "All Fields" ? "" : f}>{f}</option>
+              <option value="">All Fields</option>
+              {fields.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
               ))}
             </select>
           </section>
-
         </section>
       </section>
 
