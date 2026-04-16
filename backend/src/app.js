@@ -396,4 +396,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal server error" });
 });
 
+app.get("/api/test-route", (req, res) => {
+  res.json({ ok: true });
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, message: "API is running" });
+});
+
+app.use("/api/opportunities", opportunityRoutes);
+
+app.use(errorHandler);
+
 module.exports = app;
