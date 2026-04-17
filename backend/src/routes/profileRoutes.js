@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddleware from "../middleware/authMiddleware";
+import authMiddleware from "../middleware/authMiddleware.js";
 import { uploadCV } from "../middleware/uploadMiddleware.js";
 import {
     getMyApplicantProfile,
