@@ -3,7 +3,7 @@ export function DashboardHeader() {
     <header className="mb-12 flex justify-between items-end">
       <section>
         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 mb-2">
-          Qualifications Dashboard
+          Your Dashboard
         </h1>
         <p className="text-gray-500 text-lg">
           Architecting your professional future through verified excellence.
