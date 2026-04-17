@@ -17,7 +17,7 @@ const mockService = {
   getFilteredOpportunitiesAndQualifications: jest.fn(),
 };
 
-jest.unstable_mockModule("../../services/opportunityService.js", () => mockService);
+jest.unstable_mockModule("../services/opportunityService.js", () => mockService);
 
 //import AFTER mock
 const {
@@ -25,7 +25,7 @@ const {
   fetchFields,
   fetchNqfLevels,
   fetchOpportunities,
-} = await import("../opportunityController.js");
+} = await import("./opportunityController.js");
 
 function createMockRes() {
   return {
