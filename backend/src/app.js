@@ -389,19 +389,7 @@ function errorPage(title, message) {
   `;
 }
 
-// ─── 404 fallback ─────────────────────────────────────────────────────────────
-
-app.use((req, res) => {
-  res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
-});
-
-// ─── Global error handler ─────────────────────────────────────────────────────
-
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ error: "Internal server error" });
-});
-
+// ─── Mount API routes ────────────────────────────────────────────────────────
 app.get("/api/test-route", (req, res) => {
   res.json({ ok: true });
 });
@@ -413,5 +401,18 @@ app.get("/api/health", (req, res) => {
 app.use("/api/opportunities", opportunityRoutes);
 
 app.use(errorHandler);
+
+// ─── 404 fallback ─────────────────────────────────────────────────────────────
+
+app.use((req, res) => {
+  res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
+});
+
+// ─── Global error handler ─────────────────────────────────────────────────────
+
+// app.use((err, req, res, next) => {
+//   console.error("Unhandled error:", err);
+//   res.status(500).json({ error: "Internal server error" });
+// });
 
 export default app;
