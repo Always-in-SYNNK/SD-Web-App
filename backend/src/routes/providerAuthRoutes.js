@@ -4,23 +4,25 @@
 
 // express: Web framework for handling HTTP requests and responses
 // Used to create router endpoints (GET, POST, etc.)
-const express = require('express');
+import express from "express";
+
 
 // crypto: Built-in Node.js module for generating secure random strings
 // Used to create unique verification tokens that cannot be guessed
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 // OAuth2Client: Google's library for verifying ID tokens
 // Confirms that the user's Google sign-in is legitimate
-const { OAuth2Client } = require('google-auth-library');
+import { OAuth2Client } from 'google-auth-library';
+
 
 // supabase: Database client to connect to your Supabase backend
 // Stores and retrieves user profiles, pending verifications, etc.
-const supabase = require('../config/supabaseClient');
+import { supabase } from "../config/supabaseClient.js";
 
 // sendVerificationEmail: Custom function that sends email verification links
 // Imported from the email service file
-const { sendVerificationEmail } = require('../services/emailService');
+import sendVerificationEmail from '../services/emailService.js';
 
 // ============================================
 // CREATE ROUTER
@@ -484,4 +486,4 @@ router.get('/me', (req, res) => {
 // ============================================
 // Makes these routes available to server.js
 // server.js uses: app.use('/api/auth', authRoutes)
-module.exports = router;
+export default router;

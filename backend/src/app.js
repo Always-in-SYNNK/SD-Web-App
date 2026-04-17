@@ -2,13 +2,20 @@
 // APP — Express setup, middleware, and route mounting
 // ============================================================
 
-const express = require("express");
-const cors    = require("cors");
-const session = require("express-session");
-const path    = require("path");
+import express from "express";
+import dotenv from "dotenv";
 
-const applicantAuthRoutes = require("./routes/applicantAuthRoutes");
-const providerAuthRoutes  = require("./routes/providerAuthRoutes");
+import opportunityRoutes from "./routes/opportunityRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+
+dotenv.config();
+
+import cors from 'cors'
+import session from 'express-session';
+import path from 'path';
+import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
+import providerAuthRoutes from "./routes/providerAuthRoutes.js";
+
 
 const app = express();
 
@@ -54,8 +61,7 @@ app.use("/api/auth/applicant", applicantAuthRoutes);
 app.use("/api/auth/provider",  providerAuthRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
-
-const supabase = require("./config/supabaseClient");
+import { supabase } from "./config/supabaseClient.js";
 
 app.get("/verify-email", async (req, res) => {
   const { token } = req.query;
@@ -408,4 +414,4 @@ app.use("/api/opportunities", opportunityRoutes);
 
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

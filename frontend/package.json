@@ -25,7 +25,7 @@
     "@tailwindcss/postcss": "^4.2.2",
     "@types/react": "^19.2.3",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.27",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -36,7 +36,7 @@
     "jest-environment-jsdom": "^30.3.0",
     "postcss": "^8.5.9",
     "tailwindcss": "^4.2.2",
-    "vite": "^8.0.4"
+    "vite": "^7.3.2"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "eslint.config.js",
