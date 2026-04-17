@@ -15,7 +15,7 @@ import session from 'express-session';
 import path from 'path';
 import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
-
+import profileRoutes from "./routes/profileRoutes.js";  
 
 const app = express();
 
@@ -401,6 +401,10 @@ app.get("/api/health", (req, res) => {
 app.use("/api/opportunities", opportunityRoutes);
 
 app.use(errorHandler);
+
+// Profile routes
+
+app.use("/api/profile", profileRoutes);
 
 // ─── 404 fallback ─────────────────────────────────────────────────────────────
 
