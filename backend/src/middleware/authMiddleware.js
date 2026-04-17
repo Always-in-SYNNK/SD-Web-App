@@ -1,7 +1,6 @@
 //PROTECTS SENSITIVE ROUTES FROM UNAUTHORIZED ACCESS & WILL LATER ENABLE ROLE-BASED ACCESS CONTROL
 //RUNS BEFORE PROTECTED ROUTES TO CHECK IF THE USER IS AUTHENTICATED, BY VERIFYING THE JWT TOKEN SENT IN THE AUTHORIZATION HEADER
-
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken"; //dependancy to verify JWT tokens
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -21,4 +20,4 @@ function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware;
+export default authMiddleware;

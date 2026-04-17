@@ -1,8 +1,8 @@
-const verifyGoogleToken = require("../config/googleAuth");
-const generateJWT = require("../utils/generateJWT");
-const supabase = require("../config/supabaseClient");
+import verifyGoogleToken from "../config/googleAuth.js";
+import generateJWT from "../utils/generateJWT.js";
+import { supabase } from "../config/supabaseClient.js";
 
-exports.googleAuth = async (req, res) => {
+export const googleAuth = async (req, res) => {
   try {
     const { token, role: selectedRole } = req.body;
 
