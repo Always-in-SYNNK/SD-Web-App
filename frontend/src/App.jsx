@@ -13,6 +13,7 @@ import AdminConsole from "./pages/AdminConsole";
 import ApplicantLogin from "./pages/ApplicantLogin";
 import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
+import AuthDenied from "./pages/AuthDenied";
 import ProtectedRoute from "./routes/protectedRoute";
 import ProviderRegistration from "./pages/ProviderRegistration";
 
@@ -29,12 +30,19 @@ export default function App() {
             <Route path="/app-login" element={<ApplicantLogin />} />
             <Route path="/prov-login" element={<ProviderLogin />} />
             <Route path="/auth-error" element={<AuthError />} />
-            <Route path="/unauthorized" element={<h1>Unauthorized</h1>} />
-
-            <Route path="/opportunities" element={<Opportunities />} />
-            <Route path="/opportunities/:id" element={<OpportunityDetail />} />
+            <Route path="/unauthorized" element={<AuthDenied />} />
 
             {/* Applicant routes */}
+            <Route path="/opportunities" element={
+              <ProtectedRoute requiredRole="applicant">
+                <Opportunities />
+              </ProtectedRoute>
+            } />
+            <Route path="/opportunities/:id" element={
+              <ProtectedRoute requiredRole="applicant">
+                <OpportunityDetail />
+              </ProtectedRoute>
+            } />    
             <Route path="/dashboard" element={ 
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
@@ -60,16 +68,25 @@ export default function App() {
 
             {/* Employer routes - removed protected routing for now */}
             <Route path="/pipeline" element={
-                <ValidationPipeline />
+              <ProtectedRoute requiredRole="provider">
+                 <ValidationPipeline />
+              </ProtectedRoute> 
             } />
             <Route path="/post" element={
+              <ProtectedRoute requiredRole="provider">
                 <PostOpportunity />
+              </ProtectedRoute>
             } />
             <Route path="/define" element={
+              <ProtectedRoute requiredRole="provider">
                 <DefineRequirements />
+              </ProtectedRoute>
             } />
-            <Route path="/provider-registration" element={<ProviderRegistration />} />
-
+            <Route path="/provider-registration" element={
+              <ProtectedRoute requiredRole="provider">
+                <ProviderRegistration />
+              </ProtectedRoute>
+            } />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

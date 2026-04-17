@@ -4,7 +4,7 @@ import { supabase } from "../config/supabaseClient.js";
 
 export const googleAuth = async (req, res) => {
   try {
-    const { token, role: selectedRole } = req.body;
+    const { token, selectedRole } = req.body;
 
     if (!token) {
       return res.status(400).json({ error: "Google token required" });
@@ -85,7 +85,7 @@ export const googleAuth = async (req, res) => {
         return res.status(500).json({ error: "Failed to create applicant profile" });
       }
     }
-/*
+
     if (selectedRole === "provider") {
       const { error: providerError } = await supabase
         .from("provider_profiles")
@@ -96,7 +96,7 @@ export const googleAuth = async (req, res) => {
         return res.status(500).json({ error: "Failed to create provider profile" });
       }
     }
-*/
+
     const jwtToken = generateJWT({
       id: newProfile.id,
       email: newProfile.email,

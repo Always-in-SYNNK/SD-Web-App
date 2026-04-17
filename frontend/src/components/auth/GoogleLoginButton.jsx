@@ -4,39 +4,52 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../../context/useAuth";
 import { loginWithGoogle } from "../../services/authService";
 
-export default function GoogleLoginButton() {
+export default function GoogleLoginButton({ selectedRole, from, onLoadingChange }) {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const selectedRole = "applicant";
-  const loginPage = "app-login";
-
 
   const handleSuccess = async (res) => {
+    onLoadingChange?.(true);
     try {
       const googleToken = res.credential;
 
       const data = await loginWithGoogle(googleToken, selectedRole);
 
+      if (data.user.role !== selectedRole) {
+      navigate("/auth-error", {
+        state: {
+          loginPage: "prov-login",
+          message:
+              "This account is registered as a provider. Please log in through the provider portal.",
+        },
+      });
+      return;
+    }
+
       login(data.user, data.token);
 
       if (data.user.role === "applicant") {
-        navigate("/dashboard");
-      }
-      else if (data.user.role === "provider") { //do i even handle this?
-        navigate("/pipeline");
+        navigate(from, { replace: true });
       }
 
     } catch (err) {
       console.error("Login failed:", err);
-      navigate("/auth-error");
+      navigate("/auth-error", {
+        state: {
+          loginPage: selectedRole === "provider" ? "prov-login" : "app-login",
+          message: err?.message || "Authentication failed. Please try again.",
+        },
+      });
+    } finally {
+      onLoadingChange?.(false);
     }
   };
 
   const handleError = () => {
-    console.error("Google OAuth failed"); //need to make sure tash's error page goes back to proper login page
+    console.error("Google OAuth failed"); 
     navigate("/auth-error", {
       state: {
-        loginPage,
+        loginPage: "app-login",
         message: "Google sign-in was cancelled or failed. Please try again.",
       },
     });

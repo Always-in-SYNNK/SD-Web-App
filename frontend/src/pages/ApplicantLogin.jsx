@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import AuthLayout        from "../components/auth/AuthLayout";
 import AuthHeroPanel     from "../components/auth/AuthHeroPanel";
 import AuthFormPanel     from "../components/auth/AuthFormPanel";
@@ -9,6 +10,10 @@ const HERO_IMAGE_URL =
 
 export default function ApplicantLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || "/dashboard";
+  const [loading, setLoading] = useState(false);
+
   return (
     <AuthLayout
       heroPanel={
@@ -33,7 +38,15 @@ export default function ApplicantLogin() {
           </div>
 
           <div className="max-w-md mx-auto w-full space-y-8">
-            <GoogleLoginButton />
+            {loading ? (
+              <p className="text-center text-slate-500 py-4">Processing...</p>
+            ) : (
+              <GoogleLoginButton
+                selectedRole="applicant"
+                from={from}
+                onLoadingChange={setLoading}
+              />
+            )}
 
             <div className="relative flex items-center justify-center" role="separator">
               <div className="flex-grow border-t border-slate-100" />

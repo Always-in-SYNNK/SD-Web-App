@@ -3,7 +3,7 @@
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
-export async function loginWithGoogle(token, role) {
+export async function loginWithGoogle(token, selectedRole) {
   if (!token) {
     throw new Error("Google OAuth token is missing from the response");
   }
@@ -11,7 +11,7 @@ export async function loginWithGoogle(token, role) {
   const response = await fetch(`${API_URL}/api/auth/applicant/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, role }),
+    body: JSON.stringify({ token, selectedRole }),
   });
 
   if (!response.ok) {

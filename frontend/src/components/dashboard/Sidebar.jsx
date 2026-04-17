@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
 
   const links = [
     { icon: "🎓", label: "Qualifications", path: "/dashboard" },
@@ -71,13 +73,17 @@ export function Sidebar() {
           <i>⚙️</i>
           <strong>Settings</strong>
         </a>
-        <a
-          href="#"
-          className="flex items-center space-x-3 px-4 py-2 text-gray-500 hover:text-[#035b9d]"
+        <button
+          onClick={() => {
+            localStorage.setItem("__logout_redirect", "true");
+            logout();
+            navigate("/", { replace: true }); 
+          }}
+          className="flex items-center space-x-3 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition"
         >
-          <i>❓</i>
-          <strong>Support</strong>
-        </a>
+          <i>🚪</i>
+          <strong>Logout</strong>
+        </button>
       </nav>
     </aside>
   );
