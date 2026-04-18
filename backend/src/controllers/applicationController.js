@@ -15,6 +15,9 @@ export async function apply(req, res, next) {
       data: result,
     });
   } catch (err) {
-    return res.status(401).json({ error: err.message || "Failed to apply to opportunity" });
-  }
+        if (err.message === "Already applied to this opportunity") {
+            return res.status(400).json({ error: err.message });
+        }
+        return res.status(500).json({ error: err.message });
+        }
 }
