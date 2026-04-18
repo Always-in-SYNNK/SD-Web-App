@@ -10,7 +10,9 @@ SD-Web-App
 │  │  │  ├─ googleAuth.js
 │  │  │  └─ supabaseClient.js
 │  │  ├─ controllers
+│  │  │  ├─ applicationController.js
 │  │  │  ├─ authController.js
+│  │  │  ├─ notificationController.js
 │  │  │  ├─ opportunityController.js
 │  │  │  ├─ opportunityController.test.js
 │  │  │  ├─ profileController.js
@@ -24,19 +26,27 @@ SD-Web-App
 │  │  ├─ models
 │  │  ├─ routes
 │  │  │  ├─ applicantAuthRoutes.js
+│  │  │  ├─ applicationRoutes.js
+│  │  │  ├─ notificationRoutes.js
 │  │  │  ├─ opportunityRoutes.js
 │  │  │  ├─ profileRoutes.js
 │  │  │  ├─ profileRoutes.test.js
 │  │  │  └─ providerAuthRoutes.js
 │  │  ├─ server.js
 │  │  ├─ services
+│  │  │  ├─ applicationService.js
 │  │  │  ├─ emailService.js
+│  │  │  ├─ notificationService.js
 │  │  │  ├─ opportunityService.js
 │  │  │  ├─ opportunityService.test.js
 │  │  │  └─ profileService.js
 │  │  └─ utils
 │  │     └─ generateJWT.js
 │  └─ tests
+│     ├─ applicationController.test.js
+│     ├─ applicationService.test.js
+│     ├─ opportunityController.test.js
+│     └─ opportunityService.test.js
 ├─ frontend
 │  ├─ babel.config.js
 │  ├─ eslint.config.js
@@ -80,7 +90,6 @@ SD-Web-App
 │  │  │  │  ├─ OpportunityCard.jsx
 │  │  │  │  ├─ QualificationItem.jsx
 │  │  │  │  ├─ QualificationList.jsx
-│  │  │  │  ├─ QualificationsList.jsx
 │  │  │  │  ├─ Sidebar.jsx
 │  │  │  │  ├─ StatsCard.jsx
 │  │  │  │  ├─ UploadBanner.jsx
@@ -100,10 +109,18 @@ SD-Web-App
 │  │  │  │  ├─ OpportunityList.jsx
 │  │  │  │  └─ QualificationCard.jsx
 │  │  │  ├─ PortalCard.jsx
-│  │  │  └─ requirements
-│  │  │     ├─ EducationSection.jsx
-│  │  │     ├─ RoleSection.jsx
-│  │  │     └─ SkillsSection.jsx
+│  │  │  ├─ requirements
+│  │  │  │  ├─ EducationSection.jsx
+│  │  │  │  ├─ RoleSection.jsx
+│  │  │  │  └─ SkillsSection.jsx
+│  │  │  └─ studentProfile
+│  │  │     ├─ connectivity.jsx
+│  │  │     ├─ cvUpload.jsx
+│  │  │     ├─ editProfileForm.jsx
+│  │  │     ├─ education.jsx
+│  │  │     ├─ personalInfo.jsx
+│  │  │     ├─ profileForm.jsx
+│  │  │     └─ skills.jsx
 │  │  ├─ context
 │  │  │  ├─ AuthContext.jsx
 │  │  │  ├─ authContextValue.js
@@ -117,19 +134,24 @@ SD-Web-App
 │  │  ├─ pages
 │  │  │  ├─ AdminConsole.jsx
 │  │  │  ├─ ApplicantLogin.jsx
+│  │  │  ├─ AuthDenied.jsx
 │  │  │  ├─ AuthError.jsx
+│  │  │  ├─ CreateStudentProfile.jsx
 │  │  │  ├─ DefineRequirements.jsx
+│  │  │  ├─ EditStudentProfile.jsx
 │  │  │  ├─ Home.jsx
 │  │  │  ├─ Opportunities.jsx
 │  │  │  ├─ OpportunityDetail.jsx
 │  │  │  ├─ PostOpportunity.jsx
 │  │  │  ├─ ProviderLogin.jsx
 │  │  │  ├─ ProviderRegistration.jsx
+│  │  │  ├─ Qualifications.jsx
 │  │  │  ├─ StudentDashboard.jsx
 │  │  │  └─ ValidationPipeline.jsx
 │  │  ├─ routes
 │  │  │  └─ protectedRoute.jsx
 │  │  ├─ services
+│  │  │  ├─ applicationService.js
 │  │  │  └─ authService.js
 │  │  └─ setupTests.js
 │  ├─ tailwind.config.js

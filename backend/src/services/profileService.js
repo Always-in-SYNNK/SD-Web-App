@@ -9,9 +9,7 @@ export async function getApplicantProfileByUserId(userId) {
         .maybeSingle();
 
     if (profileError) throw profileError;
-    if (!profile) {
-        throw new Error(`No profile found for id: ${userId}`);
-    }
+    
 
     // 2. Get applicant-specific data
     const { data: applicantProfile, error: applicantError } = await supabase

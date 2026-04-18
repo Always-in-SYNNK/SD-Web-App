@@ -17,6 +17,7 @@ import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
@@ -410,6 +411,10 @@ app.use("/api/opportunities", opportunityRoutes);
 // Profile routes
 
 app.use("/api/profile", profileRoutes);
+
+// Notifications routes
+
+app.use("/api/notifications", notificationRoutes);
 
 // ─── 404 fallback ─────────────────────────────────────────────────────────────
 
