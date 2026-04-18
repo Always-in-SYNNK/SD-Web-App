@@ -30,7 +30,13 @@ export default function App() {
 
             {/*bypassing authentication  - not working, going straight to dashboard*/}
             <Route path="/dev-dashboard" element={<StudentDashboard />} />
-            <Route path="/create-profile" element={<CompleteProfile />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <CompleteProfile />
+                </ProtectedRoute>
+            }/>
 
 
             {/* Authentication routes */}

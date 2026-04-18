@@ -11,8 +11,29 @@ const HERO_IMAGE_URL =
 export default function ApplicantLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || "/dashboard";
+  const from = location.state?.from;
   const [loading, setLoading] = useState(false);
+
+  const handleSuccess = (res) => {
+    setLoading(false);
+
+    // 🔐 NEW USER → onboarding flow
+    if (res.isNewUser) {
+      navigate("/onboarding");
+      return;
+    }
+
+    // 👇 EXISTING USER → role-based routing
+    const role = res.user.role;
+
+    if (role === "applicant") {
+      navigate(from || "/dashboard");
+    } else if (role === "employer") {
+      navigate("/employer/dashboard");
+    } else if (role === "admin") {
+      navigate("/admin");
+    }
+  };
 
   return (
     <AuthLayout
@@ -45,6 +66,7 @@ export default function ApplicantLogin() {
                 selectedRole="applicant"
                 from={from}
                 onLoadingChange={setLoading}
+                onSuccess={handleSuccess}
               />
             )}
 

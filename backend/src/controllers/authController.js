@@ -34,7 +34,7 @@ export const googleAuth = async (req, res) => {
         email: existingProfile.email,
         role: existingProfile.role,
       });
-      return res.json({ user: existingProfile, token: jwtToken });
+      return res.json({ user: existingProfile, token: jwtToken, isNewUser: false });
     }
 
     // ── New user ──────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ export const googleAuth = async (req, res) => {
       role: newProfile.role,
     });
 
-    res.json({ user: newProfile, token: jwtToken });
+    res.json({ user: newProfile, token: jwtToken, isNewUser: true });
 
   } catch (err) {
     console.error("Auth error:", err);
