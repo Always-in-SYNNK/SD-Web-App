@@ -1,6 +1,6 @@
 //VERIFYING GOOGLE TOKEN 
-
-const { OAuth2Client } = require("google-auth-library");
+import { OAuth2Client } from "google-auth-library"; //dependancy to verify Google tokens
+//const { OAuth2Client } = require("google-auth-library");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -13,4 +13,4 @@ async function verifyGoogleToken(token) {
   return ticket.getPayload(); //returns user info like email, name, sub (Google ID)
 }
 
-module.exports = verifyGoogleToken; // file used in authController.js
+export default verifyGoogleToken;

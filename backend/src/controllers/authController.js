@@ -1,10 +1,10 @@
-const verifyGoogleToken = require("../config/googleAuth");
-const generateJWT = require("../utils/generateJWT");
-const supabase = require("../config/supabaseClient");
+import verifyGoogleToken from "../config/googleAuth.js";
+import generateJWT from "../utils/generateJWT.js";
+import { supabase } from "../config/supabaseClient.js";
 
-exports.googleAuth = async (req, res) => {
+export const googleAuth = async (req, res) => {
   try {
-    const { token, role: selectedRole } = req.body;
+    const { token, selectedRole } = req.body;
 
     if (!token) {
       return res.status(400).json({ error: "Google token required" });
@@ -30,7 +30,7 @@ exports.googleAuth = async (req, res) => {
     if (existingProfile) {
       // Existing user — just issue a JWT
       const jwtToken = generateJWT({
-        id: existingProfile.id,
+        id: existingProfile.user_id,
         email: existingProfile.email,
         role: existingProfile.role,
       });
@@ -42,19 +42,30 @@ exports.googleAuth = async (req, res) => {
       return res.status(400).json({ error: "Role required for new users" });
     }
 
-    // Step 1: Create a Supabase Auth user so user_id FK is valid
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      email_confirm: true,         // skip confirmation email, Google already verified them
-      user_metadata: { full_name: name },
-    });
+    // Step 1: Check if auth user already exists (e.g., from a previous signup)
+    let supabaseUserId;
+    const { data: existingAuthUser } = await supabase.auth.admin.listUsers();
+    const authUserExists = existingAuthUser?.users?.some(u => u.email === email);
 
-    if (authError) {
-      console.error("Auth user creation failed:", authError);
-      return res.status(500).json({ error: "Failed to create auth user" });
+    if (authUserExists) {
+      // Use existing auth user
+      const foundUser = existingAuthUser.users.find(u => u.email === email);
+      supabaseUserId = foundUser.id;
+    } else {
+      // Create a new Supabase Auth user so user_id FK is valid
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email,
+        email_confirm: true,         // skip confirmation email, Google already verified them
+        user_metadata: { full_name: name },
+      });
+
+      if (authError) {
+        console.error("Auth user creation failed:", authError);
+        return res.status(500).json({ error: "Failed to create auth user" });
+      }
+
+      supabaseUserId = authData.user.id; // real UUID from auth.users
     }
-
-    const supabaseUserId = authData.user.id; // real UUID from auth.users
 
     // Step 2: Insert into profiles using the Supabase Auth UUID
     const { data: newProfile, error: profileError } = await supabase
@@ -85,7 +96,7 @@ exports.googleAuth = async (req, res) => {
         return res.status(500).json({ error: "Failed to create applicant profile" });
       }
     }
-/*
+/* I probably shouldn't be handling this logic
     if (selectedRole === "provider") {
       const { error: providerError } = await supabase
         .from("provider_profiles")
@@ -98,7 +109,7 @@ exports.googleAuth = async (req, res) => {
     }
 */
     const jwtToken = generateJWT({
-      id: newProfile.id,
+      id: newProfile.user_id,
       email: newProfile.email,
       role: newProfile.role,
     });

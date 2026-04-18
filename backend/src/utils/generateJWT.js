@@ -1,6 +1,5 @@
 //GENERATE JWT TOKEN AFTER GOOGLE AUTHENTICATION
-
-const jwt = require("jsonwebtoken"); //dependancy to generate JWT tokens
+import jwt from "jsonwebtoken"; //dependancy to generate JWT tokens
 
 function generateJWT(user) { //own token so we don't have to ask Google every time
   return jwt.sign(
@@ -14,4 +13,4 @@ function generateJWT(user) { //own token so we don't have to ask Google every ti
   );
 }
 
-module.exports = generateJWT; //file used in authController.js
+export default generateJWT; //file used in authController.js

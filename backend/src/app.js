@@ -2,13 +2,21 @@
 // APP — Express setup, middleware, and route mounting
 // ============================================================
 
-const express = require("express");
-const cors    = require("cors");
-const session = require("express-session");
-const path    = require("path");
+import express from "express";
+import dotenv from "dotenv";
 
-const applicantAuthRoutes = require("./routes/applicantAuthRoutes");
-const providerAuthRoutes  = require("./routes/providerAuthRoutes");
+import opportunityRoutes from "./routes/opportunityRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
+
+dotenv.config();
+
+import cors from 'cors'
+import session from 'express-session';
+import path from 'path';
+import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
+import providerAuthRoutes from "./routes/providerAuthRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
+
 
 const app = express();
 
@@ -53,9 +61,12 @@ app.use(session({
 app.use("/api/auth/applicant", applicantAuthRoutes);
 app.use("/api/auth/provider",  providerAuthRoutes);
 
-// ─── Email verification ───────────────────────────────────────────────────────
+// ─── Application routes ─────────────────────────────────────────────────────────────
 
-const supabase = require("./config/supabaseClient");
+app.use("/applications", applicationRoutes);
+
+// ─── Email verification ───────────────────────────────────────────────────────
+import { supabase } from "./config/supabaseClient.js";
 
 app.get("/verify-email", async (req, res) => {
   const { token } = req.query;
@@ -383,6 +394,19 @@ function errorPage(title, message) {
   `;
 }
 
+// ─── Mount API routes ────────────────────────────────────────────────────────
+app.get("/api/test-route", (req, res) => {
+  res.json({ ok: true });
+});
+
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, message: "API is running" });
+});
+
+app.use("/api/opportunities", opportunityRoutes);
+
+app.use(errorHandler);
+
 // ─── 404 fallback ─────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
@@ -391,9 +415,9 @@ app.use((req, res) => {
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ error: "Internal server error" });
-});
+// app.use((err, req, res, next) => {
+//   console.error("Unhandled error:", err);
+//   res.status(500).json({ error: "Internal server error" });
+// });
 
-module.exports = app;
+export default app;

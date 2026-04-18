@@ -1,10 +1,10 @@
 // ============================================================
 // ENTRY POINT — Loads env vars and starts the HTTP server
 // ============================================================
+import app from "./app.js"
+import dotenv from 'dotenv';
 
-require("dotenv").config();
-
-const app  = require("./app");
+dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
