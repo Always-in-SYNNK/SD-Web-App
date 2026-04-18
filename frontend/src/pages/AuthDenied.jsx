@@ -95,8 +95,8 @@ export default function AuthDenied() {
           <h1 className="text-2xl font-bold text-blue-900 mb-3">Access Denied</h1>
 
           <p className="text-gray-600 mb-8 leading-relaxed">
-            You do not have permission to view this page. Please make sure you
-            are logged in with the correct account.
+            You do not have permission to view this page. 
+            Please make sure you are logged in with the correct account.
           </p>
 
           <footer className="w-full space-y-3">

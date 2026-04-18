@@ -15,6 +15,7 @@ import session from 'express-session';
 import path from 'path';
 import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
 
 
 const app = express();
@@ -59,6 +60,10 @@ app.use(session({
 
 app.use("/api/auth/applicant", applicantAuthRoutes);
 app.use("/api/auth/provider",  providerAuthRoutes);
+
+// ─── Application routes ─────────────────────────────────────────────────────────────
+
+app.use("/applications", applicationRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
 import { supabase } from "./config/supabaseClient.js";

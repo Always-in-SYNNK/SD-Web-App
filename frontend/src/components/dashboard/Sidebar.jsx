@@ -3,7 +3,7 @@ import { useAuth } from "../../context/useAuth";
 
 export function Sidebar() {
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
 
   const links = [
     { icon: "🎓", label: "Qualifications", path: "/dashboard" },
