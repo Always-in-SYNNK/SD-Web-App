@@ -1,18 +1,143 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  getLocations,
+  getFields,
+  getNqfLevels,
+  getOpportunities,
+} from '../lib/api';
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { OpportunityFilters } from "../components/opportunities/OpportunityFilters";
 import { OpportunityList } from "../components/opportunities/OpportunityList";
 
 export default function Opportunities() {
-  const [search, setSearch] = useState("");
-  const [committedSearch, setCommittedSearch] = useState("");
-  const [location, setLocation] = useState("");
-  const [nqf, setNqf] = useState("");
-  const [field, setField] = useState("");
+  const [locations, setLocations] = useState([]);
+  const [fields, setFields] = useState([]);
+  const [nqfLevels, setNqfLevels] = useState([]);
+  const [opportunities, setOpportunities] = useState([]);
+  const [pagination, setPagination] = useState(null);
 
-  const handleKeyDown = (e) => {
+  const [filters, setFilters] = useState({
+    field: '',
+    location: '',
+    nqfLevel: '',
+    search: '',
+    page: 1,
+    limit: 12,
+  });
+
+  const [items, setItems] = useState([]);
+  const [summary, setSummary] = useState({
+    opportunities: 0,
+    qualifications: 0,
+  });
+
+  const [loadingFilters, setLoadingFilters] = useState(true);
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [error, setError] = useState("");
+
+
+  useEffect(() => {
+    const loadDropdowns = async () => {
+      try {
+        setLoadingFilters(true);
+        setError("");
+
+        const [locationsRes, fieldsRes, nqfLevelsRes] = await Promise.all([
+          getLocations(),
+          getFields(),
+          getNqfLevels()
+        ]);
+
+        console.log("locationsRes:", locationsRes);
+        console.log("fieldsRes:", fieldsRes);
+        console.log("nqfLevelsRes:", nqfLevelsRes);
+
+        setLocations(locationsRes.data || []);
+        setFields(fieldsRes.data || []);
+        setNqfLevels(nqfLevelsRes.data || []);
+      } catch (err) {
+        setError(err.message || "Failed to load filters");
+      } finally {
+        setLoadingFilters(false);
+      }
+    };
+
+    loadDropdowns();
+  }, []);
+
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        setLoadingItems(true);
+        setError("");
+
+        const result = await getOpportunities({
+          search: filters.search,
+          location: filters.location,
+          nqfLevel: filters.nqfLevel,
+          field: filters.field,
+          page: filters.page,
+          limit: filters.limit,
+        });
+
+        setItems(result.data || []);
+        setPagination(result.pagination || null);
+        setSummary(
+          result.summary || {
+            opportunities: 0,
+            qualifications: 0,
+          }
+        );
+      } catch (err) {
+        setError(err.message || "Failed to load opportunities");
+      } finally {
+        setLoadingItems(false);
+      }
+    };
+
+    loadItems();
+  }, [
+    filters.search,
+    filters.location,
+    filters.nqfLevel,
+    filters.field,
+    filters.page,
+    filters.limit,
+  ]);
+
+  const handleSearchChange = (e) => {
+    setFilters((prev) => ({
+      ...prev,
+      searchInput: e.target.value,
+    }));
+  };
+
+  const updateFilter = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+      page: 1,
+    }));
+  };
+
+  const resetFilters = () => {
+    setFilters((prev) => ({
+      ...prev,
+      searchInput: "",
+      search: "",
+      location: "",
+      nqfLevel: "",
+      field: "",
+      page: 1,
+    }));
+  };
+  const handleSearchKeyDown = (e) => {
     if (e.key === "Enter") {
-      setCommittedSearch(search);
+      setFilters((prev) => ({
+        ...prev,
+        search: prev.searchInput.trim(),
+        page: 1,
+      }));
     }
   };
 
@@ -27,18 +152,20 @@ export default function Opportunities() {
             <a href="/dashboard" className="text-gray-400 hover:text-[#035b9d]">Dashboard</a>
             <a href="/opportunities" className="text-[#035b9d] font-bold border-b-2 border-[#035b9d] pb-0.5">Opportunities</a>
           </section>
+
           <section className="flex items-center gap-3">
             <section className="relative">
               <i className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</i>
               <input
                 type="text"
                 placeholder="Search and press Enter..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={handleKeyDown}
+                value={filters.searchInput}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearchKeyDown}
                 className="pl-9 pr-4 py-2 bg-gray-100 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-200 w-64"
               />
             </section>
+
             <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
             <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
@@ -59,13 +186,30 @@ export default function Opportunities() {
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <aside className="lg:col-span-3">
               <OpportunityFilters
-                location={location} setLocation={setLocation}
-                nqf={nqf} setNqf={setNqf}
-                field={field} setField={setField}
+                location={filters.location}
+                nqfLevel={filters.nqfLevel}
+                field={filters.field}
+                setLocation={(value) => updateFilter("location", value)}
+                setNqfLevel={(value) => updateFilter("nqfLevel", value)}
+                setField={(value) => updateFilter("field", value)}
+                locations={locations}
+                nqfLevels={nqfLevels}
+                fields={fields}
+                onReset={resetFilters}
+                loading={loadingFilters}
               />
             </aside>
             <section className="lg:col-span-9">
-              <OpportunityList search={committedSearch} location={location} nqf={nqf} field={field} />
+              <OpportunityList
+                items={items}
+                loading={loadingItems}
+                error={error}
+                summary={summary}
+                pagination={pagination}
+                onPageChange={(page) =>
+                  setFilters((prev) => ({ ...prev, page }))
+                }
+              />
             </section>
           </section>
         </section>
