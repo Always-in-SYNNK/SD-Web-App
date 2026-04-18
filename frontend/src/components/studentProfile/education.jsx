@@ -9,10 +9,10 @@ const NQF_LEVELS = [
 export function EducationSection({ formData, setFormData }) {
   return (
     <section className="bg-white p-8 lg:p-12 rounded-xl shadow-sm">
-      <div className="mb-10">
+      <header className="mb-10">
         <h3 className="text-2xl font-bold text-[#1b1c1c] mb-2">Educational History</h3>
         <p className="text-gray-400 text-sm">Map your academic journey through the NQF framework.</p>
-      </div>
+      </header>
 
       <div className="space-y-2">
         <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">Current NQF Level</label>

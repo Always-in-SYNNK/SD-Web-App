@@ -18,6 +18,7 @@ import ProtectedRoute from "./routes/protectedRoute";
 import ProviderRegistration from "./pages/ProviderRegistration";
 import Qualifications from "./pages/Qualifications";
 import CompleteProfile from "./pages/CreateStudentProfile";
+import EditProfile from "./pages/EditStudentProfile";
 
 export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
@@ -35,6 +36,14 @@ export default function App() {
               element={
                 <ProtectedRoute requiredRole="applicant">
                   <CompleteProfile />
+                </ProtectedRoute>
+            }/>
+
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <EditProfile />
                 </ProtectedRoute>
             }/>
 

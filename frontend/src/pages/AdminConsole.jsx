@@ -37,7 +37,7 @@ export default function AdminConsole() {
         </header>
 
         <div className="p-12">
-          <div className="mb-8">
+          <header className="mb-8">
             <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
               Admin Panel
             </span>
@@ -49,7 +49,7 @@ export default function AdminConsole() {
             <p className="text-gray-500 mt-2">
               Review, flag, and manage all live opportunities on the platform.
             </p>
-          </div>
+          </header>
 
           <StatsGrid />
 

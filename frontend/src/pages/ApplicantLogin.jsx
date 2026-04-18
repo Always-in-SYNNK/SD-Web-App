@@ -51,12 +51,12 @@ export default function ApplicantLogin() {
       formPanel={
         <AuthFormPanel onBack={() => navigate("/")}>
 
-          <div className="text-center mb-10">
+          <header className="text-center mb-10">
             <h2 className="text-blue-950 text-3xl font-bold mb-3">Welcome Back</h2>
             <p className="text-slate-500 font-medium">
               Sign in or create your account and apply for opportunities.
             </p>
-          </div>
+          </header>
 
           <div className="max-w-md mx-auto w-full space-y-8">
             {loading ? (

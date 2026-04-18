@@ -61,7 +61,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <button className="w-full bg-[#035b9d] text-white py-3 rounded-full text-sm font-semibold hover:opacity-90 transition">
+      <button
+        onClick={() => navigate("/profile/edit")}
+        className="w-full bg-[#035b9d] text-white py-3 rounded-full text-sm font-semibold hover:opacity-90 transition"
+      >
         Update Profile
       </button>
 
