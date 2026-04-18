@@ -405,7 +405,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/opportunities", opportunityRoutes);
 
-app.use(errorHandler);
+
 
 // Profile routes
 
@@ -416,6 +416,8 @@ app.use("/api/profile", profileRoutes);
 app.use((req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
 });
+
+app.use(errorHandler);
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 

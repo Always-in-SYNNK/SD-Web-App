@@ -4,73 +4,81 @@ export async function getApplicantProfileByUserId(userId) {
     // 1. Get base profile
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("id, full_name, surname, email, role")
-        .eq("user_id", userId)
-        .single();
+        .select("user_id, full_name, email, role")
+        .eq("id", userId)
+        .maybeSingle();
 
     if (profileError) throw profileError;
+    if (!profile) {
+        throw new Error(`No profile found for id: ${userId}`);
+    }
 
     // 2. Get applicant-specific data
     const { data: applicantProfile, error: applicantError } = await supabase
         .from("applicant_profiles")
-        .select("bio, location, nqf_level, cv_url")
-        .eq("profile_id", profile.id)
+        .select("id, bio, location, nqf_level, cv_url")
+        .eq("profile_id", userId)
         .maybeSingle();
 
     if (applicantError) throw applicantError;
 
-    // 3. Get qualifications (both standard + custom)
-    const { data: qualifications, error: qualificationsError } = await supabase
-        .from("applicant_qualifications")
-        .select(`
-      id,
-      qualification_id,
-      qualification_name,
-      nqf_level,
-      field,
-      subfield,
-      status,
-      origin,
-      date_obtained,
-      qualifications (
-        title,
-        nqf_level,
-        field,
-        subfield
-      )
-    `)
-        .eq("applicant_id", profile.id);
+    // 3. Get qualifications
+    let qualifications = [];
 
-    if (qualificationsError) throw qualificationsError;
+    if (applicantProfile) {
+        const { data, error: qualificationsError } = await supabase
+            .from("applicant_qualifications")
+            .select(`
+              id,
+              qualification_id,
+              qualification_name,
+              nqf_level,
+              field,
+              subfield,
+              status,
+              originator,
+              date_obtained,
+              qualifications (
+                title,
+                nqf_level,
+                field,
+                subfield
+              )
+            `)
+            .eq("applicant_id", applicantProfile.id);
+
+        if (qualificationsError) throw qualificationsError;
+        qualifications = data || [];
+    }
 
     // 4. Normalize qualifications
-    const mappedQualifications = (qualifications || []).map((row) => ({
+    const mappedQualifications = qualifications.map((row) => ({
         id: row.id,
-        name: row.qualification_id
-            ? row.qualifications?.name
-            : row.custom_name,
+        qualification_id: row.qualification_id,
+        title: row.qualification_id
+            ? row.qualifications?.title
+            : row.qualification_name,
         nqf_level: row.qualification_id
             ? row.qualifications?.nqf_level
-            : row.custom_nqf_level,
+            : row.nqf_level,
         field: row.qualification_id
             ? row.qualifications?.field
-            : row.custom_field,
+            : row.field,
         subfield: row.qualification_id
             ? row.qualifications?.subfield
-            : row.custom_subfield,
+            : row.subfield,
         status: row.status,
-        institution: row.institution,
+        originator: row.originator ?? null,
         date_obtained: row.date_obtained,
-        is_custom: row.is_custom,
     }));
 
     // 5. Return unified profile object
     return {
-        id: profile.id,
+        user_id: profile.user_id,
         full_name: profile.full_name,
-        surname: profile.surname,
         email: profile.email,
         role: profile.role,
+        applicant_profile_id: applicantProfile?.id ?? null,
         bio: applicantProfile?.bio ?? "",
         location: applicantProfile?.location ?? "",
         nqf_level: applicantProfile?.nqf_level ?? null,
@@ -211,7 +219,7 @@ export async function addApplicantQualificationByUserId(userId, payload) {
         custom_field,
         custom_subfield,
         status,
-        institution,
+        originator,
         date_obtained,
     } = payload;
 
