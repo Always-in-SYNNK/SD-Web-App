@@ -13,6 +13,13 @@ export async function getMyApplicantProfile(req, res, next) {
         const data = await getApplicantProfileByUserId(userId);
         res.json({ success: true, profile: data });
     } catch (error) {
+        console.error("getMyApplicantProfile failed:", {
+            message: error?.message,
+            details: error?.details,
+            hint: error?.hint,
+            code: error?.code,
+            stack: error?.stack,
+        });
         next(error);
     }
 }
@@ -23,6 +30,13 @@ export async function saveMyApplicantProfile(req, res, next) {
         const data = await upsertApplicantProfileByUserId(userId, req.body);
         res.json({ success: true, applicant_profile: data });
     } catch (error) {
+        console.error("getMyApplicantProfile failed:", {
+            message: error?.message,
+            details: error?.details,
+            hint: error?.hint,
+            code: error?.code,
+            stack: error?.stack,
+        });
         next(error);
     }
 }
@@ -51,6 +65,13 @@ export async function uploadMyApplicantCV(req, res, next) {
             message: "CV uploaded successfully.",
         });
     } catch (error) {
+        console.error("getMyApplicantProfile failed:", {
+            message: error?.message,
+            details: error?.details,
+            hint: error?.hint,
+            code: error?.code,
+            stack: error?.stack,
+        });
         next(error);
     }
 }
