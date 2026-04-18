@@ -1,9 +1,13 @@
 import { OpportunityCard } from "./OpportunityCard";
-import { QualificationCard } from "./QualificationCard";
 
-export function OpportunityList({items = [], loading = false, error = "", summary = { opportunities: 0, qualifications: 0 },pagination = null, onPageChange,
+export function OpportunityList({
+  items = [],
+  loading = false,
+  error = "",
+  summary = { opportunities: 0, qualifications: 0 },
+  pagination = null,
+  onPageChange,
 }) {
-
   if (loading) {
     return (
       <section className="flex items-center justify-center py-24">
@@ -24,8 +28,10 @@ export function OpportunityList({items = [], loading = false, error = "", summar
   if (items.length === 0) {
     return (
       <section className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="font-bold text-gray-700">No results found</p>
-        <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
+        <p className="font-bold text-gray-700">No opportunities found</p>
+        <p className="text-sm text-gray-400 mt-1">
+          Try adjusting your filters
+        </p>
       </section>
     );
   }
@@ -36,8 +42,11 @@ export function OpportunityList({items = [], loading = false, error = "", summar
         <small className="text-sm text-gray-500">
           Showing <strong>{summary.opportunities}</strong> opportunities and <strong>{summary.qualifications}</strong> qualifications
         </small>
+
         <nav className="flex items-center gap-2">
-          <small className="text-xs font-bold uppercase tracking-widest text-gray-400">Sort by:</small>
+          <small className="text-xs font-bold uppercase tracking-widest text-gray-400">
+            Sort by:
+          </small>
           <select className="bg-transparent border-none text-sm font-bold text-[#035b9d] focus:ring-0">
             <option>Recently Added</option>
             <option>Closing Soon</option>
@@ -47,13 +56,9 @@ export function OpportunityList({items = [], loading = false, error = "", summar
       </header>
 
       <section className="flex flex-col gap-4">
-        {items.map((item) =>
-          item._type === "opportunity" ? (
-            <OpportunityCard key={`opp-${item.id}`} {...item} />
-          ) : (
-            <QualificationCard key={`qual-${item.qual_id}`} {...item} />
-          )
-        )}
+        {items.map((item) => (
+          <OpportunityCard key={item.id} {...item} />
+        ))}
       </section>
 
       {pagination && pagination.totalPages > 1 && (

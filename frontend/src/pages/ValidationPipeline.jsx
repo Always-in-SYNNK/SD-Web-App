@@ -72,6 +72,7 @@ const ValidationPipeline = () => {
         credentials: "include",
       });
       localStorage.removeItem("provider_user");
+      localStorage.setItem("__logout_redirect", "true");
       window.location.href = "/";
     } catch (err) {
       console.error("Logout failed:", err);

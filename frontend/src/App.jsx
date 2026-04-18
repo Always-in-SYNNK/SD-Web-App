@@ -15,11 +15,12 @@ import AdminAccessApplications from "./pages/AdminAccessApplications";
 import ApplicantLogin from "./pages/ApplicantLogin";
 import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
+import AuthDenied from "./pages/AuthDenied";
 import ProtectedRoute from "./routes/protectedRoute";
 import ProviderRegistration from "./pages/ProviderRegistration";
-
-// DEV ONLY — remove TestLogin before deploying
-import TestLogin from "./components/TestLogin";
+import Qualifications from "./pages/Qualifications";
+import CompleteProfile from "./pages/CreateStudentProfile";
+import EditProfile from "./pages/EditStudentProfile";
 
 export default function App() {
   const clientId =
@@ -34,20 +35,43 @@ export default function App() {
             {/* Home */}
             <Route path="/" element={<Home />} />
 
-            {/* Dev bypass — no auth required */}
+            {/*bypassing authentication  - not working, going straight to dashboard*/}
             <Route path="/dev-dashboard" element={<StudentDashboard />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <CompleteProfile />
+                </ProtectedRoute>
+            }/>
 
-            {/* Authentication */}
-            <Route path="/app-login"     element={<ApplicantLogin />} />
-            <Route path="/prov-login"    element={<ProviderLogin />} />
-            <Route path="/auth-error"    element={<AuthError />} />
-            <Route path="/unauthorized"  element={<h1 className="p-8 text-2xl font-bold">Unauthorized</h1>} />
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <EditProfile />
+                </ProtectedRoute>
+            }/>
 
-            {/* Public */}
-            <Route path="/opportunities"     element={<Opportunities />} />
-            <Route path="/opportunities/:id" element={<OpportunityDetail />} />
+
+            {/* Authentication routes */}
+            <Route path="/app-login" element={<ApplicantLogin />} />
+            <Route path="/prov-login" element={<ProviderLogin />} />
+            <Route path="/auth-error" element={<AuthError />} />
+            <Route path="/unauthorized" element={<AuthDenied />} />
+            <Route path ="/qualifications" element={<Qualifications/>}/>
 
             {/* Applicant (protected) */}
+            <Route path="/opportunities" element={
+              <ProtectedRoute requiredRole="applicant">
+                <Opportunities />
+              </ProtectedRoute>
+            } />
+            <Route path="/opportunities/:id" element={
+              <ProtectedRoute requiredRole="applicant">
+                <OpportunityDetail />
+              </ProtectedRoute>
+            } />    
             <Route path="/dashboard" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />

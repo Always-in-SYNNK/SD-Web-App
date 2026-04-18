@@ -98,6 +98,23 @@ export const AuthProvider = ({ children }) => {
   const login = async (userData, authToken) => {
     setToken(authToken);
     setUser(userData);
+    setToken(jwtToken);
+    setIsNewUser(newUser);
+
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", jwtToken);
+    localStorage.setItem("isNewUser", String(newUser));
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    setIsNewUser(false);
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("isNewUser");
+    localStorage.removeItem("role");
     setProfile(userData);
     setRole(userData.role);
     setIsAdmin(userData.is_admin || userData.role === 'admin');
@@ -131,7 +148,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, token, role, isNewUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

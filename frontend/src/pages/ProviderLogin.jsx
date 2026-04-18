@@ -60,12 +60,12 @@ export default function ProviderLogin() {
           {/* Main content — hidden while verification pending */}
           {!showVerificationMessage && (
             <>
-              <div className="text-center mb-10">
+              <header className="text-center mb-10">
                 <h2 className="text-blue-950 text-3xl font-bold mb-3">Employer Access</h2>
                 <p className="text-slate-500 font-medium">
                   Sign in or create your employer account to manage your talent pipelines.
                 </p>
-              </div>
+              </header>
 
               <div className="max-w-md mx-auto w-full space-y-8">
                 {loading ? (

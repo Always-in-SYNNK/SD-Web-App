@@ -1,7 +1,7 @@
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { UploadBanner } from "../components/dashboard/UploadBanner";
-import { QualificationsList } from "../components/dashboard/QualificationsList";
+import { QualificationList } from "../components/dashboard/QualificationList";
 import { OpportunityCard } from "../components/dashboard/OpportunityCard";
 import { VerificationCard } from "../components/dashboard/VerificationCard";
 
@@ -12,7 +12,7 @@ export default function StudentDashboard() {
       <main className="ml-64 min-h-screen p-12 w-full">
         <DashboardHeader />
         <UploadBanner />
-        <QualificationsList />
+        <QualificationList />
         <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <OpportunityCard />
           <VerificationCard />
