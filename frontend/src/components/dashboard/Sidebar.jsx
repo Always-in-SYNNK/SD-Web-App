@@ -76,6 +76,7 @@ export function Sidebar() {
         <button
           onClick={() => {
             localStorage.setItem("__logout_redirect", "true");
+            localStorage.removeItem("provider_user");
             logout();
             navigate("/", { replace: true }); 
           }}

@@ -10,6 +10,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
   if (isLogout) {
     localStorage.removeItem("__logout_redirect");
+    return <Navigate to="/" replace />;
   }
 
   let providerRole = null;

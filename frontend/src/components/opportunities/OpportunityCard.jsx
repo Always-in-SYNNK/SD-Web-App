@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { applyToOpportunity } from "../../services/applicationService";
 
 export function OpportunityCard({
   id,
@@ -25,6 +27,19 @@ export function OpportunityCard({
         year: "numeric",
       })
     : "No closing date";
+
+  const [applied, setApplied] = useState(false);
+  const handleApply = async (e) => {
+    e.stopPropagation();
+
+    try {
+      await applyToOpportunity(id);
+      setApplied(true);
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.error || "Failed to apply");
+    }
+  };
 
   return (
     <article
@@ -77,11 +92,13 @@ export function OpportunityCard({
           </>
         ) : (
           <>
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="px-6 py-2.5 bg-[#035b9d] text-white rounded-full font-bold text-sm hover:opacity-90 transition min-w-[100px]"
+            <button disabled={applied}
+              onClick={handleApply}
+              className={`px-6 py-2.5 text-white rounded-full font-bold text-sm transition min-w-[100px] ${
+                applied ? "bg-green-500 hover:opacity-90" : "bg-[#035b9d] hover:opacity-90"
+              }`}
             >
-              Apply
+              {applied ? "Applied" : "Apply"}
             </button>
 
             <button

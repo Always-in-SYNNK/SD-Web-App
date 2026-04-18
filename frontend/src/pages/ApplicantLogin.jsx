@@ -19,7 +19,7 @@ export default function ApplicantLogin() {
       heroPanel={
         <AuthHeroPanel
           headline="Build Your Future,"
-          accentLine="One skill at a time."
+          accentLine="One Skill at a Time."
           backgroundImageUrl={HERO_IMAGE_URL}
           badges={[
             { icon: "verified", label: "SETA Accredited" },
