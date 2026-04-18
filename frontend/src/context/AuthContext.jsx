@@ -1,47 +1,140 @@
-//AUTH CONTEXT - MANAGES AUTH STATE AND PERSISTENCE ACROSS THE APP
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
-import { useState } from "react";
-import AuthContext from "./authContextValue";
+// Create context
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("token");
+// ✅ EXPORT the useAuth hook (this fixes your error)
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
 
-    if (!storedUser || !storedToken) {
-      return null;
-    }
+// Auth Provider component
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(null);
+  const [role, setRole] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
+  // Fetch user from Supabase
+  const fetchUser = async () => {
+    setLoading(true);
     try {
-      return JSON.parse(storedUser);
-    } catch {
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      return null;
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (!authUser) {
+        setUser(null);
+        setProfile(null);
+        setRole(null);
+        setIsAdmin(false);
+        setToken(null);
+        setLoading(false);
+        return;
+      }
+
+      // Get profile data
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", authUser.id)
+        .single();
+
+      setUser(profileData);
+      setProfile(profileData);
+      setRole(profileData?.role || 'applicant');
+      setIsAdmin(profileData?.is_admin || profileData?.role === 'admin');
+      
+      // Get session token
+      const { data: sessionData } = await supabase.auth.getSession();
+      setToken(sessionData?.session?.access_token || null);
+      
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-  });
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
-  const role = user?.role || null;
-
-  const login = (userData, jwtToken) => {
-    setUser(userData);
-    setToken(jwtToken);
-
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", jwtToken);
   };
 
-  const logout = () => { //TASH CAN DOUBLE CHECK THIS IMPLEMENTATION
-    setUser(null);
-    setToken(null);
+  // Sign in with email/password
+  const signIn = async (email, password) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) return { error };
+      
+      await fetchUser(); // Refresh user data
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
 
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+  // Sign out
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setUser(null);
+      setProfile(null);
+      setRole(null);
+      setIsAdmin(false);
+      setToken(null);
+    }
+    return { error };
+  };
+
+  // Login function (for Google OAuth or other providers)
+  const login = async (userData, authToken) => {
+    setToken(authToken);
+    setUser(userData);
+    setProfile(userData);
+    setRole(userData.role);
+    setIsAdmin(userData.is_admin || userData.role === 'admin');
+  };
+
+  // Initialize
+  useEffect(() => {
+    fetchUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      fetchUser();
+    });
+
+    return () => {
+      listener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  const value = {
+    user,
+    profile,
+    loading,
+    token,
+    role,
+    isAdmin,
+    signIn,
+    signOut,
+    login,
+    setUser,
+    setProfile,
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, role, login, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
+};
+
+export default AuthContext;
