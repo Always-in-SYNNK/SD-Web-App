@@ -1,3 +1,4 @@
+{/*your qualifications on dashboard */}
 export function QualificationItem({ icon, title, org, date, accent }) {
   return (
     <article

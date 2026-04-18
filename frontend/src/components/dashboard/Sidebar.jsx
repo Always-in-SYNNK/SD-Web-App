@@ -6,7 +6,7 @@ export function Sidebar() {
   const { logout } = useAuth();
 
   const links = [
-    { icon: "🎓", label: "Qualifications", path: "/dashboard" },
+    { icon: "🎓", label: "Qualifications", path: "/qualifications" },
     { icon: "💼", label: "Opportunities", path: "/opportunities" },
     { icon: "📄", label: "Applications", path: "/applications" },
     { icon: "📊", label: "Analytics", path: "/analytics" },
