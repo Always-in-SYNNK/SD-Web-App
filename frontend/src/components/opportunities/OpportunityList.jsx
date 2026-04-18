@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { OpportunityCard } from "./OpportunityCard";
+import { fetchMyApplications } from "../../services/applicationService";
 
 export function OpportunityList({ search, location, nqf, field }) {
   const [items, setItems] = useState([]);
+  const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -28,6 +30,26 @@ export function OpportunityList({ search, location, nqf, field }) {
         if (error) throw new Error(error.message);
 
         setItems(data);
+
+        try {
+          const applications = await fetchMyApplications();
+          const ids = new Set(
+            (applications || [])
+              .map((application) => {
+                const opportunity = Array.isArray(application?.opportunities)
+                  ? application.opportunities[0]
+                  : application?.opportunities;
+
+                return opportunity?.id;
+              })
+              .filter(Boolean)
+          );
+
+          setAppliedOpportunityIds(ids);
+        } catch {
+          // Keep opportunities view functional even if the applied-status lookup fails.
+          setAppliedOpportunityIds(new Set());
+        }
       } catch (err) {
         setError(err.message);
       }
@@ -91,7 +113,11 @@ export function OpportunityList({ search, location, nqf, field }) {
 
       <section className="flex flex-col gap-4">
         {items.map((item) => (
-          <OpportunityCard key={item.id} {...item} />
+          <OpportunityCard
+            key={item.id}
+            {...item}
+            isApplied={appliedOpportunityIds.has(item.id)}
+          />
         ))}
       </section>
     </section>

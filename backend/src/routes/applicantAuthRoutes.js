@@ -15,7 +15,7 @@ router.get("/me", authMiddleware, async (req, res) => {
     const { data: user, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", req.user.id)
+      .eq("user_id", req.user.id)
       .single();
 
     if (error || !user) {

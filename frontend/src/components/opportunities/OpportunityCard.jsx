@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { applyToOpportunity } from "../../services/applicationService";
 
 export function OpportunityCard({
@@ -10,6 +10,7 @@ export function OpportunityCard({
   duration,
   stipend,
   closing_date,
+  isApplied = false,
   isAdmin = false,
   onEdit,
   onDelete
@@ -28,7 +29,12 @@ export function OpportunityCard({
       })
     : "No closing date";
 
-  const [applied, setApplied] = useState(false);
+  const [applied, setApplied] = useState(isApplied);
+
+  useEffect(() => {
+    setApplied(isApplied);
+  }, [isApplied]);
+
   const handleApply = async (e) => {
     e.stopPropagation();
 
@@ -37,7 +43,11 @@ export function OpportunityCard({
       setApplied(true);
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.error || "Failed to apply");
+      const message = error.response?.data?.error || "Failed to apply";
+      if (String(message).toLowerCase().includes("already applied")) {
+        setApplied(true);
+      }
+      alert(message);
     }
   };
 
