@@ -115,6 +115,23 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("isNewUser");
     localStorage.removeItem("role");
+    setToken(jwtToken);
+    setIsNewUser(newUser);
+
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", jwtToken);
+    localStorage.setItem("isNewUser", String(newUser));
+  };
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    setIsNewUser(false);
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("isNewUser");
+    localStorage.removeItem("role");
   };
 
   return (

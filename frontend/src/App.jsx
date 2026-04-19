@@ -61,7 +61,7 @@ export default function App() {
             <Route path="/unauthorized" element={<AuthDenied />} />
             <Route path ="/qualifications" element={<Qualifications/>}/>
 
-            {/* Applicant routes */}
+            {/* Applicant (protected) */}
             <Route path="/opportunities" element={
               <ProtectedRoute requiredRole="applicant">
                 <Opportunities />
@@ -72,7 +72,7 @@ export default function App() {
                 <OpportunityDetail />
               </ProtectedRoute>
             } />    
-            <Route path="/dashboard" element={ 
+            <Route path="/dashboard" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
               </ProtectedRoute>
@@ -96,27 +96,14 @@ export default function App() {
             {/* Admin console — shared, sidebar switches on location.state.source */}
             <Route path="/admin" element={<AdminConsole />} />
 
-            {/* Employer routes - removed protected routing for now */}
-            <Route path="/pipeline" element={
-              <ProtectedRoute requiredRole="provider">
-                 <ValidationPipeline />
-              </ProtectedRoute> 
-            } />
-            <Route path="/post" element={
-              <ProtectedRoute requiredRole="provider">
-                <PostOpportunity />
-              </ProtectedRoute>
-            } />
-            <Route path="/define" element={
-              <ProtectedRoute requiredRole="provider">
-                <DefineRequirements />
-              </ProtectedRoute>
-            } />
-            <Route path="/provider-registration" element={
-              <ProtectedRoute requiredRole="provider">
-                <ProviderRegistration />
-              </ProtectedRoute>
-            } />
+            {/* Admin access applications — works for both applicant + employer */}
+            <Route path="/admin-access" element={<AdminAccessApplications />} />
+
+            {/* Employer */}
+            <Route path="/pipeline"              element={<ValidationPipeline />} />
+            <Route path="/post"                  element={<PostOpportunity />} />
+            <Route path="/define"                element={<DefineRequirements />} />
+            <Route path="/provider-registration" element={<ProviderRegistration />} />
           </Routes>
 
         </BrowserRouter>

@@ -154,6 +154,18 @@ export function Sidebar() {
           <i>⚙️</i>
           <strong>Settings</strong>
         </a>
+        <button
+          onClick={() => {
+            localStorage.setItem("__logout_redirect", "true");
+            localStorage.removeItem("provider_user");
+            logout();
+            navigate("/", { replace: true }); 
+          }}
+          className="flex items-center space-x-3 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+        >
+          <i>🚪</i>
+          <strong>Logout</strong>
+        </button>
         <a href="#" className="flex items-center space-x-3 px-4 py-2 text-gray-500 hover:text-[#035b9d]">
           <i>❓</i>
           <strong>Support</strong>
