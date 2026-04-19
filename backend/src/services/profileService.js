@@ -4,9 +4,9 @@ export async function getApplicantProfileByUserId(userId) {
     // 1. Get base profile
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("full_name, email, role")
+        .select("id, full_name, email, role")
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
     if (profileError) throw profileError;
     
@@ -14,8 +14,8 @@ export async function getApplicantProfileByUserId(userId) {
     // 2. Get applicant-specific data
     const { data: applicantProfile, error: applicantError } = await supabase
         .from("applicant_profiles")
-        .select("bio, location, nqf_level, cv_url")
-        .eq("id", userId)
+        .select("id, bio, location, nqf_level, cv_url")
+        .eq("profile_id", profile.id)
         .maybeSingle();
 
     if (applicantError) throw applicantError;
