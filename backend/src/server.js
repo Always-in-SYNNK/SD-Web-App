@@ -5,7 +5,7 @@
 require("dotenv").config();
 
 const app  = require("./app");
-
+const cors = require("cors");
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
@@ -14,3 +14,7 @@ app.listen(PORT, () => {
   console.log(`🗄️  Supabase URL     : ${process.env.SUPABASE_URL       ? "Configured ✓" : "MISSING ✗"}`);
   console.log(`📧 Email user       : ${process.env.EMAIL_USER         ? "Configured ✓" : "MISSING ✗"}`);
 });
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN 
+}));

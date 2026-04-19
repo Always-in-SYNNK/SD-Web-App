@@ -6,6 +6,8 @@ import Topbar from "../components/layout/Topbar";
 import StatsCard from "../components/dashboard/StatsCard";
 import JobCard from "../components/dashboard/JobCard";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ValidationPipeline = () => {
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState(null);
@@ -15,7 +17,7 @@ const ValidationPipeline = () => {
 
   const checkAuth = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/auth/provider/me", {
+      const response = await fetch(`${API_URL}/api/auth/provider/me`, {
         credentials: "include",
       });
       const data = await response.json();
@@ -67,7 +69,7 @@ const ValidationPipeline = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch("http://localhost:3000/api/auth/provider/logout", {
+      await fetch(`${API_URL}/api/auth/provider/logout`, {
         method: "POST",
         credentials: "include",
       });

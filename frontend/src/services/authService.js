@@ -1,7 +1,7 @@
 // ─── Applicant auth ───────────────────────────────────────────────────────────
 // Single-step Google login used by GoogleLoginButton + useAuth
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export async function loginWithGoogle(token, role) {
   if (!token) {
