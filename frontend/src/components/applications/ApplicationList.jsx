@@ -34,7 +34,7 @@ export function ApplicationList({ applications, loading, error, onView, onUnappl
 
   if (applications.length === 0) {
     return (
-      <section className="flex flex-col items-center justify-center py-16 px-8 text-center bg-white rounded-xl border-2 border-dashed border-gray-200">
+      <section className="flex flex-col items-center justify-center py-16 px-8 text-center bg-white rounded-lg shadow">
         <span className="text-5xl mb-4">📭</span>
         <h3 className="text-xl font-bold text-gray-800 mb-2">No applications yet</h3>
         <p className="text-gray-500 text-sm max-w-sm mb-6">

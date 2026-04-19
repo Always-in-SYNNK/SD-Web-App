@@ -12,8 +12,8 @@ const STATUS_STYLES = {
     badge: "bg-green-100 text-green-800",
   },
   Accepted: {
-    dot: "bg-emerald-500",
-    badge: "bg-emerald-100 text-emerald-800",
+    dot: "bg-blue-500",
+    badge: "bg-blue-100 text-blue-800",
   },
   Rejected: {
     dot: "bg-red-500",
@@ -103,7 +103,7 @@ export function ApplicationCard({
         {isOffered ? (
           <button
             onClick={onAccept}
-            className="w-full px-6 py-2 rounded-full text-xs font-bold bg-[#035b9d] text-white shadow-md shadow-blue-200 hover:opacity-90 transition-opacity"
+            className="w-full px-6 py-2 rounded-full text-xs font-bold bg-green-500 text-white shadow-md shadow-green-100 hover:opacity-90 transition-opacity"
           >
             Accept
           </button>

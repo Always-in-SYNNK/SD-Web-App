@@ -1,14 +1,23 @@
 import { jest } from "@jest/globals";
+import { getApplicationsForUser } from "../src/services/applicationService.js";
 
 // mock service
 const mockApply = jest.fn();
 
 jest.unstable_mockModule("../src/services/applicationService.js", () => ({
   applyToOpportunity: mockApply,
+  getApplicationsForUser: mockApply,
+  deleteApplicationForUser: mockApply,
+  acceptOffer: mockApply,
 }));
 
 // import AFTER mock
-const { apply } = await import("../src/controllers/applicationController.js");
+const { 
+    apply,
+    getMyApplications,
+    unapply,
+    accept
+} = await import("../src/controllers/applicationController.js");
 
 function createMockRes() {
   return {
@@ -18,6 +27,8 @@ function createMockRes() {
 }
 
 describe("applicationController", () => {
+
+    // apply ============================================
     test("should return 201 on success", async () => {
         const req = {
             user: { id: "user-123" },
@@ -77,4 +88,72 @@ describe("applicationController", () => {
             error: "Something failed",
         });
     });
+
+    // getMyApplications ===================================
+    test("should return applications", async () => {
+    const req = { user: { id: "user-123" } };
+    const res = createMockRes();
+
+    mockApply.mockResolvedValue([{ id: 1 }]);
+
+    await getMyApplications(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: [{ id: 1 }],
+    });
+  });
+
+  // unapply=================================================
+
+  test("should delete application", async () => {
+    const req = { user: { id: "user-123" }, params: { id: "app-1" } };
+    const res = createMockRes();
+
+    mockApply.mockResolvedValue();
+
+    await unapply(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  test("should return 404 if not found", async () => {
+    const req = { user: { id: "user-123" }, params: { id: "app-1" } };
+    const res = createMockRes();
+
+    mockApply.mockRejectedValue(
+      new Error("Application not found")
+    );
+
+    await unapply(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  // accept========================================
+
+  test("should accept offer", async () => {
+    const req = { user: { id: "user-123" }, body: { applicationId: "app-1" } };
+    const res = createMockRes();
+
+    mockApply.mockResolvedValue({ status: "accepted" });
+
+    await accept(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  test("should return 400 if not offered", async () => {
+    const req = { user: { id: "user-123" }, body: { applicationId: "app-1" } };
+    const res = createMockRes();
+
+    mockApply.mockRejectedValue(
+      new Error("Only offered applications can be accepted")
+    );
+
+    await accept(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
 });

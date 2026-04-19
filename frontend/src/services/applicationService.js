@@ -41,3 +41,19 @@ export async function unapplyFromApplication(applicationId) {
 
   return res.data;
 }
+
+export async function acceptOffer(applicationId) {
+  const token = localStorage.getItem("token"); 
+
+  const res = await axios.post(
+    `${API_URL}/applications/accept`,
+    { applicationId },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data.data;
+}

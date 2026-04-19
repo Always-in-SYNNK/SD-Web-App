@@ -4,6 +4,7 @@ import { Sidebar } from "../components/dashboard/Sidebar";
 import { ApplicationList } from "../components/applications/ApplicationList";
 import { RecommendedPanel } from "../components/applications/RecommendedPanel";
 import {
+  acceptOffer,
   fetchMyApplications,
   unapplyFromApplication,
 } from "../services/applicationService";
@@ -108,8 +109,8 @@ export default function MyApplications() {
   const handleView = (id) => navigate(`/applications/${id}`);
 
   const handleUnapply = async (id) => {
-    const confirmed = window.confirm("Are you sure you want to withdraw this application?");
-    if (!confirmed) return;
+    //const confirmed = window.confirm("Are you sure you want to withdraw this application?");
+    //if (!confirmed) return;
 
     try {
       await unapplyFromApplication(id);
@@ -120,16 +121,17 @@ export default function MyApplications() {
   };
 
   const handleAccept = async (id) => {
-    const confirmed = window.confirm("Accept this offer? This action cannot be undone.");
-    if (!confirmed) return;
+    //const confirmed = window.confirm("Accept this offer? This action cannot be undone.");
+    //if (!confirmed) return;
 
     try {
-      // TODO: await supabase.from("applications").update({ status: "Accepted" }).eq("id", id);
+      await acceptOffer(id);
       setApplications((prev) =>
         prev.map((a) => (a.id === id ? { ...a, status: "Accepted" } : a))
       );
-    } catch {
-      alert("Failed to accept offer. Please try again.");
+      //window.location.reload();
+    } catch (err) {
+    alert(err.response?.data?.error || "Failed to accept offer");
     }
   };
 

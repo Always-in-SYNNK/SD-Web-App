@@ -2,6 +2,7 @@ import {
   applyToOpportunity,
   deleteApplicationForUser,
   getApplicationsForUser,
+  acceptOffer,
 } from "../services/applicationService.js";
 
 export async function apply(req, res, next) {
@@ -37,7 +38,10 @@ export async function getMyApplications(req, res, next) {
       data: applications,
     });
   } catch (err) {
-    next(err); // use your improved error handling
+    if (err.message === "Profile not found") {
+      return res.status(404).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
   }
 }
 
@@ -54,6 +58,28 @@ export async function unapply(req, res) {
       return res.status(404).json({ error: err.message });
     }
 
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function accept(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { applicationId } = req.body;
+
+    const result = await acceptOffer({ userId, applicationId });
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (err) { //better error handling for accept offer
+    if (err.message === "Application not found") {
+      return res.status(404).json({ error: err.message });
+    }
+    if (err.message === "Only offered applications can be accepted") {
+      return res.status(400).json({ error: err.message });
+    }
     return res.status(500).json({ error: err.message });
   }
 }

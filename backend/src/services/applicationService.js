@@ -150,3 +150,58 @@ export async function deleteApplicationForUser({ userId, applicationId }) {
     throw new Error(deleteError.message);
   }
 }
+
+export async function acceptOffer({ userId, applicationId }) {
+  // 1. Get profile
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error("Profile not found");
+  }
+
+  // 2. Get applicant profile
+  const { data: applicant, error: applicantError } = await supabase
+    .from("applicant_profiles")
+    .select("id")
+    .eq("profile_id", profile.id)
+    .single();
+
+  if (applicantError || !applicant) {
+    throw new Error("Applicant profile not found");
+  }
+
+  // 3. Check application exists + belongs to user
+  const { data: application, error: appError } = await supabase
+    .from("applications")
+    .select("*")
+    .eq("id", applicationId)
+    .eq("applicant_id", applicant.id)
+    .single();
+
+  if (appError || !application) {
+    throw new Error("Application not found");
+  }
+
+  // 4. Only allow accepting if status is "offered"
+  if (application.status !== "offered") {
+    throw new Error("Only offered applications can be accepted");
+  }
+
+  // 5. Update status → accepted
+  const { data, error: updateError } = await supabase
+    .from("applications")
+    .update({ status: "accepted" })
+    .eq("id", applicationId)
+    .select()
+    .single();
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  return data;
+}
