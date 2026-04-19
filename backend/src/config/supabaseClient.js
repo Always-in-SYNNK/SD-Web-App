@@ -14,6 +14,4 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
 }
 
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-
 export const supabase = createClient(supabaseUrl, supabaseKey);

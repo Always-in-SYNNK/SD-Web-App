@@ -1,5 +1,6 @@
 // ============================================================
-// ENTRY POINT — DO NOT MODIFY FOR APP DEPLOYMENT TO WORK
+// ENTRY POINT — starts the Express server
+// DO NOT MODIFY FOR APP DEPLOYMENT TO WORK
 // ============================================================
 
 const app  = require("./app");

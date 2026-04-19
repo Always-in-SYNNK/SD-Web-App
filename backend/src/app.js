@@ -13,9 +13,9 @@ const providerAuthRoutes  = require("./routes/providerAuthRoutes");
 
 const app = express();
 
-// ✅ SIMPLE CORS (hardcoded for now)
+// SIMPLE CORS 
 app.use(cors({
-  origin: "https://growthstagesa.netlify.app",
+  origin: process.env.CORS_ORIGIN,
   credentials: true,
 }));
 
