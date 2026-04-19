@@ -464,23 +464,50 @@ router.post('/logout', (req, res) => {
 // ============================================
 // Purpose: Check if user is logged in and get their information
 // Called when page loads to verify authentication status
-router.get('/me', (req, res) => {
-    // Check if session exists and has user data
-    if (req.session && req.session.user) {
-        // User is logged in - return their info
-        res.json({ 
-            authenticated: true, 
-            user: req.session.user 
-        });
-    } else {
-        // User is not logged in
-        res.json({ 
-            authenticated: false, 
-            user: null 
-        });
-    }
-});
+// In your PROVIDER auth router (the one with /api/auth/provider/me)
+// Replace the existing /me handler with this:
 
+router.get('/me', async (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.json({ authenticated: false, user: null });
+  }
+
+  try {
+    // Always re-fetch the profile from DB so role/isAdmin changes
+    // (e.g. being granted admin) are reflected immediately without
+    // requiring the user to log out and back in
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, role, full_name, email, "isAdmin"')
+      .eq('id', req.session.user.id)
+      .single();
+
+    if (!profile) {
+      return res.json({ authenticated: false, user: null });
+    }
+
+    // Update the session to stay in sync with the DB
+    req.session.user = {
+      ...req.session.user,
+      role:    profile.role,
+      isAdmin: profile.isAdmin ?? false,
+      name:    profile.full_name,
+    };
+
+    return res.json({
+      authenticated: true,
+      user: req.session.user,
+    });
+
+  } catch (err) {
+    console.error('/me refresh error:', err);
+    // Fall back to session data if DB call fails
+    return res.json({
+      authenticated: true,
+      user: req.session.user,
+    });
+  }
+});
 // ============================================
 // EXPORT ROUTER
 // ============================================
