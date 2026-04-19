@@ -67,27 +67,27 @@ export function NotificationDropdown() {
     return `${days} day${days !== 1 ? "s" : ""} ago`;
   };
 
-  return (
-    <div className="relative" ref={ref}>
+return (
+    <section className="relative" ref={ref}>
       {/* Bell button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="relative p-2 hover:bg-gray-100 rounded-full transition"
       >
-        <span className="text-xl">🔔</span>
+        🔔
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#035b9d] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+          <mark className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#035b9d] text-white text-[10px] font-bold rounded-full flex items-center justify-center not-italic">
             {unreadCount}
-          </span>
+          </mark>
         )}
       </button>
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+        <article className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
 
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <header className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <h3 className="font-bold text-[#1b1c1c] text-sm">Notifications</h3>
             {unreadCount > 0 && (
               <button
@@ -97,7 +97,7 @@ export function NotificationDropdown() {
                 Mark all as read
               </button>
             )}
-          </div>
+          </header>
 
           {/* List */}
           <ul className="max-h-80 overflow-y-auto divide-y divide-gray-50">
@@ -118,37 +118,39 @@ export function NotificationDropdown() {
                     !n.is_read ? "bg-blue-50/50" : ""
                   }`}
                 >
-                  <div className="mt-1.5 shrink-0">
-                    {!n.is_read ? (
-                      <span className="w-2 h-2 rounded-full bg-[#035b9d] block" />
-                    ) : (
-                      <span className="w-2 h-2 rounded-full bg-transparent block" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!n.is_read ? "font-bold text-[#1b1c1c]" : "font-medium text-gray-500"}`}>
+                  <figure className="mt-1.5 shrink-0">
+                    {!n.is_read
+                      ? <mark className="w-2 h-2 rounded-full bg-[#035b9d] block not-italic" />
+                      : <mark className="w-2 h-2 rounded-full bg-transparent block not-italic" />
+                    }
+                  </figure>
+                  <section className="flex-1 min-w-0">
+                    <strong className={`text-sm ${!n.is_read ? "font-bold text-[#1b1c1c]" : "font-medium text-gray-500"}`}>
                       {n.title}
-                    </p>
+                    </strong>
                     <p className="text-xs text-gray-400 mt-0.5 leading-relaxed line-clamp-2">
                       {n.message}
                     </p>
-                    <p className="text-[10px] text-gray-300 mt-1 uppercase tracking-wider font-semibold">
+                    <time
+                      dateTime={n.created_at}
+                      className="text-[10px] text-gray-300 mt-1 uppercase tracking-wider font-semibold block"
+                    >
                       {formatTime(n.created_at)}
-                    </p>
-                  </div>
+                    </time>
+                  </section>
                 </li>
               ))
             )}
           </ul>
 
           {/* Footer */}
-          <div className="px-4 py-3 border-t border-gray-100 text-center">
+          <footer className="px-4 py-3 border-t border-gray-100 text-center">
             <button className="text-xs text-[#035b9d] font-semibold hover:underline">
               View all notifications
             </button>
-          </div>
-        </div>
+          </footer>
+        </article>
       )}
-    </div>
+    </section>
   );
 }
