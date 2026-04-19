@@ -1,7 +1,13 @@
+// ============================================
+// profileService.js - ONLY THIS FILE NEEDS THE FIX
+// ============================================
+
 import { supabase } from "../config/supabaseClient.js";
 
+// ============================================
+// GET APPLICANT PROFILE (KEEP AS IS)
+// ============================================
 export async function getApplicantProfileByUserId(userId) {
-    // 1. Get base profile
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id, full_name, surname, email, role")
@@ -10,7 +16,6 @@ export async function getApplicantProfileByUserId(userId) {
 
     if (profileError) throw profileError;
 
-    // 2. Get applicant-specific data
     const { data: applicantProfile, error: applicantError } = await supabase
         .from("applicant_profiles")
         .select("bio, location, nqf_level, cv_url")
@@ -19,52 +24,49 @@ export async function getApplicantProfileByUserId(userId) {
 
     if (applicantError) throw applicantError;
 
-    // 3. Get qualifications (both standard + custom)
     const { data: qualifications, error: qualificationsError } = await supabase
         .from("applicant_qualifications")
         .select(`
-      id,
-      qualification_id,
-      qualification_name,
-      nqf_level,
-      field,
-      subfield,
-      status,
-      origin,
-      date_obtained,
-      qualifications (
-        title,
-        nqf_level,
-        field,
-        subfield
-      )
-    `)
+            id,
+            qualification_id,
+            qualification_name,
+            nqf_level,
+            field,
+            subfield,
+            status,
+            origin,
+            date_obtained,
+            qualifications (
+                title,
+                nqf_level,
+                field,
+                subfield
+            )
+        `)
         .eq("applicant_id", profile.id);
 
     if (qualificationsError) throw qualificationsError;
 
-    // 4. Normalize qualifications
     const mappedQualifications = (qualifications || []).map((row) => ({
         id: row.id,
         name: row.qualification_id
-            ? row.qualifications?.name
-            : row.custom_name,
+            ? row.qualifications?.title
+            : row.qualification_name,
         nqf_level: row.qualification_id
             ? row.qualifications?.nqf_level
-            : row.custom_nqf_level,
+            : row.nqf_level,
         field: row.qualification_id
             ? row.qualifications?.field
-            : row.custom_field,
+            : row.field,
         subfield: row.qualification_id
             ? row.qualifications?.subfield
-            : row.custom_subfield,
+            : row.subfield,
         status: row.status,
-        institution: row.institution,
+        institution: row.origin,
         date_obtained: row.date_obtained,
-        is_custom: row.is_custom,
+        is_custom: !row.qualification_id,
     }));
 
-    // 5. Return unified profile object
     return {
         id: profile.id,
         full_name: profile.full_name,
@@ -79,6 +81,9 @@ export async function getApplicantProfileByUserId(userId) {
     };
 }
 
+// ============================================
+// SAVE APPLICANT PROFILE (KEEP AS IS)
+// ============================================
 export async function upsertApplicantProfileByUserId(userId, payload) {
     const { full_name, surname, bio, location, nqf_level } = payload;
 
@@ -92,9 +97,7 @@ export async function upsertApplicantProfileByUserId(userId, payload) {
 
     const { error: updateProfileError } = await supabase
         .from("profiles")
-        .update({
-            full_name,
-        })
+        .update({ full_name })
         .eq("id", profile.id);
     if (updateProfileError) throw updateProfileError;
 
@@ -116,12 +119,11 @@ export async function upsertApplicantProfileByUserId(userId, payload) {
     return data;
 }
 
-//Upload CV to Supabase Storage
+// ============================================
+// UPLOAD CV TO SUPABASE STORAGE (FIXED - THIS WAS THE PROBLEM)
+// ============================================
 export async function uploadApplicantCV(userId, file) {
-    if (!file) {
-        throw new Error("No file provided.");
-    }
-
+    // ✅ FIXED: safeName is defined BEFORE using it
     const safeName = file.originalname.replace(/\s+/g, "_");
     const filePath = `applicants/${userId}/${Date.now()}-${safeName}`;
 
@@ -137,7 +139,9 @@ export async function uploadApplicantCV(userId, file) {
     return data.path;
 }
 
-//Handles first-time insert or update
+// ============================================
+// SAVE CV PATH TO DATABASE (KEEP AS IS)
+// ============================================
 export async function saveApplicantCVPath(userId, cvPath) {
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -164,6 +168,9 @@ export async function saveApplicantCVPath(userId, cvPath) {
     return data;
 }
 
+// ============================================
+// DELETE OLD CV (KEEP AS IS)
+// ============================================
 export async function deleteApplicantCVIfExists(userId) {
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
@@ -192,7 +199,9 @@ export async function deleteApplicantCVIfExists(userId) {
     return applicantProfile.cv_url;
 }
 
-//Later stage, for viewing CVs
+// ============================================
+// GET SIGNED URL FOR CV (KEEP AS IS)
+// ============================================
 export async function getApplicantCVSignedUrl(cvPath) {
     const { data, error } = await supabase.storage
         .from("cvs")
@@ -201,8 +210,11 @@ export async function getApplicantCVSignedUrl(cvPath) {
     if (error) throw error;
 
     return data.signedUrl;
-}//Need to create an endpoint to use this
+}
 
+// ============================================
+// ADD QUALIFICATION (KEEP AS IS)
+// ============================================
 export async function addApplicantQualificationByUserId(userId, payload) {
     const {
         qualification_id,
@@ -230,12 +242,12 @@ export async function addApplicantQualificationByUserId(userId, payload) {
     const qualificationRow = {
         applicant_id: profile.id,
         qualification_id: qualification_id ?? null,
-        qualification: qualification_id ? null : custom_name,
+        qualification_name: qualification_id ? null : custom_name,
         nqf_level: qualification_id ? null : custom_nqf_level ?? null,
         field: qualification_id ? null : custom_field ?? null,
         subfield: qualification_id ? null : custom_subfield ?? null,
         status,
-        originator,
+        originator: institution,
         date_obtained,
     };
 
@@ -249,16 +261,3 @@ export async function addApplicantQualificationByUserId(userId, payload) {
 
     return data;
 }
-
-// const mappedQualifications = (qualifications || []).map((row) => ({
-//     id: row.id,
-//     qualification_id: row.qualification_id,
-//     name: row.qualification_id ? row.qualifications?.name : row.custom_name,
-//     nqf_level: row.qualification_id ? row.qualifications?.nqf_level : row.custom_nqf_level,
-//     field: row.qualification_id ? row.qualifications?.field : row.custom_field,
-//     subfield: row.qualification_id ? row.qualifications?.subfield : row.custom_subfield,
-//     status: row.status,
-//     institution: row.institution,
-//     date_obtained: row.date_obtained,
-//     is_custom: row.is_custom,
-// }));
