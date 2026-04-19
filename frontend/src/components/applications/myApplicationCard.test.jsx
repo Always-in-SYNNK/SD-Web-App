@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { jest, describe, test, expect } from "@jest/globals";
-import { ApplicationCard } from "./ApplicationCard";
+import { ApplicationCard } from "./myApplicationCard";
 
 describe("ApplicationCard", () => {
   test("renders basic application info", () => {

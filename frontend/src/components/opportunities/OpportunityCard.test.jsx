@@ -8,7 +8,7 @@ jest.unstable_mockModule("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.unstable_mockModule("../../services/applicationService", () => ({
+jest.unstable_mockModule("../../services/myApplicationService", () => ({
   applyToOpportunity: (...args) => mockApply(...args),
 }));
 

@@ -6,7 +6,7 @@ const mockAccept = jest.fn();
 const mockUnapply = jest.fn();
 const mockNavigate = jest.fn();
 
-jest.unstable_mockModule("../services/applicationService", () => ({
+jest.unstable_mockModule("../services/myApplicationService", () => ({
   fetchMyApplications: () => mockFetch(),
   acceptOffer: (...args) => mockAccept(...args),
   unapplyFromApplication: (...args) => mockUnapply(...args),

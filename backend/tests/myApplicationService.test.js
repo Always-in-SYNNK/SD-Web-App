@@ -15,10 +15,10 @@ const {
   getApplicationsForUser,
   deleteApplicationForUser,
   acceptOffer
- } = await import("../src/services/applicationService.js");
+ } = await import("../src/services/myApplicationService.js");
 
 
-describe("applicationService", () => {
+describe("myApplicationService", () => {
   const userId = "user-123";
   const profileId = "profile-123";
   const applicantId = "applicant-123";

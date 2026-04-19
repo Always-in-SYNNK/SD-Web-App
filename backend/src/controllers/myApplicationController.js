@@ -3,7 +3,7 @@ import {
   deleteApplicationForUser,
   getApplicationsForUser,
   acceptOffer,
-} from "../services/applicationService.js";
+} from "../services/myApplicationService.js";
 
 export async function apply(req, res, next) {
   try {

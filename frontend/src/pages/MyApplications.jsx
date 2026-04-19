@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/dashboard/Sidebar";
-import { ApplicationList } from "../components/applications/ApplicationList";
+import { ApplicationList } from "../components/applications/myApplicationList";
 import { RecommendedPanel } from "../components/applications/RecommendedPanel";
 import {
   acceptOffer,
   fetchMyApplications,
   unapplyFromApplication,
-} from "../services/applicationService";
+} from "../services/myApplicationService";
 
 const STATUS_LABELS = {
   received: "Received",

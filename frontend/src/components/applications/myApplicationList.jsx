@@ -1,4 +1,4 @@
-import { ApplicationCard } from "./ApplicationCard";
+import { ApplicationCard } from "./myApplicationCard";
 
 /**
  * @param {{

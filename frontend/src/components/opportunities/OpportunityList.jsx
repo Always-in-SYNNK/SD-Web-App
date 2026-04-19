@@ -1,68 +1,42 @@
+import { useEffect, useState } from "react";
 import { OpportunityCard } from "./OpportunityCard";
-import { fetchMyApplications } from "../../services/applicationService";
+import { fetchMyApplications } from "../../services/myApplicationService";
 
-export function OpportunityList({ search, location, nqf, field, 
+export function OpportunityList({
   items = [],
   loading = false,
   error = "",
   summary = { opportunities: 0, qualifications: 0 },
   pagination = null,
-  onPageChange,}) {
-  const [items, setItems] = useState([]);
+  onPageChange,
+}) {
   const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
+    const fetchAppliedOpportunityIds = async () => {
       try {
-        let query = supabase.from("opportunities").select("*");
+        const applications = await fetchMyApplications();
+        const ids = new Set(
+          (applications || [])
+            .map((application) => {
+              const opportunity = Array.isArray(application?.opportunities)
+                ? application.opportunities[0]
+                : application?.opportunities;
 
-        if (search)
-          query = query.or(
-            `title.ilike.%${search}%,description.ilike.%${search}%`
-          );
+              return opportunity?.id;
+            })
+            .filter(Boolean)
+        );
 
-        if (location) query = query.ilike("location", `%${location}%`);
-        if (nqf) query = query.eq("nqf_level", nqf);
-        if (field) query = query.eq("field", field);
-
-        const { data, error } = await query;
-        if (error) throw new Error(error.message);
-
-        setItems(data);
-
-        try {
-          const applications = await fetchMyApplications();
-          const ids = new Set(
-            (applications || [])
-              .map((application) => {
-                const opportunity = Array.isArray(application?.opportunities)
-                  ? application.opportunities[0]
-                  : application?.opportunities;
-
-                return opportunity?.id;
-              })
-              .filter(Boolean)
-          );
-
-          setAppliedOpportunityIds(ids);
-        } catch {
-          // Keep opportunities view functional even if the applied-status lookup fails.
-          setAppliedOpportunityIds(new Set());
-        }
-      } catch (err) {
-        setError(err.message);
+        setAppliedOpportunityIds(ids);
+      } catch {
+        // Keep the opportunities view functional even if applied-status lookup fails.
+        setAppliedOpportunityIds(new Set());
       }
-
-      setLoading(false);
     };
 
-    fetchData();
-  }, [search, location, nqf, field]);
+    fetchAppliedOpportunityIds();
+  }, [items]);
 
   if (loading) {
     return (
@@ -124,7 +98,7 @@ export function OpportunityList({ search, location, nqf, field,
       {pagination && pagination.totalPages > 1 && (
         <section className="flex items-center justify-center gap-4 pt-4">
           <button
-            onClick={() => onPageChange(pagination.page - 1)}
+            onClick={() => onPageChange?.(pagination.page - 1)}
             disabled={pagination.page <= 1}
             className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
           >
@@ -136,7 +110,7 @@ export function OpportunityList({ search, location, nqf, field,
           </span>
 
           <button
-            onClick={() => onPageChange(pagination.page + 1)}
+            onClick={() => onPageChange?.(pagination.page + 1)}
             disabled={pagination.page >= pagination.totalPages}
             className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
           >
@@ -144,7 +118,7 @@ export function OpportunityList({ search, location, nqf, field,
           </button>
         </section>
       )}
-      
+
     </section>
   );
 }

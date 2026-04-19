@@ -2,7 +2,7 @@ import request from "supertest";
 import express from "express";
 import { jest } from "@jest/globals";
 
-describe("applicationRoutes", () => {
+describe("myApplicationRoutes", () => {
   let app;
   let mockApply;
   let mockGetMyApplications;
@@ -31,7 +31,7 @@ describe("applicationRoutes", () => {
       next();
     });
 
-    jest.unstable_mockModule("../src/controllers/applicationController.js", () => ({
+    jest.unstable_mockModule("../src/controllers/myApplicationController.js", () => ({
       apply: mockApply,
       getMyApplications: mockGetMyApplications,
       accept: mockAccept,
@@ -42,7 +42,7 @@ describe("applicationRoutes", () => {
       default: mockAuthMiddleware,
     }));
 
-    const router = (await import("../src/routes/applicationRoutes.js")).default;
+    const router = (await import("../src/routes/myApplicationRoutes.js")).default;
 
     app = express();
     app.use(express.json());

@@ -1,10 +1,10 @@
 import { jest } from "@jest/globals";
-import { getApplicationsForUser } from "../src/services/applicationService.js";
+import { getApplicationsForUser } from "../src/services/myApplicationService.js";
 
 // mock service
 const mockApply = jest.fn();
 
-jest.unstable_mockModule("../src/services/applicationService.js", () => ({
+jest.unstable_mockModule("../src/services/myApplicationService.js", () => ({
   applyToOpportunity: mockApply,
   getApplicationsForUser: mockApply,
   deleteApplicationForUser: mockApply,
@@ -17,7 +17,7 @@ const {
     getMyApplications,
     unapply,
     accept
-} = await import("../src/controllers/applicationController.js");
+} = await import("../src/controllers/myApplicationController.js");
 
 function createMockRes() {
   return {
@@ -26,7 +26,7 @@ function createMockRes() {
   };
 }
 
-describe("applicationController", () => {
+describe("myApplicationController", () => {
 
     // apply ============================================
     test("should return 201 on success", async () => {

@@ -15,7 +15,7 @@ import session from 'express-session';
 import path from 'path';
 import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
-import applicationRoutes from "./routes/applicationRoutes.js";
+import myApplicationRoutes from "./routes/myApplicationRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 
@@ -64,7 +64,7 @@ app.use("/api/auth/provider",  providerAuthRoutes);
 
 // ─── Application routes ─────────────────────────────────────────────────────────────
 
-app.use("/applications", applicationRoutes);
+app.use("/applications", myApplicationRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
 import { supabase } from "./config/supabaseClient.js";

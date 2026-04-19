@@ -1,5 +1,5 @@
 import express from "express";
-import { accept, apply, getMyApplications, unapply } from "../controllers/applicationController.js";
+import { accept, apply, getMyApplications, unapply } from "../controllers/myApplicationController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
