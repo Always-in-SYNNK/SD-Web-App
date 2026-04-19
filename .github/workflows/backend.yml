@@ -1,18 +1,19 @@
+backend.yml:
 name: Backend CI
 
 on:
-    push:
-        branches: [main, develop, api]
-    pull_request    :
-        branches: [main, develop, api]
+  push:
+    branches: [main, develop, api]
+  pull_request:
+    branches: [main, develop, api]
 
 jobs:
-  frontend:
+  backend:
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: frontend
+        working-directory: backend
 
     steps:
       - name: Checkout code
