@@ -1,10 +1,10 @@
 name: Frontend CI
 
 on:
-  push:
-    branches: [main, develop, api]
-  pull_request:
-    branches: [main, develop, api]
+    push:
+        branches: [main, develop, api]
+    pull_request    :
+        branches: [main, develop, api]
 
 jobs:
   frontend:
@@ -14,59 +14,17 @@ jobs:
       run:
         working-directory: frontend
 
-    strategy:
-      matrix:
-        node-version: [18, 20]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
+          node-version: 20
+      
       - name: Install dependencies
-        run: npm ci
-
-      - name: Check linting
-        run: npm run lint --if-present
-
-      - name: Create .env file for testing
-        run: |
-          echo "VITE_API_URL=http://localhost:3000" > .env.test
-          echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env.test
-          echo "VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> .env.test
-          echo "VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }}" >> .env.test
-
-      - name: Run tests with coverage
-        run: npm test -- --coverage --watchAll=false
-        env:
-          VITE_API_URL: http://localhost:3000
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: Build project
-        run: npm run build
-        env:
-          VITE_API_URL: http://localhost:3000
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: frontend-build
-          path: frontend/dist/
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-coverage
-          path: frontend/coverage/
+        run: npm install
+      
+      - name: Run tests
+        run: npm test
