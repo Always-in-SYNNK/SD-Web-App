@@ -6,6 +6,7 @@ import { EducationSection } from "./education";
 import { SkillsSection } from "./skills";
 import { ConnectivitySection } from "./connectivity";
 import { CVUploadSection } from "./cvUpload";
+import { QualificationsSection } from "./qualifications";
 
 export function EditProfileForm() {
   const { token } = useAuth();
@@ -108,6 +109,7 @@ export function EditProfileForm() {
     <div className="space-y-8">
       <PersonalInfoSection formData={formData} setFormData={setFormData} />
       <EducationSection formData={formData} setFormData={setFormData} />
+      <QualificationsSection />
       <SkillsSection />
       <ConnectivitySection formData={formData} setFormData={setFormData} />
       <CVUploadSection onFileSelect={setCvFile} />
