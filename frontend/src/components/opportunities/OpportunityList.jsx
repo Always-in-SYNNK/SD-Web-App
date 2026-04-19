@@ -1,9 +1,13 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
 import { OpportunityCard } from "./OpportunityCard";
 import { fetchMyApplications } from "../../services/applicationService";
 
-export function OpportunityList({ search, location, nqf, field }) {
+export function OpportunityList({ search, location, nqf, field, 
+  items = [],
+  loading = false,
+  error = "",
+  summary = { opportunities: 0, qualifications: 0 },
+  pagination = null,
+  onPageChange,}) {
   const [items, setItems] = useState([]);
   const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -63,11 +67,7 @@ export function OpportunityList({ search, location, nqf, field }) {
   if (loading) {
     return (
       <section className="flex items-center justify-center py-24">
-        <i
-          className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin block"
-          role="status"
-          aria-label="Loading"
-        />
+        <i className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin block" role="status" aria-label="Loading" />
       </section>
     );
   }
@@ -96,7 +96,7 @@ export function OpportunityList({ search, location, nqf, field }) {
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <small className="text-sm text-gray-500">
-          Showing <strong>{items.length}</strong> opportunities
+          Showing <strong>{summary.opportunities}</strong> opportunities and <strong>{summary.qualifications}</strong> qualifications
         </small>
 
         <nav className="flex items-center gap-2">
@@ -120,6 +120,31 @@ export function OpportunityList({ search, location, nqf, field }) {
           />
         ))}
       </section>
+
+      {pagination && pagination.totalPages > 1 && (
+        <section className="flex items-center justify-center gap-4 pt-4">
+          <button
+            onClick={() => onPageChange(pagination.page - 1)}
+            disabled={pagination.page <= 1}
+            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm text-gray-600">
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
+
+          <button
+            onClick={() => onPageChange(pagination.page + 1)}
+            disabled={pagination.page >= pagination.totalPages}
+            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </section>
+      )}
+      
     </section>
   );
 }

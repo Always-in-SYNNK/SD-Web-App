@@ -11,8 +11,29 @@ const HERO_IMAGE_URL =
 export default function ApplicantLogin() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || "/dashboard";
+  const from = location.state?.from;
   const [loading, setLoading] = useState(false);
+
+  const handleSuccess = (res) => {
+    setLoading(false);
+
+    // 🔐 NEW USER → onboarding flow
+    if (res.isNewUser) {
+      navigate("/onboarding");
+      return;
+    }
+
+    // 👇 EXISTING USER → role-based routing
+    const role = res.user.role;
+
+    if (role === "applicant") {
+      navigate(from || "/dashboard");
+    } else if (role === "employer") {
+      navigate("/employer/dashboard");
+    } else if (role === "admin") {
+      navigate("/admin");
+    }
+  };
 
   return (
     <AuthLayout
@@ -30,12 +51,12 @@ export default function ApplicantLogin() {
       formPanel={
         <AuthFormPanel onBack={() => navigate("/")}>
 
-          <div className="text-center mb-10">
+          <header className="text-center mb-10">
             <h2 className="text-blue-950 text-3xl font-bold mb-3">Welcome Back</h2>
             <p className="text-slate-500 font-medium">
               Sign in or create your account and apply for opportunities.
             </p>
-          </div>
+          </header>
 
           <div className="max-w-md mx-auto w-full space-y-8">
             {loading ? (
@@ -45,6 +66,7 @@ export default function ApplicantLogin() {
                 selectedRole="applicant"
                 from={from}
                 onLoadingChange={setLoading}
+                onSuccess={handleSuccess}
               />
             )}
 

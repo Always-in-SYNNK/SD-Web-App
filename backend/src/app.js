@@ -16,7 +16,8 @@ import path from 'path';
 import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
-
+import profileRoutes from "./routes/profileRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
@@ -405,13 +406,23 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/opportunities", opportunityRoutes);
 
-app.use(errorHandler);
+
+
+// Profile routes
+
+app.use("/api/profile", profileRoutes);
+
+// Notifications routes
+
+app.use("/api/notifications", notificationRoutes);
 
 // ─── 404 fallback ─────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
 });
+
+app.use(errorHandler);
 
 // ─── Global error handler ─────────────────────────────────────────────────────
 

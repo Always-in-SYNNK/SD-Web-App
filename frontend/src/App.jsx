@@ -18,6 +18,8 @@ import ProtectedRoute from "./routes/protectedRoute";
 import ProviderRegistration from "./pages/ProviderRegistration";
 import Qualifications from "./pages/Qualifications";
 import MyApplications from "./pages/MyApplications";
+import CompleteProfile from "./pages/CreateStudentProfile";
+import EditProfile from "./pages/EditStudentProfile";
 
 export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
@@ -27,6 +29,25 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+
+            {/*bypassing authentication  - not working, going straight to dashboard*/}
+            <Route path="/dev-dashboard" element={<StudentDashboard />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <CompleteProfile />
+                </ProtectedRoute>
+            }/>
+
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <EditProfile />
+                </ProtectedRoute>
+            }/>
+
 
             {/* Authentication routes */}
             <Route path="/app-login" element={<ApplicantLogin />} />
