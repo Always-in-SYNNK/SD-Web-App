@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 const mockRpc = jest.fn();
 
-jest.unstable_mockModule("../../config/supabaseClient.js", () => ({
+jest.unstable_mockModule("../config/supabaseClient.js", () => ({
   supabase: {
     rpc: mockRpc,
   },
@@ -10,7 +10,7 @@ jest.unstable_mockModule("../../config/supabaseClient.js", () => ({
 
 //IMPORTANT: import AFTER mocking
 const { getDistinctLocations, getDistinctFields, getDistinctNqfLevels } =
-  await import("../opportunityService.js");
+  await import("./opportunityService.js");
 
 //Looking to test:
 // distinct value normalization

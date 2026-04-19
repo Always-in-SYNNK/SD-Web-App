@@ -1,5 +1,6 @@
 // src/components/dashboard/Sidebar.jsx  (Applicant)
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient";
 

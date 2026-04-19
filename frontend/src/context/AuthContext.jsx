@@ -98,40 +98,27 @@ export const AuthProvider = ({ children }) => {
   const login = async (userData, authToken) => {
     setToken(authToken);
     setUser(userData);
-    setProfile(userData);
-    setRole(userData.role);
-    setIsAdmin(userData.is_admin || userData.role === 'admin');
+    setToken(jwtToken);
+    setIsNewUser(newUser);
+
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", jwtToken);
+    localStorage.setItem("isNewUser", String(newUser));
   };
 
-  // Initialize
-  useEffect(() => {
-    fetchUser();
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    setIsNewUser(false);
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      fetchUser();
-    });
-
-    return () => {
-      listener?.subscription?.unsubscribe();
-    };
-  }, []);
-
-  const value = {
-    user,
-    profile,
-    loading,
-    token,
-    role,
-    isAdmin,
-    signIn,
-    signOut,
-    login,
-    setUser,
-    setProfile,
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("isNewUser");
+    localStorage.removeItem("role");
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, token, role, isNewUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

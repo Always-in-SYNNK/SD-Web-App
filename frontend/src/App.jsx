@@ -15,9 +15,12 @@ import AdminAccessApplications from "./pages/AdminAccessApplications";
 import ApplicantLogin from "./pages/ApplicantLogin";
 import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
+import AuthDenied from "./pages/AuthDenied";
 import ProtectedRoute from "./routes/protectedRoute";
 import ProviderRegistration from "./pages/ProviderRegistration";
-
+import Qualifications from "./pages/Qualifications";
+import CompleteProfile from "./pages/CreateStudentProfile";
+import EditProfile from "./pages/EditStudentProfile";
 
 export default function App() {
   const clientId =
@@ -32,21 +35,44 @@ export default function App() {
             {/* Home */}
             <Route path="/" element={<Home />} />
 
-            {/* Dev bypass — no auth required */}
+            {/*bypassing authentication  - not working, going straight to dashboard*/}
             <Route path="/dev-dashboard" element={<StudentDashboard />} />
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <CompleteProfile />
+                </ProtectedRoute>
+            }/>
 
-            {/* Authentication */}
-            <Route path="/app-login"     element={<ApplicantLogin />} />
-            <Route path="/prov-login"    element={<ProviderLogin />} />
-            <Route path="/auth-error"    element={<AuthError />} />
-            <Route path="/unauthorized"  element={<h1 className="p-8 text-2xl font-bold">Unauthorized</h1>} />
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute requiredRole="applicant">
+                  <EditProfile />
+                </ProtectedRoute>
+            }/>
 
-            {/* Public */}
-            <Route path="/opportunities"     element={<Opportunities />} />
-            <Route path="/opportunities/:id" element={<OpportunityDetail />} />
 
-            {/* Applicant (protected) */}
-            <Route path="/dashboard" element={
+            {/* Authentication routes */}
+            <Route path="/app-login" element={<ApplicantLogin />} />
+            <Route path="/prov-login" element={<ProviderLogin />} />
+            <Route path="/auth-error" element={<AuthError />} />
+            <Route path="/unauthorized" element={<AuthDenied />} />
+            <Route path ="/qualifications" element={<Qualifications/>}/>
+
+            {/* Applicant routes */}
+            <Route path="/opportunities" element={
+              <ProtectedRoute requiredRole="applicant">
+                <Opportunities />
+              </ProtectedRoute>
+            } />
+            <Route path="/opportunities/:id" element={
+              <ProtectedRoute requiredRole="applicant">
+                <OpportunityDetail />
+              </ProtectedRoute>
+            } />    
+            <Route path="/dashboard" element={ 
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
               </ProtectedRoute>
@@ -70,14 +96,27 @@ export default function App() {
             {/* Admin console — shared, sidebar switches on location.state.source */}
             <Route path="/admin" element={<AdminConsole />} />
 
-            {/* Admin access applications — works for both applicant + employer */}
-            <Route path="/admin-access" element={<AdminAccessApplications />} />
-
-            {/* Employer */}
-            <Route path="/pipeline"              element={<ValidationPipeline />} />
-            <Route path="/post"                  element={<PostOpportunity />} />
-            <Route path="/define"                element={<DefineRequirements />} />
-            <Route path="/provider-registration" element={<ProviderRegistration />} />
+            {/* Employer routes - removed protected routing for now */}
+            <Route path="/pipeline" element={
+              <ProtectedRoute requiredRole="provider">
+                 <ValidationPipeline />
+              </ProtectedRoute> 
+            } />
+            <Route path="/post" element={
+              <ProtectedRoute requiredRole="provider">
+                <PostOpportunity />
+              </ProtectedRoute>
+            } />
+            <Route path="/define" element={
+              <ProtectedRoute requiredRole="provider">
+                <DefineRequirements />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider-registration" element={
+              <ProtectedRoute requiredRole="provider">
+                <ProviderRegistration />
+              </ProtectedRoute>
+            } />
           </Routes>
 
         </BrowserRouter>

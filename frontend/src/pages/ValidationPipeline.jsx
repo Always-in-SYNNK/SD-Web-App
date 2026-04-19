@@ -66,6 +66,7 @@ const ValidationPipeline = () => {
     try {
       await fetch("http://localhost:3000/api/auth/provider/logout", { method: "POST", credentials: "include" });
       localStorage.removeItem("provider_user");
+      localStorage.setItem("__logout_redirect", "true");
       window.location.href = "/";
     } catch (err) {
       console.error("Logout failed:", err);
