@@ -18,8 +18,6 @@ import AuthError from "./pages/AuthError";
 import ProtectedRoute from "./routes/protectedRoute";
 import ProviderRegistration from "./pages/ProviderRegistration";
 
-// DEV ONLY — remove TestLogin before deploying
-import TestLogin from "./components/TestLogin";
 
 export default function App() {
   const clientId =
@@ -82,8 +80,6 @@ export default function App() {
             <Route path="/provider-registration" element={<ProviderRegistration />} />
           </Routes>
 
-          {/* DEV ONLY — floating login panel. Remove before deploying */}
-          <TestLogin />
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>

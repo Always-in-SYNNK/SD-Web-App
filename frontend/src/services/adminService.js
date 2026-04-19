@@ -1,7 +1,8 @@
+// src/services/adminService.js
 import { supabase } from "../lib/supabaseClient";
 
 /* ─────────────────────────────────────────────
-   GET ALL APPLICATIONS (JOIN WITH PROFILE)
+   GET ALL PENDING APPLICATIONS
 ───────────────────────────────────────────── */
 export const getAdminApplications = async () => {
   const { data, error } = await supabase
@@ -10,54 +11,71 @@ export const getAdminApplications = async () => {
       id,
       status,
       created_at,
+      user_id,
       profiles (
         id,
         full_name,
-        email
+        email,
+        role
       )
     `)
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return data;
+  return data ?? [];
 };
 
 /* ─────────────────────────────────────────────
    APPLY FOR ADMIN
 ───────────────────────────────────────────── */
-export const applyForAdmin = async (userId) => {
+export const applyForAdmin = async (profilesId) => {
+  const { data: existing } = await supabase
+    .from("admin_applications")
+    .select("id, status")
+    .eq("user_id", profilesId)
+    .in("status", ["pending", "approved"])
+    .maybeSingle();
+
+  if (existing) return; // already applied
+
   const { error } = await supabase
     .from("admin_applications")
-    .insert([{ user_id: userId }]);
+    .insert([{ user_id: profilesId }]);
 
   if (error) throw error;
 };
 
 /* ─────────────────────────────────────────────
    GRANT ADMIN ACCESS
+   Uses RPC so the SECURITY DEFINER function
+   handles the profiles UPDATE with elevated
+   privileges (bypasses any future RLS).
+   
+   The function also does the application status
+   update internally — one atomic operation.
 ───────────────────────────────────────────── */
 export const grantAdminAccess = async (application) => {
-  const userId = application.user_id;
+  const { error } = await supabase.rpc("grant_admin_access", {
+    target_user_id: application.user_id,
+  });
 
-  // 1. Update profile
-  await supabase
-    .from("profiles")
-    .update({ isAdmin: true, role: "admin" })
-    .eq("id", userId);
-
-  // 2. Update application status
-  await supabase
-    .from("admin_applications")
-    .update({ status: "approved" })
-    .eq("id", application.id);
+  if (error) {
+    console.error("grantAdminAccess RPC error:", error);
+    throw error;
+  }
 };
 
 /* ─────────────────────────────────────────────
-   REJECT
+   REJECT APPLICATION
 ───────────────────────────────────────────── */
-export const rejectAdminApplication = async (id) => {
-  await supabase
-    .from("admin_applications")
-    .update({ status: "rejected" })
-    .eq("id", id);
+export const rejectAdminApplication = async (applicationId) => {
+  const { error } = await supabase.rpc("reject_admin_application", {
+    target_application_id: applicationId,
+  });
+
+  if (error) {
+    console.error("rejectAdminApplication RPC error:", error);
+    throw error;
+  }
 };

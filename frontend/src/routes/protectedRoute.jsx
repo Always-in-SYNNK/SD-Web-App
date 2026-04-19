@@ -1,5 +1,4 @@
-//PREVENTS UNAUTHORIZED ACCESS TO PROTECTED ROUTES - CHECKS AUTH STATE AND REDIRECTS TO LOGIN IF NOT AUTHENTICATED
-
+// src/routes/protectedRoute.jsx
 import { useAuth } from "../hooks/useAuth";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +15,13 @@ export default function ProtectedRoute({ children, requiredRole }) {
           message: "You must be logged in to access this page.",
         },
       });
-    } else if (requiredRole && role !== requiredRole) {
+      return;
+    }
+
+    // Admins can access everything — never redirect them
+    if (role === "admin") return;
+
+    if (requiredRole && role !== requiredRole) {
       navigate("/unauthorized", {
         state: {
           message: "You are not authorized to access this page.",
@@ -26,6 +31,10 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }, [token, role, requiredRole, navigate]);
 
   if (!token) return null;
+
+  // Admins pass through any route regardless of requiredRole
+  if (role === "admin") return children;
+
   if (requiredRole && role !== requiredRole) return null;
 
   return children;
