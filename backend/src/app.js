@@ -1,43 +1,27 @@
 // ============================================================
 // APP — Express setup, middleware, and route mounting
+// DO NOT MODIFY CORS SETTINGS OR ROUTE PREFIXES FOR APP DEPLOYMENT TO WORK
 // ============================================================
 
 const express = require("express");
 const cors    = require("cors");
 const session = require("express-session");
-const path    = require("path");
+const path   = require("path");
 
 const applicantAuthRoutes = require("./routes/applicantAuthRoutes");
 const providerAuthRoutes  = require("./routes/providerAuthRoutes");
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174",
-  "http://localhost:3000",
-  "https://growthstagesa.netlify.app"
-  ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()) : []),
-];
-
-// ─── Core middleware ──────────────────────────────────────────────────────────
-
+// ✅ SIMPLE CORS (hardcoded for now)
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
+  origin: "https://growthstagesa.netlify.app",
   credentials: true,
 }));
 
 app.use(express.json());
 
 // ─── Session middleware ───────────────────────────────────────────────────────
-
 app.use(session({
   secret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
   resave: false,
