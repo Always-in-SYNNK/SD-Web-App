@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 
 const mockNavigate = jest.fn();
@@ -19,6 +19,9 @@ describe("OpportunityCard", () => {
     jest.clearAllMocks();
   });
 
+  // =========================
+  // RENDER
+  // =========================
   test("renders opportunity info", () => {
     render(
       <OpportunityCard
@@ -33,16 +36,13 @@ describe("OpportunityCard", () => {
     expect(screen.getByText(/Joburg/i)).toBeInTheDocument();
   });
 
-  test("calls apply API when clicking Apply", async () => {
+  // =========================
+  // APPLY FLOW
+  // =========================
+  test("calls apply API when clicking Apply", () => {
     mockApply.mockResolvedValue({});
 
-    render(
-      <OpportunityCard
-        id={1}
-        title="Dev Role"
-        description="desc"
-      />
-    );
+    render(<OpportunityCard id={1} title="Dev Role" description="desc" />);
 
     fireEvent.click(screen.getByText("Apply"));
 
@@ -52,32 +52,120 @@ describe("OpportunityCard", () => {
   test("changes button to Applied after success", async () => {
     mockApply.mockResolvedValue({});
 
-    render(
-      <OpportunityCard
-        id={1}
-        title="Dev Role"
-        description="desc"
-      />
-    );
+    render(<OpportunityCard id={1} title="Dev Role" description="desc" />);
 
-    const button = screen.getByText("Apply");
+    fireEvent.click(screen.getByText("Apply"));
 
-    fireEvent.click(button);
-
-    // wait for state update
     expect(await screen.findByText("Applied")).toBeInTheDocument();
   });
 
   test("disables button when already applied", () => {
+    render(<OpportunityCard id={1} title="Dev Role" isApplied={true} />);
+
+    expect(screen.getByText("Applied")).toBeDisabled();
+  });
+
+  // =========================
+  // NAVIGATION
+  // =========================
+  test("navigates to opportunity page on card click", () => {
+    render(<OpportunityCard id={99} title="Dev Role" />);
+
+    fireEvent.click(screen.getByText("Dev Role"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/opportunities/99");
+  });
+
+  test("does NOT navigate when admin", () => {
+    render(<OpportunityCard id={1} title="Admin Role" isAdmin={true} />);
+
+    fireEvent.click(screen.getByText("Admin Role"));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  // =========================
+  // ADMIN BUTTONS
+  // =========================
+  test("shows edit and delete buttons for admin", () => {
+    const mockEdit = jest.fn();
+    const mockDelete = jest.fn();
+
     render(
       <OpportunityCard
         id={1}
-        title="Dev Role"
-        isApplied={true}
+        title="Admin Role"
+        isAdmin={true}
+        onEdit={mockEdit}
+        onDelete={mockDelete}
       />
     );
 
-    const button = screen.getByText("Applied");
-    expect(button).toBeDisabled();
+    fireEvent.click(screen.getByText("Edit"));
+    fireEvent.click(screen.getByText("Delete"));
+
+    expect(mockEdit).toHaveBeenCalledWith(1);
+    expect(mockDelete).toHaveBeenCalledWith(1);
+  });
+
+  // =========================
+  // STOP PROPAGATION
+  // =========================
+  test("clicking Apply does not trigger navigation", () => {
+    render(<OpportunityCard id={1} title="Dev Role" />);
+
+    fireEvent.click(screen.getByText("Apply"));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  // =========================
+  // ERROR HANDLING
+  // =========================
+  test("handles API error gracefully", async () => {
+    globalThis.alert = jest.fn();
+
+    mockApply.mockRejectedValue({
+      response: { data: { error: "Failed to apply" } },
+    });
+
+    render(<OpportunityCard id={1} title="Dev Role" />);
+
+    fireEvent.click(screen.getByText("Apply"));
+
+    await waitFor(() => {
+      expect(globalThis.alert).toHaveBeenCalledWith("Failed to apply");
+    });
+  });
+
+  test("sets applied true if API says already applied", async () => {
+    globalThis.alert = jest.fn();
+
+    mockApply.mockRejectedValue({
+      response: { data: { error: "Already applied" } },
+    });
+
+    render(<OpportunityCard id={1} title="Dev Role" />);
+
+    fireEvent.click(screen.getByText("Apply"));
+
+    expect(await screen.findByText("Applied")).toBeInTheDocument();
+  });
+
+  // =========================
+  // PROP UPDATE (useEffect)
+  // =========================
+  test("updates applied state when prop changes", async () => {
+    const { rerender } = render(
+      <OpportunityCard id={1} title="Dev Role" isApplied={false} />
+    );
+
+    expect(screen.getByText("Apply")).toBeInTheDocument();
+
+    rerender(
+      <OpportunityCard id={1} title="Dev Role" isApplied={true} />
+    );
+
+    expect(await screen.findByText("Applied")).toBeInTheDocument();
   });
 });
