@@ -6,7 +6,7 @@ export async function getApplicantProfileByUserId(userId) {
         .from("profiles")
         .select("id, full_name, email, role")
         .eq("user_id", userId)
-        .maybeSingle();
+        .single();
 
     if (profileError) throw profileError;
     
@@ -233,10 +233,18 @@ export async function addApplicantQualificationByUserId(userId, payload) {
 
     if (profileError) throw profileError;
 
+    const { data: applicantProfile, error: applicantError } = await supabase
+        .from("applicant_profiles")
+        .select("id")
+        .eq("profile_id", profile.id)
+        .single();
+
+    if (applicantError) throw applicantError;
+
     const qualificationRow = {
-        applicant_id: profile.id,
+        applicant_id: applicantProfile.id,
         qualification_id: qualification_id ?? null,
-        qualification: qualification_id ? null : custom_name,
+        qualification_name: qualification_id ? null : custom_name,
         nqf_level: qualification_id ? null : custom_nqf_level ?? null,
         field: qualification_id ? null : custom_field ?? null,
         subfield: qualification_id ? null : custom_subfield ?? null,

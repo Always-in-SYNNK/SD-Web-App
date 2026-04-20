@@ -1,10 +1,26 @@
 import { supabase } from "../config/supabaseClient.js";
 
 export async function getNotificationsByUserId(userId) {
+    const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+    if (profileError) throw profileError;
+
+    const { data: applicantProfile, error: applicantError } = await supabase
+        .from("applicant_profiles")
+        .select("id")
+        .eq("profile_id", profile.id)
+        .single();
+
+    if (applicantError) throw applicantError;
+
     const { data: notifications, error } = await supabase
         .from("applicant_notifications")
         .select("id, type, title, message, is_read, created_at, application_id, opportunity_id")
-        .eq("applicant_id", userId)
+        .eq("applicant_id", applicantProfile.id)
         .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -13,11 +29,27 @@ export async function getNotificationsByUserId(userId) {
 }
 
 export async function readNotification(notificationId, userId) {
+    const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+
+    if (profileError) throw profileError;
+
+    const { data: applicantProfile, error: applicantError } = await supabase
+        .from("applicant_profiles")
+        .select("id")
+        .eq("profile_id", profile.id)
+        .single();
+
+    if (applicantError) throw applicantError;
+
     const { data, error } = await supabase
         .from("applicant_notifications")
         .update({ is_read: true })
         .eq("id", notificationId)
-        .eq("applicant_id", userId)
+        .eq("applicant_id", applicantProfile.id)
         .select()
         .maybeSingle();
 
@@ -56,10 +88,6 @@ export async function createNotification({
     return data;
 }
 
-/**
- * Trigger this when an application status changes.
- * applicantId here should match applicant_notifications.applicant_id
- */
 export async function notifyApplicationStatusChange({
     applicantId,
     applicationId,
@@ -96,14 +124,6 @@ export async function notifyApplicationStatusChange({
     });
 }
 
-/**
- * Creates notifications for opportunities closing soon.
- * Default: opportunities closing in the next 3 days.
- *
- * Assumes:
- * - applications table has applicant_id and opportunity_id
- * - opportunities table has id, title, closing_date, status
- */
 export async function triggerUpcomingClosingDateNotifications(daysAhead = 3) {
     const today = new Date();
     const endDate = new Date();
@@ -112,7 +132,6 @@ export async function triggerUpcomingClosingDateNotifications(daysAhead = 3) {
     const start = today.toISOString().slice(0, 10);
     const end = endDate.toISOString().slice(0, 10);
 
-    // Get applications joined to opportunities that are closing soon
     const { data: rows, error } = await supabase
         .from("applications")
         .select(`
@@ -132,9 +151,7 @@ export async function triggerUpcomingClosingDateNotifications(daysAhead = 3) {
     if (error) throw error;
 
     const validRows = (rows || []).filter(
-        (row) =>
-            row.opportunities &&
-            row.opportunities.status !== "closed"
+        (row) => row.opportunities && row.opportunities.status !== "closed"
     );
 
     const created = [];
@@ -143,8 +160,6 @@ export async function triggerUpcomingClosingDateNotifications(daysAhead = 3) {
         const closingDate = row.opportunities.closing_date;
         const title = row.opportunities.title;
 
-        // Basic duplicate guard:
-        // don't recreate the same reminder for same applicant + opportunity + type
         const { data: existing, error: existingError } = await supabase
             .from("applicant_notifications")
             .select("id")

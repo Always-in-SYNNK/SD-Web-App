@@ -8,6 +8,7 @@ import {
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { OpportunityFilters } from "../components/opportunities/OpportunityFilters";
 import { OpportunityList } from "../components/opportunities/OpportunityList";
+import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 
 export default function Opportunities() {
   const [locations, setLocations] = useState([]);
@@ -166,7 +167,7 @@ export default function Opportunities() {
               />
             </section>
 
-            <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
+            <NotificationDropdown/>
             <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
               JD
