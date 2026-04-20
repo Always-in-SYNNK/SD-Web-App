@@ -12,6 +12,14 @@ export function OpportunityList({
 }) {
   const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
 
+  const getItemKey = (item, index) => {
+    if (item?._type === "qualification") {
+      return `qualification-${item.qual_id ?? item.id ?? index}`;
+    }
+
+    return `opportunity-${item?.id ?? index}`;
+  };
+
   useEffect(() => {
     const fetchAppliedOpportunityIds = async () => {
       try {
@@ -86,9 +94,9 @@ export function OpportunityList({
       </header>
 
       <section className="flex flex-col gap-4">
-        {items.map((item) => (
+        {items.map((item, index) => (
           <OpportunityCard
-            key={item.id}
+            key={getItemKey(item, index)}
             {...item}
             isApplied={appliedOpportunityIds.has(item.id)}
           />
