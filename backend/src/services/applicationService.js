@@ -47,7 +47,8 @@ export async function applyToOpportunity({ userId, opportunityId }) {
         status: "applied",
       },
     ])
-    .select();
+    .select()
+    .single();
 
   if (error) throw new Error(error.message);
 

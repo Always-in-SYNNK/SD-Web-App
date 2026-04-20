@@ -45,13 +45,14 @@ SD-Web-App
 │  └─ tests
 │     ├─ applicationController.test.js
 │     ├─ applicationService.test.js
+│     ├─ notificationController.test.js
+│     ├─ notificationRoutes.test.js
+│     ├─ notificationService.test.js
 │     ├─ opportunityController.test.js
 │     └─ opportunityService.test.js
 ├─ frontend
-│  ├─ babel.config.js
 │  ├─ eslint.config.js
 │  ├─ index.html
-│  ├─ jest.config.js
 │  ├─ package-lock.json
 │  ├─ package.json
 │  ├─ postcss.config.js
@@ -120,6 +121,7 @@ SD-Web-App
 │  │  │     ├─ education.jsx
 │  │  │     ├─ personalInfo.jsx
 │  │  │     ├─ profileForm.jsx
+│  │  │     ├─ profileForm.test.jsx
 │  │  │     └─ skills.jsx
 │  │  ├─ context
 │  │  │  ├─ AuthContext.jsx
@@ -137,6 +139,7 @@ SD-Web-App
 │  │  │  ├─ AuthDenied.jsx
 │  │  │  ├─ AuthError.jsx
 │  │  │  ├─ CreateStudentProfile.jsx
+│  │  │  ├─ CreateStudentProfile.test.jsx
 │  │  │  ├─ DefineRequirements.jsx
 │  │  │  ├─ EditStudentProfile.jsx
 │  │  │  ├─ Home.jsx

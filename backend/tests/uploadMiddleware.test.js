@@ -1,6 +1,6 @@
 import express from "express";
 import request from "supertest";
-import { uploadCV } from "./uploadMiddleware.js";
+import { uploadCV } from "../src/middleware/uploadMiddleware.js";
 
 describe("uploadMiddleware", () => {
   let app;
