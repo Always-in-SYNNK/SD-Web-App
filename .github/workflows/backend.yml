@@ -1,5 +1,5 @@
 backend.yml:
-name: Backend Continuous Integration
+name: Backend CI
 
 on:
   push:
