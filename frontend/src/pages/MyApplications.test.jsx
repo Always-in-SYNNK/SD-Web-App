@@ -1,26 +1,28 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { jest, describe, test, expect, beforeEach } from "@jest/globals";
+import { vi, describe, test, expect, beforeEach } from "vitest";
 
-const mockFetch = jest.fn();
-const mockAccept = jest.fn();
-const mockUnapply = jest.fn();
-const mockNavigate = jest.fn();
-
-jest.unstable_mockModule("../services/myApplicationService", () => ({
-  fetchMyApplications: () => mockFetch(),
-  acceptOffer: (...args) => mockAccept(...args),
-  unapplyFromApplication: (...args) => mockUnapply(...args),
+const { mockFetch, mockAccept, mockUnapply, mockNavigate } = vi.hoisted(() => ({
+  mockFetch: vi.fn(),
+  mockAccept: vi.fn(),
+  mockUnapply: vi.fn(),
+  mockNavigate: vi.fn(),
 }));
 
-jest.unstable_mockModule("react-router-dom", () => ({
+vi.mock("../services/myApplicationService", () => ({
+  fetchMyApplications: mockFetch,
+  acceptOffer: mockAccept,
+  unapplyFromApplication: mockUnapply,
+}));
+
+vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.unstable_mockModule("../components/dashboard/Sidebar", () => ({
+vi.mock("../components/dashboard/Sidebar", () => ({
   Sidebar: () => null,
 }));
 
-jest.unstable_mockModule("../components/applications/RecommendedPanel", () => ({
+vi.mock("../components/applications/RecommendedPanel", () => ({
   RecommendedPanel: () => null,
 }));
 
@@ -28,7 +30,7 @@ const { default: MyApplications } = await import("./MyApplications");
 
 describe("MyApplications", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // =========================

@@ -1,15 +1,21 @@
-import {
+import { jest } from '@jest/globals';
+
+const mockService = {
+  getApplicationsByOpportunity: jest.fn(),
+  updateApplicationStatus: jest.fn(),
+};
+
+jest.unstable_mockModule('../src/services/employerApplicationService.js', () => mockService);
+
+const {
   fetchApplicationsByOpportunity,
-  patchApplicationStatus
-} from '../src/controllers/employerApplicationController.js';
+  patchApplicationStatus,
+} = await import('../src/controllers/employerApplicationController.js');
 
-import {
+const {
   getApplicationsByOpportunity,
-  updateApplicationStatus
-} from '../../services/employerApplicationService.js';
-
-// 🔥 Mock the service layer
-jest.mock('../../services/employerApplicationService.js');
+  updateApplicationStatus,
+} = await import('../src/services/employerApplicationService.js');
 
 // 🔧 Mock response helper
 const mockRes = () => {

@@ -1,5 +1,11 @@
 import "@testing-library/jest-dom";
 
-const { TextEncoder, TextDecoder } = require("util");
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
+import { TextEncoder, TextDecoder } from "node:util";
+
+if (typeof globalThis.TextEncoder === "undefined") {
+	globalThis.TextEncoder = TextEncoder;
+}
+
+if (typeof globalThis.TextDecoder === "undefined") {
+	globalThis.TextDecoder = TextDecoder;
+}

@@ -3,8 +3,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 export async function getApplicationsForOpportunity(opportunityId) {
   const token = localStorage.getItem("token");
   
-  console.log("🔍 getApplicationsForOpportunity - Token exists:", !!token);
-  console.log("🔍 OpportunityId:", opportunityId);
+  //console.log("🔍 getApplicationsForOpportunity - Token exists:", !!token);
+  //console.log("🔍 OpportunityId:", opportunityId);
+  //sensitive info, be careful with logs
   
   if (!token) {
     throw new Error("No token found. Please login again.");

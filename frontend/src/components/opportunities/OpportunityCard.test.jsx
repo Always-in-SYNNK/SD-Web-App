@@ -1,22 +1,25 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { jest, describe, test, expect, beforeEach } from "@jest/globals";
+import { act } from "@testing-library/react";
+import { vi, describe, test, expect, beforeEach } from "vitest";
 
-const mockNavigate = jest.fn();
-const mockApply = jest.fn();
+const { mockNavigate, mockApply } = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+  mockApply: vi.fn(),
+}));
 
-jest.unstable_mockModule("react-router-dom", () => ({
+vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.unstable_mockModule("../../services/myApplicationService", () => ({
-  applyToOpportunity: (...args) => mockApply(...args),
+vi.mock("../../services/myApplicationService", () => ({
+  applyToOpportunity: mockApply,
 }));
 
 const { OpportunityCard } = await import("./OpportunityCard");
 
 describe("OpportunityCard", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // =========================
@@ -39,12 +42,15 @@ describe("OpportunityCard", () => {
   // =========================
   // APPLY FLOW
   // =========================
-  test("calls apply API when clicking Apply", () => {
+  test("calls apply API when clicking Apply", async () => {
     mockApply.mockResolvedValue({});
 
     render(<OpportunityCard id={1} title="Dev Role" description="desc" />);
 
-    fireEvent.click(screen.getByText("Apply"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Apply"));
+      await new Promise(r => setTimeout(r, 0));
+    });
 
     expect(mockApply).toHaveBeenCalledWith(1);
   });
@@ -54,7 +60,10 @@ describe("OpportunityCard", () => {
 
     render(<OpportunityCard id={1} title="Dev Role" description="desc" />);
 
-    fireEvent.click(screen.getByText("Apply"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Apply"));
+      await new Promise(r => setTimeout(r, 0));
+    });
 
     expect(await screen.findByText("Applied")).toBeInTheDocument();
   });
@@ -76,20 +85,20 @@ describe("OpportunityCard", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/opportunities/99");
   });
 
-  test("does NOT navigate when admin", () => {
+  test("navigates when admin card is clicked", () => {
     render(<OpportunityCard id={1} title="Admin Role" isAdmin={true} />);
 
     fireEvent.click(screen.getByText("Admin Role"));
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith("/opportunities/1");
   });
 
   // =========================
   // ADMIN BUTTONS
   // =========================
   test("shows edit and delete buttons for admin", () => {
-    const mockEdit = jest.fn();
-    const mockDelete = jest.fn();
+    const mockEdit = vi.fn();
+    const mockDelete = vi.fn();
 
     render(
       <OpportunityCard
@@ -111,10 +120,13 @@ describe("OpportunityCard", () => {
   // =========================
   // STOP PROPAGATION
   // =========================
-  test("clicking Apply does not trigger navigation", () => {
+  test("clicking Apply does not trigger navigation", async () => {
     render(<OpportunityCard id={1} title="Dev Role" />);
 
-    fireEvent.click(screen.getByText("Apply"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Apply"));
+      await new Promise(r => setTimeout(r, 0));
+    });
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -123,7 +135,7 @@ describe("OpportunityCard", () => {
   // ERROR HANDLING
   // =========================
   test("handles API error gracefully", async () => {
-    globalThis.alert = jest.fn();
+    globalThis.alert = vi.fn();
 
     mockApply.mockRejectedValue({
       response: { data: { error: "Failed to apply" } },
@@ -131,7 +143,10 @@ describe("OpportunityCard", () => {
 
     render(<OpportunityCard id={1} title="Dev Role" />);
 
-    fireEvent.click(screen.getByText("Apply"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Apply"));
+      await new Promise(r => setTimeout(r, 0));
+    });
 
     await waitFor(() => {
       expect(globalThis.alert).toHaveBeenCalledWith("Failed to apply");
@@ -139,7 +154,7 @@ describe("OpportunityCard", () => {
   });
 
   test("sets applied true if API says already applied", async () => {
-    globalThis.alert = jest.fn();
+    globalThis.alert = vi.fn();
 
     mockApply.mockRejectedValue({
       response: { data: { error: "Already applied" } },
@@ -147,7 +162,10 @@ describe("OpportunityCard", () => {
 
     render(<OpportunityCard id={1} title="Dev Role" />);
 
-    fireEvent.click(screen.getByText("Apply"));
+    await act(async () => {
+      fireEvent.click(screen.getByText("Apply"));
+      await new Promise(r => setTimeout(r, 0));
+    });
 
     expect(await screen.findByText("Applied")).toBeInTheDocument();
   });

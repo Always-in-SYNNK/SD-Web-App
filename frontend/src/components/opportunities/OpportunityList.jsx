@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { OpportunityCard } from "./OpportunityCard";
+import { QualificationCard } from "./QualificationCard";
 import { fetchMyApplications } from "../../services/myApplicationService";
 
 export function OpportunityList({
@@ -95,11 +96,15 @@ export function OpportunityList({
 
       <section className="flex flex-col gap-4">
         {items.map((item, index) => (
-          <OpportunityCard
-            key={getItemKey(item, index)}
-            {...item}
-            isApplied={appliedOpportunityIds.has(item.id)}
-          />
+          item?._type === "qualification" ? (
+            <QualificationCard key={getItemKey(item, index)} {...item} />
+          ) : (
+            <OpportunityCard
+              key={getItemKey(item, index)}
+              {...item}
+              isApplied={appliedOpportunityIds.has(item.id)}
+            />
+          )
         ))}
       </section>
 

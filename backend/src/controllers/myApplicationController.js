@@ -20,11 +20,14 @@ export async function apply(req, res, next) {
       data: result,
     });
   } catch (err) {
-        if (err.message === "Already applied to this opportunity") {
-            return res.status(400).json({ error: err.message });
-        }
-        return res.status(500).json({ error: err.message });
-        }
+    if (
+      err.message === "Already applied" ||
+      err.message === "Already applied to this opportunity"
+    ) {
+      return res.status(400).json({ error: err.message });
+    }
+    return res.status(500).json({ error: err.message });
+  }
 }
 
 export async function getMyApplications(req, res, next) {

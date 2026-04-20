@@ -82,8 +82,34 @@ async function providerAuthMiddleware(req, res, next) {
         if (decoded.role !== 'provider') {
             return res.status(403).json({ error: "Access denied. Employers only." });
         }
-        
-        req.user = decoded;
+
+        const { supabase } = await import("../config/supabaseClient.js");
+
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', decoded.id)
+            .single();
+
+        if (profileError || !profile) {
+            return res.status(401).json({ error: "Profile not found" });
+        }
+
+        const { data: providerProfile, error: providerError } = await supabase
+            .from('provider_profiles')
+            .select('id')
+            .eq('profile_id', profile.id)
+            .single();
+
+        if (providerError || !providerProfile) {
+            return res.status(403).json({ error: "Provider profile not found" });
+        }
+
+        req.user = {
+            ...decoded,
+            profileId: providerProfile.id,
+        };
+
         next();
     } catch {
         return res.status(401).json({ error: "Invalid or expired token. Please log in again." });

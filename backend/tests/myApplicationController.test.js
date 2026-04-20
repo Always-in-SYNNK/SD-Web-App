@@ -1,5 +1,4 @@
 import { jest } from "@jest/globals";
-import { getApplicationsForUser } from "../src/services/myApplicationService.js";
 
 // mock service
 const mockApply = jest.fn();

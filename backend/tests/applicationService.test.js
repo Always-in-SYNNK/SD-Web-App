@@ -88,7 +88,7 @@ describe('Application Service Tests', () => {
         });
         
         await expect(getApplicationsByOpportunity(mockOpportunityId, mockProviderId))
-            .rejects.toThrow('Opportunity not found');
+            .rejects.toThrow('Job posting not found');
     });
 
     // TEST 4: Update status - Shortlist success

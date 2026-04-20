@@ -1,9 +1,9 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { jest, describe, test, expect } from "@jest/globals";
+import { vi, describe, test, expect, beforeEach } from "vitest";
 
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 
-jest.unstable_mockModule("react-router-dom", () => ({
+vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
@@ -11,7 +11,7 @@ const { ApplicationCard } = await import("./myApplicationCard");
 
 describe("ApplicationCard", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+     vi.clearAllMocks();
   });
 
   test("renders basic application info", () => {
@@ -23,7 +23,7 @@ describe("ApplicationCard", () => {
         status="Received"
         meta="Submitted Jan 1, 2024"
         opportunityId={99}
-        onUnapply={jest.fn()}
+        onUnapply={vi.fn()}
       />
     );
 
@@ -40,7 +40,7 @@ describe("ApplicationCard", () => {
         status="Received"
         meta="meta"
         opportunityId={99}
-        onUnapply={jest.fn()}
+        onUnapply={vi.fn()}
       />
     );
 
@@ -55,7 +55,7 @@ describe("ApplicationCard", () => {
         status="Offered"
         meta="meta"
         opportunityId={99}
-        onAccept={jest.fn()}
+        onAccept={vi.fn()}
       />
     );
 
@@ -63,7 +63,7 @@ describe("ApplicationCard", () => {
   });
 
   test("calls onUnapply when clicked", () => {
-    const mockFn = jest.fn();
+    const mockFn = vi.fn();
 
     render(
       <ApplicationCard
@@ -81,7 +81,7 @@ describe("ApplicationCard", () => {
   });
 
   test("calls onAccept when clicked", () => {
-    const mockFn = jest.fn();
+    const mockFn = vi.fn();
 
     render(
       <ApplicationCard
@@ -106,7 +106,7 @@ describe("ApplicationCard", () => {
         status="Received"
         meta="meta"
         opportunityId={77}
-        onUnapply={jest.fn()}
+        onUnapply={vi.fn()}
       />
     );
 
@@ -123,7 +123,7 @@ describe("ApplicationCard", () => {
         status="Received"
         meta="meta"
         opportunityId={77}
-        onUnapply={jest.fn()}
+        onUnapply={vi.fn()}
       />
     );
 

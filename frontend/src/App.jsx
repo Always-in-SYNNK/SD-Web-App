@@ -32,7 +32,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
 
             {/*bypassing authentication  - not working, going straight to dashboard*/}
-            <Route path="/dev-dashboard" element={<StudentDashboard />} />
+           
             <Route
               path="/onboarding"
               element={

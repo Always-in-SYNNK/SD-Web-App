@@ -52,9 +52,7 @@ export async function signInProvider(credential) {
   if (!res.ok) throw new Error("Sign in failed");
   
   const data = await res.json();
-  
-  // ✅ Log what the backend returns
-  console.log("signInProvider response:", data);
+
   
   return data; // { success: bool, user, token, message? }
 }
