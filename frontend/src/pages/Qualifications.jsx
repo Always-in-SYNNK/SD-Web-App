@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 import { QualificationCard } from "../components/opportunities/QualificationCard";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { OpportunityFilters } from "../components/opportunities/OpportunityFilters";
-import { NotificationDropdown } from "../components/notifications/NotificationDropdown";
+import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 
 export default function Qualifications() {
   const [search, setSearch] = useState("");

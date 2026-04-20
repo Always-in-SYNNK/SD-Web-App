@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { NotificationDropdown } from "./NotificationDropdown";
+import { NotificationDropdown } from "./notificationDropdown";
 
 vi.mock("../../context/useAuth", () => ({
   useAuth: () => ({ token: "mock-token" }),
