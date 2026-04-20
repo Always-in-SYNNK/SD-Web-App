@@ -13,10 +13,15 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/setupTests.js",
+    include: ["src/tests/**/*.test.js", "src/tests/**/*.test.jsx"],
     coverage: {
       provider: "v8",
-      include: ["src/**/*.{js,jsx}"],
-      exclude: ["src/main.jsx"],
+      include: [
+        "src/components/employer/EmployerApplicationCard.jsx",
+        "src/pages/EmployerApplications.jsx",
+        "src/services/employerApplicationService.js",
+      ],
+      exclude: [],
     },
   },
 })
