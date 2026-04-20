@@ -1,4 +1,3 @@
-backend.yml:
 name: Backend CI
 
 on:
