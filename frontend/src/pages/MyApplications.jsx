@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { ApplicationList } from "../components/applications/myApplicationList";
 import { RecommendedPanel } from "../components/applications/RecommendedPanel";
@@ -54,6 +53,7 @@ function mapApplicationToCard(application) {
 
   return {
     id: application?.id,
+    opportunityId: opportunity?.id,
     title: opportunity?.title ?? "Untitled opportunity",
     company: provider?.organisation_name ?? "",
     location: opportunity?.location ?? "Location TBD",
@@ -81,8 +81,6 @@ const MOCK_RECOMMENDATIONS = [
 // ──────────────────────────────────────────────────────────────────────────────
 
 export default function MyApplications() {
-  const navigate = useNavigate();
-
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -105,8 +103,6 @@ export default function MyApplications() {
 
     load();
   }, []);
-
-  const handleView = (id) => navigate(`/applications/${id}`);
 
   const handleUnapply = async (id) => {
     //const confirmed = window.confirm("Are you sure you want to withdraw this application?");
@@ -189,7 +185,6 @@ export default function MyApplications() {
                 applications={applications}
                 loading={loading}
                 error={error}
-                onView={handleView}
                 onUnapply={handleUnapply}
                 onAccept={handleAccept}
               />

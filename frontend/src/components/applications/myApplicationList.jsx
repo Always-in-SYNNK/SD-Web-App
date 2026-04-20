@@ -5,12 +5,11 @@ import { ApplicationCard } from "./myApplicationCard";
  *   applications: Array,
  *   loading: boolean,
  *   error: string|null,
- *   onView: (id) => void,
  *   onUnapply: (id) => void,
  *   onAccept: (id) => void,
  * }} props
  */
-export function ApplicationList({ applications, loading, error, onView, onUnapply, onAccept }) {
+export function ApplicationList({ applications, loading, error, onUnapply, onAccept }) {
   if (loading) {
     return (
       <section className="flex items-center justify-center py-24">
@@ -56,7 +55,6 @@ export function ApplicationList({ applications, loading, error, onView, onUnappl
         <ApplicationCard
           key={app.id}
           {...app}
-          onView={() => onView(app.id)}
           onUnapply={() => onUnapply(app.id)}
           onAccept={() => onAccept(app.id)}
         />

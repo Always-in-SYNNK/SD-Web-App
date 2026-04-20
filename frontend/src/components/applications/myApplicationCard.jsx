@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 const STATUS_STYLES = {
   Received: {
     dot: "bg-gray-400",
@@ -32,6 +34,7 @@ const STATUS_ICONS = {
 /**
  * @param {{
  *   id: string|number,
+ *   opportunityId?: string|number,
  *   title: string,
  *   company?: string,
  *   location: string,
@@ -43,25 +46,29 @@ const STATUS_ICONS = {
  * }} props
  */
 export function ApplicationCard({
+  id,
+  opportunityId,
   title,
   company,
   location,
   status,
   meta,
-  //onView,
   onUnapply,
   onAccept,
 }) {
+  const navigate = useNavigate();
   const styles = STATUS_STYLES[status] ?? STATUS_STYLES.Received;
   const icon = STATUS_ICONS[status] ?? "📄";
   const isOffered = status === "Offered";
   const canUnapply = status === "Received" || status === "Shortlisted";
+  const targetOpportunityId = opportunityId ?? id;
 
   return (
     <article
+      onClick={() => navigate(`/opportunities/${targetOpportunityId}`)}
       className={`bg-white p-8 rounded-xl flex items-start justify-between
         hover:scale-[1.015] transition-all duration-300 border border-gray-100
-        hover:shadow-md group
+        hover:shadow-md group cursor-pointer
         ${isOffered ? "border-l-4 border-l-green-500 shadow-sm" : ""}
       `}
     >
@@ -93,23 +100,22 @@ export function ApplicationCard({
 
       {/* Right: actions */}
       <nav className="flex flex-col gap-2 min-w-[120px]">
-        <button
-          onClick={(e)=> e.stopPropagation()} //Will implement onView later
-          className="w-full px-6 py-2 rounded-full text-xs font-bold bg-[#efeded] text-gray-800 hover:bg-[#e3e2e2] transition-colors"
-        >
-          View
-        </button>
-
         {isOffered ? (
           <button
-            onClick={onAccept}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAccept?.();
+            }}
             className="w-full px-6 py-2 rounded-full text-xs font-bold bg-green-500 text-white shadow-md shadow-green-100 hover:opacity-90 transition-opacity"
           >
             Accept
           </button>
         ) : canUnapply ? (
           <button
-            onClick={onUnapply}
+            onClick={(e) => {
+              e.stopPropagation();
+              onUnapply?.();
+            }}
             className="w-full px-6 py-2 rounded-full text-xs font-bold text-red-500 hover:bg-red-50 transition-colors"
           >
             Unapply

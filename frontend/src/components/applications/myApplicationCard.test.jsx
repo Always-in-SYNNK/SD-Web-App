@@ -1,8 +1,19 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { jest, describe, test, expect } from "@jest/globals";
-import { ApplicationCard } from "./myApplicationCard";
+
+const mockNavigate = jest.fn();
+
+jest.unstable_mockModule("react-router-dom", () => ({
+  useNavigate: () => mockNavigate,
+}));
+
+const { ApplicationCard } = await import("./myApplicationCard");
 
 describe("ApplicationCard", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test("renders basic application info", () => {
     render(
       <ApplicationCard
@@ -11,6 +22,7 @@ describe("ApplicationCard", () => {
         location="Johannesburg"
         status="Received"
         meta="Submitted Jan 1, 2024"
+        opportunityId={99}
         onUnapply={jest.fn()}
       />
     );
@@ -27,6 +39,7 @@ describe("ApplicationCard", () => {
         location="Joburg"
         status="Received"
         meta="meta"
+        opportunityId={99}
         onUnapply={jest.fn()}
       />
     );
@@ -41,6 +54,7 @@ describe("ApplicationCard", () => {
         location="Joburg"
         status="Offered"
         meta="meta"
+        opportunityId={99}
         onAccept={jest.fn()}
       />
     );
@@ -57,6 +71,7 @@ describe("ApplicationCard", () => {
         location="Joburg"
         status="Received"
         meta="meta"
+        opportunityId={99}
         onUnapply={mockFn}
       />
     );
@@ -74,11 +89,46 @@ describe("ApplicationCard", () => {
         location="Joburg"
         status="Offered"
         meta="meta"
+        opportunityId={99}
         onAccept={mockFn}
       />
     );
 
     fireEvent.click(screen.getByText("Accept"));
     expect(mockFn).toHaveBeenCalled();
+  });
+
+  test("navigates to opportunity detail when card is clicked", () => {
+    render(
+      <ApplicationCard
+        title="Test"
+        location="Joburg"
+        status="Received"
+        meta="meta"
+        opportunityId={77}
+        onUnapply={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Test"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("/opportunities/77");
+  });
+
+  test("action buttons do not trigger navigation", () => {
+    render(
+      <ApplicationCard
+        title="Test"
+        location="Joburg"
+        status="Received"
+        meta="meta"
+        opportunityId={77}
+        onUnapply={jest.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Unapply"));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
