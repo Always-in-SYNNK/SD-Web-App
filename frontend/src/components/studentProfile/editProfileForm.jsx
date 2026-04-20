@@ -6,6 +6,7 @@ import { EducationSection } from "./education";
 import { SkillsSection } from "./skills";
 import { ConnectivitySection } from "./connectivity";
 import { CVUploadSection } from "./cvUpload";
+import { QualificationsSection } from "./qualifications";
 
 export function EditProfileForm() {
   const { token } = useAuth();
@@ -58,49 +59,49 @@ export function EditProfileForm() {
   }, []);
 
   const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    setSuccess(false);
-    try {
-      // strip empty fields so we don't overwrite existing data with blanks
-      const payload = Object.fromEntries(
-        Object.entries(formData).filter(([_, v]) => v !== "" && v !== null)
-      );
+  setSaving(true);
+  setError(null);
+  setSuccess(false);
+  try {
+    const { email, ...rest } = formData; // exclude email from payload
+    const payload = Object.fromEntries(
+      Object.entries(rest).filter(([_, v]) => v !== "" && v !== null)
+    );
 
-      const res = await fetch(`${API}/api/profile/me`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+    const res = await fetch(`${API}/api/profile/me`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to save profile");
-      }
-
-      if (cvFile) {
-        const fd = new FormData();
-        fd.append("cv", cvFile);
-        const cvRes = await fetch(`${API}/api/profile/me/cv`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: fd,
-        });
-        if (!cvRes.ok) throw new Error("Failed to upload CV");
-      }
-
-      setSuccess(true);
-      setTimeout(() => navigate("/dashboard"), 1500);
-    } catch (err) {
-      console.error(err);
-      setError(err.message);
-    } finally {
-      setSaving(false);
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Failed to save profile");
     }
-  };
+
+    if (cvFile) {
+      const fd = new FormData();
+      fd.append("cv", cvFile);
+      const cvRes = await fetch(`${API}/api/profile/me/cv`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      if (!cvRes.ok) throw new Error("Failed to upload CV");
+    }
+
+    setSuccess(true);
+    setTimeout(() => navigate("/dashboard"), 1500);
+  } catch (err) {
+    console.error(err);
+    setError(err.message);
+  } finally {
+    setSaving(false);
+  }
+};
 
   if (loading) return <p className="text-gray-400 text-sm p-12">Loading your profile...</p>;
 
@@ -108,6 +109,7 @@ export function EditProfileForm() {
     <div className="space-y-8">
       <PersonalInfoSection formData={formData} setFormData={setFormData} />
       <EducationSection formData={formData} setFormData={setFormData} />
+      <QualificationsSection />
       <SkillsSection />
       <ConnectivitySection formData={formData} setFormData={setFormData} />
       <CVUploadSection onFileSelect={setCvFile} />

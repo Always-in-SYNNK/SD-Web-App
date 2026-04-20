@@ -5,6 +5,7 @@ import {
     uploadApplicantCV,
     saveApplicantCVPath,
     deleteApplicantCVIfExists,
+    addApplicantQualificationByUserId,
 } from "../services/profileService.js";
 
 export async function getMyApplicantProfile(req, res, next) {
@@ -74,4 +75,32 @@ export async function uploadMyApplicantCV(req, res, next) {
         });
         next(error);
     }
+}
+
+export async function getMyQualifications(req, res, next) {
+    try {
+        const userId = req.user.id;
+        const data = await getApplicantProfileByUserId(userId);
+        res.json({ success: true, qualifications: data.qualifications });
+    } catch (error) { next(error); }
+}
+
+export async function addMyQualification(req, res, next) {
+    try {
+        const userId = req.user.id;
+        const data = await addApplicantQualificationByUserId(userId, req.body);
+        res.status(201).json({ success: true, qualification: data });
+    } catch (error) { next(error); }
+}
+
+export async function deleteMyQualification(req, res, next) {
+    try {
+        const { id } = req.params;
+        const { error } = await supabase
+            .from("applicant_qualifications")
+            .delete()
+            .eq("id", id);
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (error) { next(error); }
 }
