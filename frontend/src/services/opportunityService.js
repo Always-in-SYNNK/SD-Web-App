@@ -1,6 +1,11 @@
 import axios from "axios";
 
-const API = `${import.meta.env.VITE_API_URL}/api/opportunities`;
+const rawApiUrl =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ||
+  "http://localhost:3000";
+
+const normalizedApiRoot = rawApiUrl.replace(/\/$/, "");
+const API = `${normalizedApiRoot}/api/opportunities`;
 
 function toError(err) {
   const message =

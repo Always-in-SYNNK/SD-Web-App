@@ -1,11 +1,16 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const rawApiUrl =
+  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ||
+  "http://localhost:3000";
+
+const normalizedApiRoot = rawApiUrl.replace(/\/$/, "");
+const API_BASE_URL = `${normalizedApiRoot}/api`;
 
 async function handleResponse(response) {
   let payload;
 
   try {
     payload = await response.json();
-  } catch (err) {
+  } catch {
     throw new Error(`HTTP ${response.status} ${response.statusText}`);
   }
 
@@ -45,7 +50,7 @@ export async function getOpportunities(filters = {}) {
   if (filters.page) params.append('page', filters.page);
   if (filters.limit) params.append('limit', filters.limit);
 
-  const url = `${API_BASE_URL}/api/opportunities?${params.toString()}`;
+  const url = `${API_BASE_URL}/opportunities?${params.toString()}`;
   console.log("Fetching:", url);
 
   const response = await fetch(url);
