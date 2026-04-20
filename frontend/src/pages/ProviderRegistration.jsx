@@ -5,6 +5,7 @@ import AuthHeroPanel from "../components/auth/AuthHeroPanel";
 import AuthFormPanel from "../components/auth/AuthFormPanel";
 
 const HERO_IMAGE_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxNPyShfIjVGSg0JRX5t6gMdYfWSad3-JBDqPllih_qCrvQI6gj0CkdUZ6FgGjkbWALsM8D8lnpJO1k3L3CKiApnRUHx53SVp-w0qKYzGb0PiezwFvCvQAeJltcACD3F_sFQytmH-BXopRUBDOUUVkz1hGSOOgrpHiHmDCITIhPQiEUhAbAT-czEzzxCJDgArueKQb7uYLuYJEeNx5F4nfdPkhKG36Nyxhajn-jkyO7wFtuj5646YpTAbsvwzASsMdGHvTMJABHVqA";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ProviderRegistration() {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ export default function ProviderRegistration() {
   useEffect(() => {
     const checkPendingRegistration = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/auth/provider/pending-registration", {
+        const response = await fetch(`${API_URL}/api/auth/provider/pending-registration`, {
           credentials: "include",
         });
         const data = await response.json();
@@ -54,7 +55,7 @@ export default function ProviderRegistration() {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/provider/complete-registration", {
+      const response = await fetch(`${API_URL}/api/auth/provider/complete-registration`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
