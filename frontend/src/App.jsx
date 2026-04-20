@@ -20,6 +20,7 @@ import Qualifications from "./pages/Qualifications";
 import MyApplications from "./pages/MyApplications";
 import CompleteProfile from "./pages/CreateStudentProfile";
 import EditProfile from "./pages/EditStudentProfile";
+import EmployerApplications from './pages/EmployerApplications';
 
 export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
@@ -96,6 +97,13 @@ export default function App() {
             <Route path="/admin" element={<AdminConsole />} />
 
             {/* Employer routes - removed protected routing for now */}
+
+             <Route path="/opportunity/:opportunityId/applications" element={
+              <ProtectedRoute requiredRole="provider">
+                <EmployerApplications />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/pipeline" element={
               <ProtectedRoute requiredRole="provider">
                  <ValidationPipeline />

@@ -19,6 +19,7 @@ import myApplicationRoutes from "./routes/myApplicationRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import applicationRoutes from './routes/applicationRoutes.js';
 import notificationRoutes from "./routes/notificationRoutes.js";
+import employerApplicationRoutes from './routes/employerApplicationRoutes.js';
 
 const app = express();
 
@@ -60,6 +61,10 @@ app.use(session({
 
 // ─── Application Routes ───────────────────────────────────────────────────────
 app.use('/api/applications', applicationRoutes);
+
+// ─── Employer Application Routes ──────────────────────────────────────────────────────
+app.use('/api/employer/applications', employerApplicationRoutes);
+
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
