@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { Sidebar } from "../components/dashboard/Sidebar";
+import { applyToOpportunity, fetchMyApplications } from "../services/myApplicationService";
 
 export default function OpportunityDetail() {
   const { id } = useParams();
@@ -9,6 +10,8 @@ export default function OpportunityDetail() {
   const [opportunity, setOpportunity] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [applied, setApplied] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     const fetchOpportunity = async () => {
@@ -28,6 +31,56 @@ export default function OpportunityDetail() {
 
     fetchOpportunity();
   }, [id]);
+
+  useEffect(() => {
+    const fetchAppliedState = async () => {
+      try {
+        const applications = await fetchMyApplications();
+        const isAlreadyApplied = (applications || []).some((application) => {
+          const applicationOpportunity = Array.isArray(application?.opportunities)
+            ? application.opportunities[0]
+            : application?.opportunities;
+
+          return String(applicationOpportunity?.id) === String(id);
+        });
+
+        setApplied(isAlreadyApplied);
+      } catch {
+        setApplied(false);
+      }
+    };
+
+    fetchAppliedState();
+  }, [id]);
+
+  const handleApply = async (event) => {
+    event.stopPropagation();
+
+    if (applied || applying) {
+      return;
+    }
+
+    try {
+      setApplying(true);
+      await applyToOpportunity(id);
+      setApplied(true);
+    } catch (err) {
+      const message = err?.response?.data?.error || "Failed to apply";
+
+      if (String(message).toLowerCase().includes("already applied")) {
+        setApplied(true);
+      }
+
+      alert(message);
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const applyButtonLabel = applied ? "Applied" : applying ? "Applying..." : "Apply Now";
+  const applyButtonClasses = applied
+    ? "px-8 py-3 bg-green-500 text-white rounded-full font-bold text-sm hover:opacity-90 transition shrink-0 disabled:opacity-100"
+    : "px-8 py-3 bg-[#035b9d] text-white rounded-full font-bold text-sm hover:opacity-90 transition shrink-0 disabled:opacity-60";
 
   if (loading) {
     return (
@@ -103,8 +156,13 @@ export default function OpportunityDetail() {
                 </section>
               </section>
             </section>
-            <button className="px-8 py-3 bg-[#035b9d] text-white rounded-full font-bold text-sm hover:opacity-90 transition shrink-0">
-              Apply Now
+            <button
+              type="button"
+              onClick={handleApply}
+              disabled={applied || applying}
+              className={applyButtonClasses}
+            >
+              {applyButtonLabel}
             </button>
           </section>
         </header>
@@ -138,8 +196,17 @@ export default function OpportunityDetail() {
             <h3 className="text-white font-bold text-xl mb-1">Ready to apply?</h3>
             <p className="text-blue-100 text-sm">Submit your application before {formattedDate}</p>
           </article>
-          <button className="px-8 py-3 bg-white text-[#035b9d] rounded-full font-bold text-sm hover:opacity-90 transition">
-            Apply Now
+          <button
+            type="button"
+            onClick={handleApply}
+            disabled={applied || applying}
+            className={`px-8 py-3 rounded-full font-bold text-sm hover:opacity-90 transition ${
+              applied
+                ? "bg-green-200 text-green-900 disabled:opacity-100"
+                : "bg-white text-[#035b9d] disabled:opacity-60"
+            }`}
+          >
+            {applyButtonLabel}
           </button>
         </section>
 

@@ -1,10 +1,11 @@
 //DEFINING WHICH ROUTES TRIGGER WHICH CONTROLLER FUNCTION, IN THIS CASE THE GOOGLE AUTHENTICATION ROUTE
+import express from "express";
 
-const express = require("express");
 const router = express.Router();
-const { googleAuth } = require("../controllers/authController");
-const authMiddleware = require("../middleware/authMiddleware");
-const supabase = require("../config/supabaseClient");
+import { googleAuth } from "../controllers/authController.js";
+import authMiddleware from "../middleware/authMiddleware.js";
+import { supabase } from "../config/supabaseClient.js";
+
 
 router.post("/google", googleAuth); // POST /api/auth/applicant/google??
 
@@ -14,7 +15,7 @@ router.get("/me", authMiddleware, async (req, res) => {
     const { data: user, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", req.user.id)
+      .eq("user_id", req.user.id)
       .single();
 
     if (error || !user) {
@@ -28,4 +29,4 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,5 +1,5 @@
 import useAuthFonts from "../components/auth/useAuthFonts";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 /* ─── Sub-components ──────────────────────────────────────────────────────── */
 
@@ -20,10 +20,10 @@ const LogoMark = () => (
 );
 
 const BackgroundLayers = () => (
-  <div className="fixed inset-0 -z-10 bg-slate-50" aria-hidden="true">
+  <aside className="fixed inset-0 -z-10 bg-slate-50" aria-hidden="true">
     <div className="absolute inset-0 bg-[radial-gradient(45%_50%_at_50%_50%,rgba(30,58,138,0.05)_0%,transparent_100%)]" />
     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.01)_0%,rgba(30,58,138,0.02)_100%)]" />
-  </div>
+  </aside>
 );
 
 /* Shared inline style for all Material Symbols icons on this page */
@@ -41,9 +41,13 @@ export default function AuthErrorPage({
 }) {
   useAuthFonts();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const effectiveLoginPage = location.state?.loginPage || loginPage;
+  const effectiveMessage = location.state?.message || message;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <main className="min-h-screen flex flex-col items-center justify-center p-4">
 
       {/* ── Minimal nav ── */}
       <nav className="fixed top-0 left-0 right-0 p-6 flex justify-between items-center w-full max-w-7xl mx-auto">
@@ -91,12 +95,12 @@ export default function AuthErrorPage({
 
           <h1 className="text-2xl font-bold text-blue-900 mb-3">Authentication Failed</h1>
 
-          <p className="text-gray-600 mb-8 leading-relaxed">{message}</p>
+          <p className="text-gray-600 mb-8 leading-relaxed">{effectiveMessage}</p>
 
           <div className="w-full space-y-3">
             <button
               type="button"
-              onClick={() => navigate(`/${loginPage}`)}
+              onClick={() => navigate(`/${effectiveLoginPage}`)}
               className="w-full py-3 px-4 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition-colors flex items-center justify-center gap-2"
             >
               <span
@@ -122,6 +126,6 @@ export default function AuthErrorPage({
       </footer>
 
       <BackgroundLayers />
-    </div>
+    </main>
   );
 }

@@ -4,24 +4,26 @@
 
 // express: Web framework for handling HTTP requests and responses
 // Used to create router endpoints (GET, POST, etc.)
-const express = require('express');
+import express from "express";
+
 
 // crypto: Built-in Node.js module for generating secure random strings
 // Used to create unique verification tokens that cannot be guessed
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 // OAuth2Client: Google's library for verifying ID tokens
 // Confirms that the user's Google sign-in is legitimate
-const { OAuth2Client } = require('google-auth-library');
+import { OAuth2Client } from 'google-auth-library';
+
 
 // supabase: Database client to connect to your Supabase backend
 // Stores and retrieves user profiles, pending verifications, etc.
-const supabase = require('../config/supabaseClient');
+import { supabase } from "../config/supabaseClient.js";
 
 // sendVerificationEmail: Custom function that sends email verification links
 // Imported from the email service file
-const { sendVerificationEmail } = require('../services/emailService');
-
+import sendVerificationEmail from '../services/emailService.js';
+import generateJWT from '../utils/generateJWT.js';
 // ============================================
 // CREATE ROUTER
 // ============================================
@@ -386,24 +388,18 @@ router.post('/complete-registration', async (req, res) => {
 // ENDPOINT 5: Sign In (Existing User)
 // POST /api/auth/signin
 // ============================================
-// Purpose: Log in an existing user who clicks "Sign In" instead of "Continue"
-// Called when user selects role and clicks "Sign In" link
 router.post('/signin', async (req, res) => {
     try {
-        // Extract token and role from request
         const { token, selectedRole } = req.body;
         
-        // Verify Google token
         const googleUser = await verifyGoogleToken(token);
         
-        // Find user in profiles table
         const { data: profile } = await supabase
             .from('profiles')
             .select('*')
             .eq('email', googleUser.email)
             .single();
         
-        // If no profile found, account doesn't exist
         if (!profile) {
             return res.json({
                 success: false,
@@ -412,8 +408,6 @@ router.post('/signin', async (req, res) => {
             });
         }
         
-        // Check if the role matches what they selected
-        // Prevent a provider from logging in as an applicant and vice versa
         if (profile.role !== selectedRole) {
             return res.json({
                 success: false,
@@ -422,7 +416,18 @@ router.post('/signin', async (req, res) => {
             });
         }
         
-        // Create session (log them in)
+        // ✅ ADD THIS - Import at the top of the file
+        // At the top of providerAuthRoutes.js, add:
+        // import generateJWT from '../utils/generateJWT.js';
+        
+        // ✅ Generate JWT token
+        const jwtToken = generateJWT({
+            id: profile.id,
+            email: profile.email,
+            role: profile.role
+        });
+        
+        // Create session
         req.session.user = {
             id: profile.id,
             email: profile.email,
@@ -430,8 +435,12 @@ router.post('/signin', async (req, res) => {
             role: profile.role
         };
         
-        // Return success - frontend will redirect to dashboard
-        res.json({ success: true, user: req.session.user });
+        // ✅ RETURN TOKEN IN RESPONSE
+        res.json({ 
+            success: true, 
+            user: profile,
+            token: jwtToken  // ← ADD THIS LINE
+        });
         
     } catch (error) {
         res.status(401).json({ success: false, error: 'Authentication failed' });
@@ -484,4 +493,4 @@ router.get('/me', (req, res) => {
 // ============================================
 // Makes these routes available to server.js
 // server.js uses: app.use('/api/auth', authRoutes)
-module.exports = router;
+export default router;

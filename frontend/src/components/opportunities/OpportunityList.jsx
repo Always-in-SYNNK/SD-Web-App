@@ -1,63 +1,57 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { useEffect, useState } from "react";
 import { OpportunityCard } from "./OpportunityCard";
 import { QualificationCard } from "./QualificationCard";
+import { fetchMyApplications } from "../../services/myApplicationService";
 
-export function OpportunityList({ search, location, nqf, field }) {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export function OpportunityList({
+  items = [],
+  loading = false,
+  error = "",
+  summary = { opportunities: 0, qualifications: 0 },
+  pagination = null,
+  onPageChange,
+}) {
+  const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
+
+  const getItemKey = (item, index) => {
+    if (item?._type === "qualification") {
+      return `qualification-${item.qual_id ?? item.id ?? index}`;
+    }
+
+    return `opportunity-${item?.id ?? index}`;
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-
+    const fetchAppliedOpportunityIds = async () => {
       try {
-        let query = supabase.from("opportunities").select("*");
+        const applications = await fetchMyApplications();
+        const ids = new Set(
+          (applications || [])
+            .map((application) => {
+              const opportunity = Array.isArray(application?.opportunities)
+                ? application.opportunities[0]
+                : application?.opportunities;
 
-        if (search)   query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
-        if (location) query = query.ilike("location", `%${location}%`);
-        if (nqf)      query = query.eq("nqf_level", nqf);
-        if (field)    query = query.eq("field", field);
+              return opportunity?.id;
+            })
+            .filter(Boolean)
+        );
 
-        const { data: oppsData, error: oppsError } = await query;
-        if (oppsError) throw new Error(oppsError.message);
-
-        let qualsData, qualsError;
-
-        if (search) {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("search_qualifications", { search_term: search }));
-        } else if (field) {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_qualifications_by_field", { field_input: field }));
-        } else if (nqf) {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_qualifications_by_nqf_level", { level_input: nqf }));
-        } else {
-          ({ data: qualsData, error: qualsError } = await supabase.rpc("get_all_qualifications"));
-        }
-
-        if (qualsError) throw new Error(qualsError.message);
-
-        const taggedOpps  = oppsData.map((o) => ({ ...o, _type: "opportunity" }));
-        const taggedQuals = qualsData.map((q) => ({ ...q, _type: "qualification" }));
-        const combined    = [...taggedOpps, ...taggedQuals];
-
-        setItems(combined);
-      } catch (err) {
-        setError(err.message);
+        setAppliedOpportunityIds(ids);
+      } catch {
+        // Keep the opportunities view functional even if applied-status lookup fails.
+        setAppliedOpportunityIds(new Set());
       }
-
-      setLoading(false);
     };
 
-    fetchData();
-  }, [search, location, nqf, field]);
+    fetchAppliedOpportunityIds();
+  }, [items]);
 
   if (loading) {
     return (
       <section className="flex items-center justify-center py-24">
         <i className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin block" role="status" aria-label="Loading" />
-      </section>// loading spinner
+      </section>
     );
   }
 
@@ -73,23 +67,25 @@ export function OpportunityList({ search, location, nqf, field }) {
   if (items.length === 0) {
     return (
       <section className="flex flex-col items-center justify-center py-24 text-center">
-        <p className="font-bold text-gray-700">No results found</p>
-        <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
+        <p className="font-bold text-gray-700">No opportunities found</p>
+        <p className="text-sm text-gray-400 mt-1">
+          Try adjusting your filters
+        </p>
       </section>
     );
   }
-
-  const oppsCount  = items.filter((i) => i._type === "opportunity").length;
-  const qualsCount = items.filter((i) => i._type === "qualification").length;
 
   return (
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <small className="text-sm text-gray-500">
-          Showing <strong>{oppsCount}</strong> opportunities and <strong>{qualsCount}</strong> qualifications
+          Showing <strong>{summary.opportunities}</strong> opportunities and <strong>{summary.qualifications}</strong> qualifications
         </small>
+
         <nav className="flex items-center gap-2">
-          <small className="text-xs font-bold uppercase tracking-widest text-gray-400">Sort by:</small>
+          <small className="text-xs font-bold uppercase tracking-widest text-gray-400">
+            Sort by:
+          </small>
           <select className="bg-transparent border-none text-sm font-bold text-[#035b9d] focus:ring-0">
             <option>Recently Added</option>
             <option>Closing Soon</option>
@@ -99,14 +95,43 @@ export function OpportunityList({ search, location, nqf, field }) {
       </header>
 
       <section className="flex flex-col gap-4">
-        {items.map((item) =>
-          item._type === "opportunity" ? (
-            <OpportunityCard key={`opp-${item.id}`} {...item} />
+        {items.map((item, index) => (
+          item?._type === "qualification" ? (
+            <QualificationCard key={getItemKey(item, index)} {...item} />
           ) : (
-            <QualificationCard key={`qual-${item.qual_id}`} {...item} />
+            <OpportunityCard
+              key={getItemKey(item, index)}
+              {...item}
+              isApplied={appliedOpportunityIds.has(item.id)}
+            />
           )
-        )}
+        ))}
       </section>
+
+      {pagination && pagination.totalPages > 1 && (
+        <section className="flex items-center justify-center gap-4 pt-4">
+          <button
+            onClick={() => onPageChange?.(pagination.page - 1)}
+            disabled={pagination.page <= 1}
+            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <span className="text-sm text-gray-600">
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
+
+          <button
+            onClick={() => onPageChange?.(pagination.page + 1)}
+            disabled={pagination.page >= pagination.totalPages}
+            className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </section>
+      )}
+
     </section>
   );
 }

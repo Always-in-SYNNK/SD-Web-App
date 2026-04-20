@@ -3,7 +3,7 @@
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export async function loginWithGoogle(token, role) {
+export async function loginWithGoogle(token, selectedRole) {
   if (!token) {
     throw new Error("Google OAuth token is missing from the response");
   }
@@ -11,7 +11,7 @@ export async function loginWithGoogle(token, role) {
   const response = await fetch(`${API_URL}/api/auth/applicant/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, role }),
+    body: JSON.stringify({ token, selectedRole }),
   });
 
   if (!response.ok) {
@@ -31,7 +31,6 @@ export async function loginWithGoogle(token, role) {
 
 // ─── Provider auth ────────────────────────────────────────────────────────────
 // Three-step flow used by ProviderGoogleLoginButton only.
-// Does NOT go through useAuth — provider session is managed separately.
 
 export async function checkProviderUser(credential) {
   const res = await fetch(`${API_URL}/api/auth/provider/check-user`, {
@@ -51,7 +50,11 @@ export async function signInProvider(credential) {
     credentials: "include",
   });
   if (!res.ok) throw new Error("Sign in failed");
-  return res.json(); // { success: bool, user, token, message? }
+  
+  const data = await res.json();
+
+  
+  return data; // { success: bool, user, token, message? }
 }
 
 export async function signUpProvider(credential) {

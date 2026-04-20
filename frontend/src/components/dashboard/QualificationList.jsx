@@ -1,5 +1,6 @@
 import { QualificationItem } from "./QualificationItem";
 
+/*hardcoded qualifications the student has*/
 const qualifications = [
   {
     icon: "🏛️",
@@ -24,11 +25,11 @@ const qualifications = [
   },
 ];
 
-export function QualificationsList() {
+export function QualificationList() {
   return (
     <section className="bg-[#f5f3f3] rounded-xl p-8 mb-8">
       <header className="flex justify-between items-center mb-8">
-        <h3 className="text-xl font-bold">Verified Portfolio</h3>
+        <h3 className="text-xl font-bold">Your Portfolio</h3>
         <nav className="flex space-x-2">
           <button className="p-2 rounded-lg bg-white text-gray-500 hover:bg-gray-100">🔍</button>
           <button className="p-2 rounded-lg bg-white text-gray-500 hover:bg-gray-100">⚙️</button>

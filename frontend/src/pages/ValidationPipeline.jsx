@@ -74,6 +74,7 @@ const ValidationPipeline = () => {
         credentials: "include",
       });
       localStorage.removeItem("provider_user");
+      localStorage.setItem("__logout_redirect", "true");
       window.location.href = "/";
     } catch (err) {
       console.error("Logout failed:", err);
@@ -179,12 +180,13 @@ const ValidationPipeline = () => {
 
           {!error &&
             filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                title={job.title}
-                location={job.location || "Location not specified"}
-                status={job.status}
-              />
+             <JobCard
+              key={job.id}
+              id={job.id}
+              title={job.title}
+              location={job.location}
+              status={job.status}
+            />
             ))}
         </section>
       </section>

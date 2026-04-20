@@ -1,4 +1,6 @@
-const nodemailer = require('nodemailer');
+import nodemailer from "nodemailer"; //dependancy to send emails
+// const nodemailer = require('nodemailer');
+
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -49,4 +51,5 @@ async function sendVerificationEmail(to, verificationToken, name) {
     }
 }
 
-module.exports = { sendVerificationEmail };
+export default sendVerificationEmail; //file used in authController.js
+//module.exports = { sendVerificationEmail };
