@@ -31,7 +31,6 @@ export async function loginWithGoogle(token, selectedRole) {
 
 // ─── Provider auth ────────────────────────────────────────────────────────────
 // Three-step flow used by ProviderGoogleLoginButton only.
-// Does NOT go through useAuth — provider session is managed separately.
 
 export async function checkProviderUser(credential) {
   const res = await fetch(`${API_URL}/api/auth/provider/check-user`, {
@@ -51,7 +50,11 @@ export async function signInProvider(credential) {
     credentials: "include",
   });
   if (!res.ok) throw new Error("Sign in failed");
-  return res.json(); // { success: bool, user, token, message? }
+  
+  const data = await res.json();
+
+  
+  return data; // { success: bool, user, token, message? }
 }
 
 export async function signUpProvider(credential) {

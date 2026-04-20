@@ -180,12 +180,13 @@ const ValidationPipeline = () => {
 
           {!error &&
             filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                title={job.title}
-                location={job.location || "Location not specified"}
-                status={job.status}
-              />
+             <JobCard
+              key={job.id}
+              id={job.id}
+              title={job.title}
+              location={job.location}
+              status={job.status}
+            />
             ))}
         </section>
       </section>

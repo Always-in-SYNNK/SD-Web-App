@@ -3,6 +3,7 @@ import {
   getDistinctFields,
   getDistinctNqfLevels,
   getFilteredOpportunitiesAndQualifications,
+  createOpportunity,
 } from '../services/opportunityService.js';
 
 export async function fetchLocations(req, res, next) {
@@ -49,5 +50,47 @@ export async function fetchOpportunities(req, res, next) {
     });
   } catch (error) {
     next(error);
+  }
+}
+
+export async function publishOpportunity(req, res) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const data = req.body;
+
+    const result = await createOpportunity({
+      userId,
+      data,
+      status: "pending",
+    });
+
+    res.status(201).json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export async function saveDraft(req, res) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const data = req.body;
+
+    const result = await createOpportunity({
+      userId,
+      data,
+      status: "draft",
+    });
+
+    res.status(201).json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 }

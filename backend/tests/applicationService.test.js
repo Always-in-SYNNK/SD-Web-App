@@ -1,67 +1,167 @@
-import { jest } from "@jest/globals";
+// ============================================
+// TEST FILE: applicationService.test.js
+// Location: backend/tests/
+// Tests the business logic for applications
+// ============================================
 
-// Create a more flexible mock
+import { jest } from '@jest/globals';
+
+// Mock Supabase client
 const mockSupabase = {
-  from: jest.fn(),
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis()
 };
 
-jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
-  supabase: mockSupabase,
+// Mock the supabase module
+jest.unstable_mockModule('../src/config/supabaseClient.js', () => ({
+    supabase: mockSupabase
 }));
 
-const { applyToOpportunity } = await import("../src/services/applicationService.js");
+// Import the actual service (after mocking)
+const { getApplicationsByOpportunity, updateApplicationStatus } = 
+    await import('../src/services/applicationService.js');
 
-describe("applyToOpportunity", () => {
-  const userId = "user-123";
-  const opportunityId = "opp-456";
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("should create application with status 'applied'", async () => {
-    // Create a chainable mock for each query
-    const mockQuery = {
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-      insert: jest.fn().mockReturnThis(),
-    };
-
-    // Set up each call's response
-    mockSupabase.from
-      .mockReturnValueOnce(mockQuery) // profiles
-      .mockReturnValueOnce(mockQuery) // applicant_profiles  
-      .mockReturnValueOnce(mockQuery) // duplicate check
-      .mockReturnValueOnce(mockQuery); // insert
-
-    // Configure responses for each call
-    mockQuery.single
-      .mockResolvedValueOnce({ data: { id: "profile-1" }, error: null }) // profiles
-      .mockResolvedValueOnce({ data: { id: "applicant-1" }, error: null }) // applicant_profiles
-      .mockResolvedValueOnce({ data: null, error: null }); // duplicate check
-
-    // Configure the insert response
-    mockQuery.insert.mockReturnValue(mockQuery);
-    mockQuery.select.mockReturnValue(mockQuery);
-    mockQuery.single.mockResolvedValueOnce({
-      data: {
-        id: "app-1",
-        applicant_id: "applicant-1",
-        opportunity_id: opportunityId,
-        status: "applied",
-      },
-      error: null,
+describe('Application Service Tests', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    const result = await applyToOpportunity({ userId, opportunityId });
+    // TEST 1: Get applications - Success
+    test('UAT 1: Should return applications when provider owns opportunity', async () => {
+        const mockOpportunityId = 'opp-123';
+        const mockProviderId = 'provider-456';
+        
+        // Mock: Provider owns this opportunity
+        mockSupabase.single.mockResolvedValueOnce({
+            data: { provider_id: mockProviderId },
+            error: null
+        });
+        
+        // Mock: Applications exist
+        mockSupabase.order.mockResolvedValue({
+            data: [{
+                id: 'app-1',
+                status: 'received',
+                created_at: '2024-01-15T10:00:00Z',
+                applicant_profiles: {
+                    profiles: {
+                        full_name: 'John Doe',
+                        email: 'john@example.com'
+                    }
+                }
+            }],
+            error: null
+        });
+        
+        const result = await getApplicationsByOpportunity(mockOpportunityId, mockProviderId);
+        
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBe(1);
+    });
 
-    expect(result).toBeDefined();
-    expect(result.status).toBe("applied");
-    expect(mockSupabase.from).toHaveBeenCalledTimes(4);
-    expect(mockSupabase.from).toHaveBeenNthCalledWith(1, "profiles");
-    expect(mockSupabase.from).toHaveBeenNthCalledWith(2, "applicant_profiles");
-    expect(mockSupabase.from).toHaveBeenNthCalledWith(3, "applications");
-    expect(mockSupabase.from).toHaveBeenNthCalledWith(4, "applications");
-  });
+    // TEST 2: Get applications - Unauthorized
+    test('UAT 1: Should throw error when provider does NOT own opportunity', async () => {
+        const mockOpportunityId = 'opp-123';
+        const mockProviderId = 'provider-456';
+        
+        mockSupabase.single.mockResolvedValueOnce({
+            data: { provider_id: 'different-provider' },
+            error: null
+        });
+        
+        await expect(getApplicationsByOpportunity(mockOpportunityId, mockProviderId))
+            .rejects.toThrow('Unauthorized');
+    });
+
+    // TEST 3: Get applications - Opportunity not found
+    test('UAT 1: Should throw error when opportunity not found', async () => {
+        const mockOpportunityId = 'opp-123';
+        const mockProviderId = 'provider-456';
+        
+        mockSupabase.single.mockResolvedValueOnce({
+            data: null,
+            error: new Error('Not found')
+        });
+        
+        await expect(getApplicationsByOpportunity(mockOpportunityId, mockProviderId))
+            .rejects.toThrow('Job posting not found');
+    });
+
+    // TEST 4: Update status - Shortlist success
+    test('UAT 2: Should update application status to shortlisted', async () => {
+        const mockApplicationId = 'app-123';
+        const mockProviderId = 'provider-456';
+        
+        mockSupabase.single
+            .mockResolvedValueOnce({
+                data: {
+                    id: mockApplicationId,
+                    status: 'received',
+                    opportunity_id: 'opp-123',
+                    opportunities: { provider_id: mockProviderId }
+                },
+                error: null
+            })
+            .mockResolvedValueOnce({
+                data: { id: mockApplicationId, status: 'shortlisted' },
+                error: null
+            });
+        
+        const result = await updateApplicationStatus(mockApplicationId, 'shortlisted', mockProviderId);
+        
+        expect(result.status).toBe('shortlisted');
+        expect(result.applicationId).toBe(mockApplicationId);
+    });
+
+    // TEST 5: Update status - Reject success
+    test('UAT 2: Should update application status to rejected', async () => {
+        const mockApplicationId = 'app-123';
+        const mockProviderId = 'provider-456';
+        
+        mockSupabase.single
+            .mockResolvedValueOnce({
+                data: {
+                    id: mockApplicationId,
+                    status: 'received',
+                    opportunity_id: 'opp-123',
+                    opportunities: { provider_id: mockProviderId }
+                },
+                error: null
+            })
+            .mockResolvedValueOnce({
+                data: { id: mockApplicationId, status: 'rejected' },
+                error: null
+            });
+        
+        const result = await updateApplicationStatus(mockApplicationId, 'rejected', mockProviderId);
+        
+        expect(result.status).toBe('rejected');
+    });
+
+    // TEST 6: Update status - Invalid status
+    test('UAT 2: Should reject invalid status values', async () => {
+        const mockApplicationId = 'app-123';
+        const mockProviderId = 'provider-456';
+        
+        await expect(updateApplicationStatus(mockApplicationId, 'invalid-status', mockProviderId))
+            .rejects.toThrow('Invalid status');
+    });
+
+    // TEST 7: Update status - Application not found
+    test('UAT 2: Should throw error when application not found', async () => {
+        const mockApplicationId = 'app-123';
+        const mockProviderId = 'provider-456';
+        
+        mockSupabase.single.mockResolvedValueOnce({
+            data: null,
+            error: new Error('Not found')
+        });
+        
+        await expect(updateApplicationStatus(mockApplicationId, 'shortlisted', mockProviderId))
+            .rejects.toThrow('Application not found');
+    });
 });

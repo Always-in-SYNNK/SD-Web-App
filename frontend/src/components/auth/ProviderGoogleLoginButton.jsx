@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
 import {
   checkProviderUser,
   signInProvider,
@@ -12,6 +13,7 @@ export default function ProviderGoogleLoginButton({
   onLoadingChange,
 }) {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleCredentialResponse = useCallback(async (response) => {
     onLoadingChange(true);
@@ -30,7 +32,29 @@ export default function ProviderGoogleLoginButton({
         const signinData = await signInProvider(idToken);
 
         if (signinData.success) {
-          localStorage.setItem("provider_user", JSON.stringify(signinData.user));
+          // Force role to provider
+          const userWithRole = {
+            ...signinData.user,
+            role: "provider"
+          };
+          
+          // ✅ Get token from response
+          const token = signinData.token;
+          
+          console.log("✅ Login successful - Token:", token ? "Present" : "MISSING");
+          console.log("✅ User:", userWithRole);
+          
+          // ✅ Save EVERYTHING to localStorage
+          if (token) {
+            localStorage.setItem("token", token);
+          }
+          localStorage.setItem("user", JSON.stringify(userWithRole));
+          localStorage.setItem("role", "provider");
+          localStorage.setItem("provider_user", JSON.stringify(userWithRole));
+          
+          // ✅ Update AuthContext
+          login(userWithRole, token);
+          
           navigate("/pipeline");
         } else {
           onError(signinData.message || "Sign in failed");
@@ -50,7 +74,7 @@ export default function ProviderGoogleLoginButton({
     } finally {
       onLoadingChange(false);
     }
-  }, [onLoadingChange, onError, navigate, onVerificationRequired]);
+  }, [onLoadingChange, onError, navigate, onVerificationRequired, login]);
 
   useEffect(() => {
     if (window.google && window.google.accounts) {
@@ -70,7 +94,7 @@ export default function ProviderGoogleLoginButton({
           text: "continue_with",
           shape: "rectangular",
           logo_alignment: "left",
-          width: "100%",
+          width: 240,
         }
       );
     }

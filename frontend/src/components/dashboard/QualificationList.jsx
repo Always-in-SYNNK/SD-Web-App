@@ -1,6 +1,6 @@
 import { QualificationItem } from "./QualificationItem";
 
-{/*hardcoded qualifications the student has*/}
+/*hardcoded qualifications the student has*/
 const qualifications = [
   {
     icon: "🏛️",

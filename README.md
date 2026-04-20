@@ -10,7 +10,7 @@ SD-Web-App
 │  │  │  ├─ googleAuth.js
 │  │  │  └─ supabaseClient.js
 │  │  ├─ controllers
-│  │  │  ├─ applicationController.js
+│  │  │  ├─ myApplicationController.js
 │  │  │  ├─ authController.js
 │  │  │  ├─ notificationController.js
 │  │  │  ├─ opportunityController.js
@@ -26,7 +26,7 @@ SD-Web-App
 │  │  ├─ models
 │  │  ├─ routes
 │  │  │  ├─ applicantAuthRoutes.js
-│  │  │  ├─ applicationRoutes.js
+│  │  │  ├─ myApplicationRoutes.js
 │  │  │  ├─ notificationRoutes.js
 │  │  │  ├─ opportunityRoutes.js
 │  │  │  ├─ profileRoutes.js
@@ -34,7 +34,7 @@ SD-Web-App
 │  │  │  └─ providerAuthRoutes.js
 │  │  ├─ server.js
 │  │  ├─ services
-│  │  │  ├─ applicationService.js
+│  │  │  ├─ myApplicationService.js
 │  │  │  ├─ emailService.js
 │  │  │  ├─ notificationService.js
 │  │  │  ├─ opportunityService.js
@@ -154,7 +154,7 @@ SD-Web-App
 │  │  ├─ routes
 │  │  │  └─ protectedRoute.jsx
 │  │  ├─ services
-│  │  │  ├─ applicationService.js
+│  │  │  ├─ myApplicationService.js
 │  │  │  └─ authService.js
 │  │  └─ setupTests.js
 │  ├─ tailwind.config.js

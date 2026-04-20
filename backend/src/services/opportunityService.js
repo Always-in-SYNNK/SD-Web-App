@@ -157,3 +157,61 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
     },
   };
 }
+
+
+export async function createOpportunity({ userId, data, status }) {
+  // 1. Resolve profile from either auth user ID (profiles.user_id) or profile ID (profiles.id).
+  let { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .single();
+
+  if (!profile) {
+    const { data: profileById } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", userId)
+      .single();
+
+    profile = profileById;
+  }
+
+  if (!profile) {
+    throw new Error("Profile not found for authenticated user");
+  }
+
+  const { data: provider, error: providerError } = await supabase
+    .from("provider_profiles")
+    .select("id")
+    .eq("profile_id", profile.id)
+    .single();
+
+  if (providerError || !provider) {
+    throw new Error("Provider profile not found");
+  }
+
+  // 2. Insert opportunity
+  const { data: inserted, error } = await supabase
+    .from("opportunities")
+    .insert([
+      {
+        provider_id: provider.id,
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        stipend: data.stipend ? Number(data.stipend) : null,
+        nqf_level: data.nqf_level ? Number(data.nqf_level) : null,
+        duration: data.duration,
+        closing_date: data.closing_date || null,
+        field: data.field ?? null,
+        status,
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+
+  return inserted;
+}

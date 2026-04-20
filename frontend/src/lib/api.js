@@ -21,17 +21,17 @@ async function handleResponse(response) {
 }
 
 export async function getLocations() {
-  const response = await fetch(`${API_BASE_URL}/api/opportunities/filters/locations`);
+  const response = await fetch(`${API_BASE_URL}/opportunities/filters/locations`);
   return handleResponse(response);
 }
 
 export async function getFields() {
-  const response = await fetch(`${API_BASE_URL}/api/opportunities/filters/fields`);
+  const response = await fetch(`${API_BASE_URL}/opportunities/filters/fields`);
   return handleResponse(response);
 }
 
 export async function getNqfLevels() {
-  const response = await fetch(`${API_BASE_URL}/api/opportunities/filters/nqf-levels`);
+  const response = await fetch(`${API_BASE_URL}/opportunities/filters/nqf-levels`);
   return handleResponse(response);
 }
 

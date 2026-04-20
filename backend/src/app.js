@@ -4,21 +4,19 @@
 // ============================================================
 
 import express from "express";
-import dotenv from "dotenv";
+import cors from "cors";
+import session from "express-session";
+import path from "path";
 
-import opportunityRoutes from "./routes/opportunityRoutes.js";
-import { errorHandler } from "./middleware/errorHandler.js";
-
-dotenv.config();
-
-import cors from 'cors'
-import session from 'express-session';
-import path from 'path';
+import applicationRoutes from "./routes/applicationRoutes.js";
+import employerApplicationRoutes from "./routes/employerApplicationRoutes.js";
 import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
-import applicationRoutes from "./routes/applicationRoutes.js";
+import myApplicationRoutes from "./routes/myApplicationRoutes.js";
+import opportunityRoutes from "./routes/opportunityRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
@@ -42,6 +40,13 @@ app.use(session({
   },
 }));
 
+// ─── Application Routes ───────────────────────────────────────────────────────
+app.use('/api/applications', applicationRoutes);
+
+// ─── Employer Application Routes ──────────────────────────────────────────────────────
+app.use('/api/employer/applications', employerApplicationRoutes);
+
+
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
 app.use("/api/auth/applicant", applicantAuthRoutes);
@@ -49,7 +54,7 @@ app.use("/api/auth/provider",  providerAuthRoutes);
 
 // ─── Application routes ─────────────────────────────────────────────────────────────
 
-app.use("/applications", applicationRoutes);
+app.use("/applications", myApplicationRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
 import { supabase } from "./config/supabaseClient.js";

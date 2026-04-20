@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { OpportunityCard } from "./OpportunityCard";
+import { QualificationCard } from "./QualificationCard";
+import { fetchMyApplications } from "../../services/myApplicationService";
 
 export function OpportunityList({
   items = [],
@@ -8,6 +11,42 @@ export function OpportunityList({
   pagination = null,
   onPageChange,
 }) {
+  const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
+
+  const getItemKey = (item, index) => {
+    if (item?._type === "qualification") {
+      return `qualification-${item.qual_id ?? item.id ?? index}`;
+    }
+
+    return `opportunity-${item?.id ?? index}`;
+  };
+
+  useEffect(() => {
+    const fetchAppliedOpportunityIds = async () => {
+      try {
+        const applications = await fetchMyApplications();
+        const ids = new Set(
+          (applications || [])
+            .map((application) => {
+              const opportunity = Array.isArray(application?.opportunities)
+                ? application.opportunities[0]
+                : application?.opportunities;
+
+              return opportunity?.id;
+            })
+            .filter(Boolean)
+        );
+
+        setAppliedOpportunityIds(ids);
+      } catch {
+        // Keep the opportunities view functional even if applied-status lookup fails.
+        setAppliedOpportunityIds(new Set());
+      }
+    };
+
+    fetchAppliedOpportunityIds();
+  }, [items]);
+
   if (loading) {
     return (
       <section className="flex items-center justify-center py-24">
@@ -56,15 +95,23 @@ export function OpportunityList({
       </header>
 
       <section className="flex flex-col gap-4">
-        {items.map((item) => (
-          <OpportunityCard key={item.id} {...item} />
+        {items.map((item, index) => (
+          item?._type === "qualification" ? (
+            <QualificationCard key={getItemKey(item, index)} {...item} />
+          ) : (
+            <OpportunityCard
+              key={getItemKey(item, index)}
+              {...item}
+              isApplied={appliedOpportunityIds.has(item.id)}
+            />
+          )
         ))}
       </section>
 
       {pagination && pagination.totalPages > 1 && (
         <section className="flex items-center justify-center gap-4 pt-4">
           <button
-            onClick={() => onPageChange(pagination.page - 1)}
+            onClick={() => onPageChange?.(pagination.page - 1)}
             disabled={pagination.page <= 1}
             className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
           >
@@ -76,7 +123,7 @@ export function OpportunityList({
           </span>
 
           <button
-            onClick={() => onPageChange(pagination.page + 1)}
+            onClick={() => onPageChange?.(pagination.page + 1)}
             disabled={pagination.page >= pagination.totalPages}
             className="px-4 py-2 rounded-lg border border-gray-300 disabled:opacity-50"
           >
@@ -84,7 +131,7 @@ export function OpportunityList({
           </button>
         </section>
       )}
-      
+
     </section>
   );
 }

@@ -1,102 +1,155 @@
-jest.unstable_mockModule('../src/config/supabaseClient.js', () => ({
-  supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-      maybeSingle: jest.fn(),
-      order: jest.fn().mockReturnThis(),
-      range: jest.fn().mockReturnThis(),
-    })),
-    storage: {
-      from: jest.fn(() => ({
-        upload: jest.fn(),
-        remove: jest.fn(),
-        createSignedUrl: jest.fn(),
-      })),
-    },
-  },
-}));
-import { jest } from "@jest/globals";
+// ============================================
+// TEST FILE: applicationController.test.js
+// Location: backend/tests/
+// Tests HTTP request handling
+// ============================================
 
-// mock service
-const mockApply = jest.fn();
+import { jest } from '@jest/globals';
 
-jest.unstable_mockModule("../src/services/applicationService.js", () => ({
-  applyToOpportunity: mockApply,
+// Mock the service
+const mockGetApplications = jest.fn();
+const mockUpdateStatus = jest.fn();
+
+jest.unstable_mockModule('../src/services/applicationService.js', () => ({
+    getApplicationsByOpportunity: mockGetApplications,
+    updateApplicationStatus: mockUpdateStatus
 }));
 
-// import AFTER mock
-const { apply } = await import("../src/controllers/applicationController.js");
+const { fetchApplicationsByOpportunity, patchApplicationStatus } = 
+    await import('../src/controllers/applicationController.js');
 
-function createMockRes() {
-  return {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn(),
-  };
-}
+describe('Application Controller Tests', () => {
+    let mockRequest;
+    let mockResponse;
 
-describe("applicationController", () => {
-    test("should return 201 on success", async () => {
-        const req = {
-            user: { id: "user-123" },
-            body: { opportunityId: "opp-456" },
+    beforeEach(() => {
+        mockRequest = {
+            params: {},
+            body: {},
+            user: { profileId: 'provider-123' }
         };
+        mockResponse = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+        jest.clearAllMocks();
+    });
 
-        const res = createMockRes();
-        const next = jest.fn();
+    // TEST 1: Missing opportunity ID
+    test('GET - Returns 400 when opportunityId is missing', async () => {
+        mockRequest.params = {};
+        
+        await fetchApplicationsByOpportunity(mockRequest, mockResponse);
+        
+        expect(mockResponse.status).toHaveBeenCalledWith(400);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            success: false,
+            error: 'Job ID is required'
+        });
+    });
 
-        mockApply.mockResolvedValue({ success: true });
+    // TEST 2: Missing authentication
+    test('GET - Returns 401 when user is not authenticated', async () => {
+        mockRequest.params = { opportunityId: 'opp-123' };
+        mockRequest.user = null;
+        
+        await fetchApplicationsByOpportunity(mockRequest, mockResponse);
+        
+        expect(mockResponse.status).toHaveBeenCalledWith(401);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            success: false,
+            error: 'You must be logged in'
+        });
+    });
 
-        await apply(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(201);
-        expect(res.json).toHaveBeenCalledWith({
+    // TEST 3: Successful get applications
+    test('GET - Returns 200 with applications on success', async () => {
+        mockRequest.params = { opportunityId: 'opp-123' };
+        const mockApplications = [
+            { applicationId: 'app-1', status: 'received', applicant: { name: 'John Doe' } }
+        ];
+        mockGetApplications.mockResolvedValue(mockApplications);
+        
+        await fetchApplicationsByOpportunity(mockRequest, mockResponse);
+        
+        expect(mockResponse.json).toHaveBeenCalledWith({
             success: true,
-            data: { success: true },
+            data: mockApplications,
+            count: 1
         });
     });
 
-    test("should return 400 if user already applied", async () => {
-        const req = {
-            user: { id: "user-123" },
-            body: { opportunityId: "opp-456" },
-        };
+    // TEST 4: Unauthorized error
+    test('GET - Returns 403 for unauthorized access', async () => {
+        mockRequest.params = { opportunityId: 'opp-123' };
+        mockGetApplications.mockRejectedValue(new Error('Unauthorized: You do not own this opportunity'));
+        
+        await fetchApplicationsByOpportunity(mockRequest, mockResponse);
+        
+        expect(mockResponse.status).toHaveBeenCalledWith(403);
+    });
 
-        const res = createMockRes();
-        const next = jest.fn();
-
-        mockApply.mockRejectedValue(
-            new Error("Already applied to this opportunity")
-        );
-
-        await apply(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({
-            error: "Already applied to this opportunity",
+    // TEST 5: Missing application ID for update
+    test('PATCH - Returns 400 when applicationId missing', async () => {
+        mockRequest.params = {};
+        mockRequest.body = { status: 'shortlisted' };
+        
+        await patchApplicationStatus(mockRequest, mockResponse);
+        
+        expect(mockResponse.status).toHaveBeenCalledWith(400);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            success: false,
+            error: 'Application ID is required'
         });
     });
 
-        test("should return 500 for generic errors", async () => {
-        const req = {
-            user: { id: "user-123" },
-            body: { opportunityId: "opp-456" },
-        };
+    // TEST 6: Missing status for update
+    test('PATCH - Returns 400 when status missing', async () => {
+        mockRequest.params = { applicationId: 'app-123' };
+        mockRequest.body = {};
+        
+        await patchApplicationStatus(mockRequest, mockResponse);
+        
+        expect(mockResponse.status).toHaveBeenCalledWith(400);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            success: false,
+            error: 'Status is required (shortlisted or rejected)'
+        });
+    });
 
-        const res = createMockRes();
-        const next = jest.fn();
+    // TEST 7: Successful shortlist
+    test('PATCH - Successfully shortlists application', async () => {
+        mockRequest.params = { applicationId: 'app-123' };
+        mockRequest.body = { status: 'shortlisted' };
+        mockUpdateStatus.mockResolvedValue({ 
+            applicationId: 'app-123', 
+            status: 'shortlisted' 
+        });
+        
+        await patchApplicationStatus(mockRequest, mockResponse);
+        
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            success: true,
+            message: 'Candidate shortlisted successfully',
+            data: { applicationId: 'app-123', status: 'shortlisted' }
+        });
+    });
 
-        mockApply.mockRejectedValue(new Error("Something failed"));
-
-        await apply(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({
-            error: "Something failed",
+    // TEST 8: Successful reject
+    test('PATCH - Successfully rejects application', async () => {
+        mockRequest.params = { applicationId: 'app-123' };
+        mockRequest.body = { status: 'rejected' };
+        mockUpdateStatus.mockResolvedValue({ 
+            applicationId: 'app-123', 
+            status: 'rejected' 
+        });
+        
+        await patchApplicationStatus(mockRequest, mockResponse);
+        
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            success: true,
+            message: 'Candidate rejected successfully',
+            data: { applicationId: 'app-123', status: 'rejected' }
         });
     });
 });

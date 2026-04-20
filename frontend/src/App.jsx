@@ -17,8 +17,10 @@ import AuthDenied from "./pages/AuthDenied";
 import ProtectedRoute from "./routes/protectedRoute";
 import ProviderRegistration from "./pages/ProviderRegistration";
 import Qualifications from "./pages/Qualifications";
+import MyApplications from "./pages/MyApplications";
 import CompleteProfile from "./pages/CreateStudentProfile";
 import EditProfile from "./pages/EditStudentProfile";
+import EmployerApplications from './pages/EmployerApplications';
 
 export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
@@ -30,7 +32,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
 
             {/*bypassing authentication  - not working, going straight to dashboard*/}
-            <Route path="/dev-dashboard" element={<StudentDashboard />} />
+           
             <Route
               path="/onboarding"
               element={
@@ -53,9 +55,14 @@ export default function App() {
             <Route path="/prov-login" element={<ProviderLogin />} />
             <Route path="/auth-error" element={<AuthError />} />
             <Route path="/unauthorized" element={<AuthDenied />} />
-            <Route path ="/qualifications" element={<Qualifications/>}/>
+            
 
             {/* Applicant routes */}
+            <Route path="/dashboard" element={ 
+              <ProtectedRoute requiredRole="applicant">
+                <StudentDashboard />
+              </ProtectedRoute>
+            } />
             <Route path="/opportunities" element={
               <ProtectedRoute requiredRole="applicant">
                 <Opportunities />
@@ -66,14 +73,14 @@ export default function App() {
                 <OpportunityDetail />
               </ProtectedRoute>
             } />    
-            <Route path="/dashboard" element={ 
+            <Route path ="/qualifications" element={
               <ProtectedRoute requiredRole="applicant">
-                <StudentDashboard />
+                <Qualifications />
               </ProtectedRoute>
             } />
             <Route path="/applications" element={ 
               <ProtectedRoute requiredRole="applicant">
-                <StudentDashboard />
+                <MyApplications />
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={ 
@@ -87,9 +94,16 @@ export default function App() {
               </ProtectedRoute>
             } />
 
-        <Route path="/admin" element={<AdminConsole />} />
+            <Route path="/admin" element={<AdminConsole />} />
 
             {/* Employer routes - removed protected routing for now */}
+
+             <Route path="/opportunity/:opportunityId/applications" element={
+              <ProtectedRoute requiredRole="provider">
+                <EmployerApplications />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/pipeline" element={
               <ProtectedRoute requiredRole="provider">
                  <ValidationPipeline />

@@ -43,7 +43,7 @@ export async function getApplicantProfileByUserId(userId) {
                 subfield
               )
             `)
-            .eq("applicant_id", userId);
+            .eq("applicant_id", applicantProfile.id);
 
         if (qualificationsError) throw qualificationsError;
         qualifications = data || [];

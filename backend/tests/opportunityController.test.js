@@ -15,6 +15,7 @@ const mockService = {
   getDistinctFields: jest.fn(),
   getDistinctNqfLevels: jest.fn(),
   getFilteredOpportunitiesAndQualifications: jest.fn(),
+  createOpportunity: jest.fn(),
 };
 
 jest.unstable_mockModule("../src/services/opportunityService.js", () => mockService);
