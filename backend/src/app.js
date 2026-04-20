@@ -1,5 +1,6 @@
 // ============================================================
 // APP — Express setup, middleware, and route mounting
+// DO NOT MODIFY CORS SETTINGS OR ROUTE PREFIXES FOR APP DEPLOYMENT TO WORK
 // ============================================================
 
 import express from "express";
@@ -21,31 +22,15 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174",
-  "http://localhost:3000",
-  ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()) : []),
-];
-
-// ─── Core middleware ──────────────────────────────────────────────────────────
-
+// SIMPLE CORS 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
+  origin: process.env.CORS_ORIGIN,
   credentials: true,
 }));
 
 app.use(express.json());
 
 // ─── Session middleware ───────────────────────────────────────────────────────
-
 app.use(session({
   secret: process.env.SESSION_SECRET || "dev-secret-change-in-production",
   resave: false,
