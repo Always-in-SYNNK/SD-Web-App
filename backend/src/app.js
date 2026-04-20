@@ -17,6 +17,7 @@ import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
 import myApplicationRoutes from "./routes/myApplicationRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import applicationRoutes from './routes/applicationRoutes.js';
 import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
@@ -56,6 +57,9 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000,
   },
 }));
+
+// ─── Application Routes ───────────────────────────────────────────────────────
+app.use('/api/applications', applicationRoutes);
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
