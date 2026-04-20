@@ -3,13 +3,20 @@
 // DO NOT MODIFY CORS SETTINGS OR ROUTE PREFIXES FOR APP DEPLOYMENT TO WORK
 // ============================================================
 
-const express = require("express");
-const cors    = require("cors");
-const session = require("express-session");
-const path    = require("path");
+import express from "express";
+import cors from "cors";
+import session from "express-session";
+import path from "path";
 
-const applicantAuthRoutes = require("./routes/applicantAuthRoutes");
-const providerAuthRoutes  = require("./routes/providerAuthRoutes");
+import applicationRoutes from "./routes/applicationRoutes.js";
+import employerApplicationRoutes from "./routes/employerApplicationRoutes.js";
+import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
+import providerAuthRoutes from "./routes/providerAuthRoutes.js";
+import myApplicationRoutes from "./routes/myApplicationRoutes.js";
+import opportunityRoutes from "./routes/opportunityRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
