@@ -1,4 +1,3 @@
-// src/components/dashboard/JobCard.jsx
 import { useNavigate } from "react-router-dom";
 
 const STATUS_STYLES = {
@@ -9,10 +8,9 @@ const STATUS_STYLES = {
   accepted: "bg-purple-100 text-purple-800",
 };
 
-const JobCard = ({ title, location, status }) => {
+const JobCard = ({ id, title, location, status }) => {
   const navigate = useNavigate();
-  const badgeClass =
-    STATUS_STYLES[status] || "bg-gray-100 text-gray-800";
+  const badgeClass = STATUS_STYLES[status] || "bg-gray-100 text-gray-800";
 
   return (
     <article className="p-6 bg-white rounded-lg shadow flex justify-between items-center">
@@ -24,16 +22,14 @@ const JobCard = ({ title, location, status }) => {
       </section>
 
       <section className="text-right flex flex-col items-end gap-2">
-        <span
-          className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${badgeClass}`}
-        >
+        <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${badgeClass}`}>
           {status}
         </span>
         <button
-          onClick={() => navigate("/pipeline")}
-          className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+          onClick={() => navigate(`/opportunity/${id}/applications`)}
+          className="px-3 py-1 bg-[#035b9d] text-white rounded text-sm hover:opacity-90"
         >
-          Manage
+          View Applications
         </button>
       </section>
     </article>

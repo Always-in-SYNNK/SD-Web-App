@@ -1,48 +1,51 @@
 // src/pages/ValidationPipeline.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Sidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
 import StatsCard from "../components/dashboard/StatsCard";
 import JobCard from "../components/dashboard/JobCard";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ValidationPipeline = () => {
   const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  useEffect(() => {
-    fetchOpportunities();
+  const checkAuth = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/provider/me`, {
+        credentials: "include",
+      });
+      const data = await response.json();
+      
+      if (!data.authenticated) {
+        window.location.href = "/prov-login";
+        return null;
+      }
+      return data.user;
+    } catch (err) {
+      console.error("Auth check failed:", err);
+      window.location.href = "/prov-login";
+      return null;
+    }
   }, []);
 
-  const fetchOpportunities = async () => {
-    setLoading(true);
-    setError(null);
+  const fetchOpportunities = useCallback(async (currentUser) => {
+    if (!currentUser) return;
 
-    // Get logged-in user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      setError("Not logged in.");
-      setLoading(false);
-      return;
-    }
-    //const TEMP_PROVIDER_ID = "96e03006-4350-4885-8b2e-f030e527d577";
-
-    // Get their profile (role tells us if admin or provider)
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id, role")
-      .eq("user_id", user.id)
+    const { data: providerProfile, error: providerError } = await supabase
+      .from("provider_profiles")
+      .select("id")
+      .eq("profile_id", currentUser.id)
       .single();
 
-    if (profileError || !profile) {
-      setError("Could not load profile.");
-      setLoading(false);
-      return;
-    }
+    if (providerError || !providerProfile) return;
 
-    let query = supabase
+    const { data, error: fetchError } = await supabase
       .from("opportunities")
       .select(`
         id,
@@ -54,58 +57,75 @@ const ValidationPipeline = () => {
           organisation_name
         )
       `)
-      // .eq("provider_id", TEMP_PROVIDER_ID) //REMEMEBER TO COMMENT THIS OUT
+      .eq("provider_id", providerProfile.id)
       .order("created_at", { ascending: false });
-
-    // Providers only see their own opportunities; admins see all
-    if (profile.role === "provider") {
-      const { data: providerProfile, error: providerError } = await supabase
-        .from("provider_profiles")
-        .select("id")
-        .eq("profile_id", profile.id)
-        .single();
-
-      if (providerError || !providerProfile) {
-        setError("Provider profile not found.");
-        setLoading(false);
-        return;
-      }
-
-      query = query.eq("provider_id", providerProfile.id);
-    }
-
-    const { data, error: fetchError } = await query;
 
     if (fetchError) {
       setError(fetchError.message);
     } else {
       setJobs(data || []);
     }
+  }, []);
 
-    setLoading(false);
-  };
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch(`${API_URL}/api/auth/provider/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      localStorage.removeItem("provider_user");
+      localStorage.setItem("__logout_redirect", "true");
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }, []);
 
-  // Derive counts from real data
+  useEffect(() => {
+    const initialize = async () => {
+      const currentUser = await checkAuth();
+      setUser(currentUser);
+      await fetchOpportunities(currentUser);
+      setAuthChecked(true);
+    };
+    
+    initialize();
+  }, [checkAuth, fetchOpportunities]);
+
   const counts = {
     all: jobs.length,
-    approved: jobs.filter((j) => j.status === "approved").length,
-    pending: jobs.filter((j) => j.status === "pending").length,
-    rejected: jobs.filter((j) => j.status === "rejected").length,
+    approved: jobs.filter((job) => job.status === "approved").length,
+    pending: jobs.filter((job) => job.status === "pending").length,
+    rejected: jobs.filter((job) => job.status === "rejected").length,
   };
 
-  // Filter in-memory
-  const filteredJobs =
-    filter === "all" ? jobs : jobs.filter((j) => j.status === filter);
+  const filteredJobs = filter === "all" ? jobs : jobs.filter((job) => job.status === filter);
+
+  if (!authChecked) {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500">Loading...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">
       <Sidebar />
-      <Topbar />
+      <Topbar user={user} onLogout={handleLogout} />
 
       <section className="ml-72 p-8">
-        <h1 className="text-3xl font-bold">Validation Pipeline</h1>
+        <header className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Validation Pipeline</h1>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-800 transition-colors bg-white rounded-lg border border-red-200 hover:bg-red-50"
+          >
+            Sign Out
+          </button>
+        </header>
 
-        {/* Stats — real numbers from the DB */}
         <section className="grid grid-cols-3 gap-4 mt-6">
           <StatsCard
             title="Approved"
@@ -124,53 +144,49 @@ const ValidationPipeline = () => {
           />
         </section>
 
-        {/* Filter tabs */}
         <section className="flex gap-3 mt-8">
-          {["all", "pending", "approved", "rejected"].map((s) => (
+          {["all", "pending", "approved", "rejected"].map((status) => (
             <button
-              key={s}
-              onClick={() => setFilter(s)}
+              key={status}
+              type="button"
+              onClick={() => setFilter(status)}
               className={`px-4 py-1 rounded-full border capitalize ${
-                filter === s
+                filter === status
                   ? "bg-blue-600 text-white border-blue-600"
                   : "bg-white text-gray-600"
               }`}
             >
-              {s}
-              {s !== "all" && (
-                <span className="ml-1 text-xs opacity-70">
-                  ({counts[s]})
-                </span>
+              {status}
+              {status !== "all" && (
+                <small className="ml-1 text-xs opacity-70">
+                  ({counts[status]})
+                </small>
               )}
             </button>
           ))}
         </section>
 
-        {/* Job list */}
         <section className="mt-6 space-y-4">
-          {loading && (
-            <p className="text-gray-500">Loading opportunities...</p>
-          )}
-
           {error && (
             <p className="text-red-500 bg-red-50 p-3 rounded">{error}</p>
           )}
 
-          {!loading && !error && filteredJobs.length === 0 && (
+          {!error && filteredJobs.length === 0 && (
             <p className="text-gray-400 text-sm">
               No opportunities found
               {filter !== "all" ? ` with status "${filter}"` : ""}.
             </p>
           )}
 
-          {!loading &&
+          {!error &&
             filteredJobs.map((job) => (
-              <JobCard
-                key={job.id}
-                title={job.title}
-                location={job.location || "Location not specified"}
-                status={job.status}
-              />
+             <JobCard
+              key={job.id}
+              id={job.id}
+              title={job.title}
+              location={job.location}
+              status={job.status}
+            />
             ))}
         </section>
       </section>
