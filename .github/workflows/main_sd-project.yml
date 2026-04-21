@@ -1,0 +1,72 @@
+# Azure Web App Deploy (React + Vite in /frontend)
+
+name: Build and deploy Node.js app to Azure Web App - sd-project
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      # ✅ Install dependencies from frontend folder
+      - name: Install dependencies
+        run: npm install
+        working-directory: frontend
+
+      # ✅ Build Vite app
+      - name: Build app
+        run: npm run build
+        working-directory: frontend
+
+      # ✅ Upload ONLY the built frontend
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: frontend/dist
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      # ✅ Download built files
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist
+
+      # ✅ Login to Azure
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8932B46DA8D645E19CCDCAD84581D8D6 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_14E101E06460454D906C8E357457AEA7 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D558675317774A888DC4BA13EB2D6810 }}
+
+      # ✅ Deploy ONLY dist folder
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'sd-project'
+          slot-name: 'Production'
+          package: dist
