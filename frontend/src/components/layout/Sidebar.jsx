@@ -8,7 +8,18 @@ const Sidebar = () => {
     { icon: "📋", label: "Define Requirements", path: "/define" },
     { icon: "🔍", label: "Validation Pipeline", path: "/pipeline" },
     { icon: "🛠️", label: "Admin Console", path: "/admin" },
+    { icon: "🔐", label: "Admin Access Applications", path: "/admin-access"}
   ];
+
+  const handleNav = (label, path)=>{
+    if(label === "Admin Console"){
+      navigate("/admin", { state: { source: "employer" } })
+    } else if(label === "Admin Access Applications"){
+      navigate("/admin-access", { state: { source: "employer" } })
+    } else {
+      navigate(path)
+    }
+  };
 
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-white flex flex-col p-6 space-y-8 shadow-xl text-sm font-medium z-50">
@@ -23,11 +34,8 @@ const Sidebar = () => {
         {links.map(({ icon, label, path }) => (
           <button
             key={label}
-            onClick={() =>
-              label === "Admin Console"
-                ? navigate("/admin", { state: { source: "employer" } })
-                : navigate(path)
-            }
+            onClick={() => handleNav(label, path)}
+
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
               window.location.pathname === path
                 ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
