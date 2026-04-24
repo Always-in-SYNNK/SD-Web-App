@@ -1,3 +1,4 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
@@ -10,6 +11,7 @@ import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
 import DefineRequirements from "./pages/DefineRequirements";
 import AdminConsole from "./pages/AdminConsole";
+import AdminAccessApplications from "./pages/AdminAccessApplications";
 import ApplicantLogin from "./pages/ApplicantLogin";
 import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
@@ -23,12 +25,16 @@ import EditProfile from "./pages/EditStudentProfile";
 import EmployerApplications from './pages/EmployerApplications';
 
 export default function App() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
+  const clientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
+
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Home */}
             <Route path="/" element={<Home />} />
 
             {/*bypassing authentication  - not working, going straight to dashboard*/}
@@ -78,23 +84,25 @@ export default function App() {
                 <Qualifications />
               </ProtectedRoute>
             } />
-            <Route path="/applications" element={ 
+            <Route path="/applications" element={
               <ProtectedRoute requiredRole="applicant">
                 <MyApplications />
               </ProtectedRoute>
             } />
-            <Route path="/analytics" element={ 
+            <Route path="/analytics" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/verification" element={ 
+            <Route path="/verification" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
               </ProtectedRoute>
             } />
 
+            {/* Admin console — shared, sidebar switches on location.state.source */}
             <Route path="/admin" element={<AdminConsole />} />
+            <Route path="/admin-access" element={<AdminAccessApplications />} />
 
             {/* Employer routes - removed protected routing for now */}
 
@@ -125,6 +133,7 @@ export default function App() {
               </ProtectedRoute>
             } />
           </Routes>
+
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>
