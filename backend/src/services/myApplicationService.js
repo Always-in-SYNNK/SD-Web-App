@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabaseClient.js";
+import { createNotification } from "./notificationService.js";
 
 export async function applyToOpportunity({ userId, opportunityId }) {
   // 1. Get profile
@@ -50,6 +51,35 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     .select();
 
   if (error) throw new Error(error.message);
+
+  
+  const application_id = data[0].id;
+  // 5. Get opportunity title
+  const { data: opportunityData, error: opportunityError } = await supabase
+    .from("opportunities")
+    .select("title")
+    .eq("id", opportunityId)
+    .single();
+
+  if (opportunityError) {
+    // Log error but don't fail the application - notification is secondary
+    console.error("Could not fetch opportunity title:", opportunityError);
+  }
+
+  // 6. Create notification (with await!)
+  try {
+    await createNotification({
+      applicantId: applicantId,
+      type: "application_status_change", // Use consistent type as in your notificationService
+      title: "Application received",
+      message: `Your application to "${opportunityData?.title || 'opportunity'}" was successfully received`,
+      applicationId: application_id,
+      opportunityId: opportunityId,
+    });
+  } catch (notificationError) {
+    // Log but don't throw - application was already created
+    console.error("Failed to create notification:", notificationError);
+  }
 
   return data;
 }

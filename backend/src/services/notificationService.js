@@ -66,8 +66,8 @@ export async function createNotification({
     type,
     title,
     message,
-    applicationId = null,
-    opportunityId = null,
+    applicationId,
+    opportunityId,
 }) {
     const { data, error } = await supabase
         .from("applicant_notifications")
