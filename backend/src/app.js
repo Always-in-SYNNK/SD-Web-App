@@ -16,6 +16,7 @@ import myApplicationRoutes from "./routes/myApplicationRoutes.js";
 import opportunityRoutes from "./routes/opportunityRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -43,16 +44,18 @@ app.use(session({
 // ─── Application Routes ───────────────────────────────────────────────────────
 app.use('/api/applications', applicationRoutes);
 
-// ─── Employer Application Routes ──────────────────────────────────────────────────────
+// ─── Employer Application Routes ──────────────────────────────────────────────
 app.use('/api/employer/applications', employerApplicationRoutes);
 
+// ─── Admin Routes ─────────────────────────────────────────────────────────────
+app.use("/api/admin", adminRoutes);
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
 app.use("/api/auth/applicant", applicantAuthRoutes);
 app.use("/api/auth/provider",  providerAuthRoutes);
 
-// ─── Application routes ─────────────────────────────────────────────────────────────
+// ─── Application routes ────────────────────────────────────────────────────────
 
 app.use("/applications", myApplicationRoutes);
 

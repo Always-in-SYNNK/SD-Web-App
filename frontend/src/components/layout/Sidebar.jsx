@@ -1,13 +1,16 @@
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import AdminSection from "../admin/AdminSection";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = Boolean(user?.isAdmin);
 
   const links = [
     { icon: "🏠", label: "Home", path: "/" },
     { icon: "📋", label: "Define Requirements", path: "/define" },
     { icon: "🔍", label: "Validation Pipeline", path: "/pipeline" },
-    { icon: "🛠️", label: "Admin Console", path: "/admin" },
   ];
 
   return (
@@ -23,11 +26,7 @@ const Sidebar = () => {
         {links.map(({ icon, label, path }) => (
           <button
             key={label}
-            onClick={() =>
-              label === "Admin Console"
-                ? navigate("/admin", { state: { source: "employer" } })
-                : navigate(path)
-            }
+            onClick={() => navigate(path)}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
               window.location.pathname === path
                 ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
@@ -39,6 +38,8 @@ const Sidebar = () => {
           </button>
         ))}
       </nav>
+
+      <AdminSection isAdmin={isAdmin} source="provider" />
 
       <button
         onClick={() => navigate("/post")}

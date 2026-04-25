@@ -4,13 +4,15 @@ import Sidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
 import RequirementsForm from "../components/forms/RequirementsForm";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const DefineRequirements = () => {
   const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   const checkAuth = useCallback(async () => {
     try {
-      const res  = await fetch("http://localhost:3000/api/auth/provider/me", { credentials: "include" });
+      const res  = await fetch(`${API_URL}/api/auth/provider/me`, { credentials: "include" });
       const data = await res.json();
       if (!data.authenticated) {
         window.location.href = "/prov-login";
@@ -25,7 +27,7 @@ const DefineRequirements = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch("http://localhost:3000/api/auth/provider/logout", { method: "POST", credentials: "include" });
+      await fetch(`${API_URL}/api/auth/provider/logout`, { method: "POST", credentials: "include" });
       localStorage.removeItem("provider_user");
       window.location.href = "/";
     } catch (err) {
