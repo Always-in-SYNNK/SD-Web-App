@@ -1,15 +1,17 @@
 // src/pages/AdminAccessApplications.jsx
 import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
 import { Sidebar as ApplicantSidebar } from "../components/dashboard/Sidebar";
 import EmployerSidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
+import { useAuth } from "../context/useAuth";
 import {
   getAdminApplications,
   grantAdminAccess,
   rejectAdminApplication,
 } from "../services/adminService";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 // ─── tiny stat card (mirrors AdminConsole's StatsGrid style) ───────────────
 function StatCard({ label, value, color }) {
@@ -38,16 +40,16 @@ function StatusBadge({ status }) {
 // ─── main page ───────────────────────────────────────────────────────────────
 export default function AdminAccessApplications() {
   const location = useLocation();
+  const { user } = useAuth();
   const source = location.state?.source || "applicant";
-  const SidebarComponent = source === "employer" ? EmployerSidebar : ApplicantSidebar;
+  const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
+  const isAdmin = Boolean(user?.isAdmin); //NEW ADMIN CHECK USING AUTH CONTEXT
 
   // For Topbar: provider uses session cookie; applicant uses Supabase
   const [topbarUser, setTopbarUser]   = useState(null);
   const [onLogout,   setOnLogout]     = useState(null);
 
   // Page state
-  const [currentUserId,  setCurrentUserId]  = useState(null);
-  const [isAdmin,        setIsAdmin]        = useState(false);
   const [pending,        setPending]        = useState([]);
   const [history,        setHistory]        = useState([]);
   const [filter,         setFilter]         = useState("all"); // all | pending | approved | rejected
@@ -57,42 +59,20 @@ export default function AdminAccessApplications() {
   // ── resolve logged-in user ────────────────────────────────────────────────
   useEffect(() => {
     const resolve = async () => {
-      if (source === "employer") {
+      if (source === "provider") {
         try {
-          const res  = await fetch("http://localhost:3000/api/auth/provider/me", { credentials: "include" });
+          const res  = await fetch(`${API_URL}/api/auth/provider/me`, { credentials: "include" });
           const data = await res.json();
           if (data.authenticated) {
             setTopbarUser(data.user);
-            setCurrentUserId(data.user?.id);
             // wrap logout so we can pass it as a stable value
             setOnLogout(() => async () => {
-              await fetch("http://localhost:3000/api/auth/provider/logout", { method: "POST", credentials: "include" });
+              await fetch(`${API_URL}/api/auth/provider/logout`, { method: "POST", credentials: "include" });
               localStorage.removeItem("provider_user");
               window.location.href = "/";
             });
-
-            // check admin via profiles table
-            const { data: prof } = await supabase
-              .from("profiles")
-              .select("isAdmin, role")
-              .eq("id", data.user.id)
-              .single();
-            setIsAdmin(!!(prof?.isAdmin || prof?.role === "admin"));
           }
         } catch {/* ignore */}
-      } else {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("id, isAdmin, role")
-            .eq("user_id", authUser.id)
-            .single();
-          if (prof) {
-            setCurrentUserId(prof.id);
-            setIsAdmin(!!(prof.isAdmin || prof.role === "admin"));
-          }
-        }
       }
       setLoading(false);
     };
@@ -101,38 +81,25 @@ export default function AdminAccessApplications() {
 
   // ── fetch all applications (pending + history) ────────────────────────────
   const fetchAll = useCallback(async () => {
-    // pending
-    const pendingData = await getAdminApplications(); // already filters status=pending
-    setPending(pendingData || []);
+    const allApplications = await getAdminApplications();
+    const rows = Array.isArray(allApplications) ? allApplications : [];
 
-    // history (approved + rejected)
-    const { data: hist } = await supabase
-      .from("admin_applications")
-      .select(`
-        id,
-        status,
-        created_at,
-        user_id,
-        profiles (
-          id,
-          full_name,
-          email,
-          role
-        )
-      `)
-      .in("status", ["approved", "rejected"])
-      .order("created_at", { ascending: false });
-    setHistory(hist || []);
+    setPending(rows.filter((row) => row.status === "pending"));
+    setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
   }, []);
 
   useEffect(() => {
-    if (!loading) fetchAll();
+    if (!loading) {
+      queueMicrotask(() => {
+        void fetchAll();
+      });
+    }
   }, [loading, fetchAll]);
 
   // ── grant / reject ────────────────────────────────────────────────────────
   const handleGrant = async (app) => {
     setActionLoading(app.id);
-    await grantAdminAccess(app);
+    await grantAdminAccess(app.id);
     await fetchAll();
     setActionLoading(null);
   };

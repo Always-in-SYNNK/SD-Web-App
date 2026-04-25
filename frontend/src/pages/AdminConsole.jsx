@@ -13,7 +13,7 @@ export default function AdminConsole() {
   const source = location.state?.source || "applicant";
 
   const SidebarComponent =
-    source === "employer" ? EmployerSidebar : ApplicantSidebar;
+    source === "provider" ? EmployerSidebar : ApplicantSidebar;
 
   return (
     <div className="flex min-h-screen bg-[#faf9f8]">
