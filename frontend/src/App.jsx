@@ -9,7 +9,6 @@ import Opportunities from "./pages/Opportunities";
 import OpportunityDetail from "./pages/OpportunityDetail";
 import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
-import DefineRequirements from "./pages/DefineRequirements";
 import AdminConsole from "./pages/AdminConsole";
 import AdminAccessApplications from "./pages/AdminAccessApplications";
 import ApplicantLogin from "./pages/ApplicantLogin";
@@ -120,11 +119,6 @@ export default function App() {
             <Route path="/post" element={
               <ProtectedRoute requiredRole="provider">
                 <PostOpportunity />
-              </ProtectedRoute>
-            } />
-            <Route path="/define" element={
-              <ProtectedRoute requiredRole="provider">
-                <DefineRequirements />
               </ProtectedRoute>
             } />
             <Route path="/provider-registration" element={

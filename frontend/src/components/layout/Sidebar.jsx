@@ -5,7 +5,6 @@ const Sidebar = () => {
 
   const links = [
     { icon: "🏠", label: "Home", path: "/" },
-    { icon: "📋", label: "Define Requirements", path: "/define" },
     { icon: "🔍", label: "Validation Pipeline", path: "/pipeline" },
     { icon: "🛠️", label: "Admin Console", path: "/admin" },
     { icon: "🔐", label: "Admin Access Applications", path: "/admin-access"}
