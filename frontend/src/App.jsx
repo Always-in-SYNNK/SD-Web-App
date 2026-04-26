@@ -35,25 +35,7 @@ export default function App() {
           <Routes>
             {/* Home */}
             <Route path="/" element={<Home />} />
-
-            {/*bypassing authentication  - not working, going straight to dashboard*/}
-           
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute requiredRole="applicant">
-                  <CompleteProfile />
-                </ProtectedRoute>
-            }/>
-
-            <Route
-              path="/profile/edit"
-              element={
-                <ProtectedRoute requiredRole="applicant">
-                  <EditProfile />
-                </ProtectedRoute>
-            }/>
-
+       
 
             {/* Authentication routes */}
             <Route path="/app-login" element={<ApplicantLogin />} />
@@ -63,6 +45,17 @@ export default function App() {
             
 
             {/* Applicant routes */}
+            <Route path="/onboarding" element={
+                <ProtectedRoute requiredRole="applicant">
+                  <CompleteProfile />
+                </ProtectedRoute>
+            }/>
+
+            <Route path="/profile/edit" element={
+                <ProtectedRoute requiredRole="applicant">
+                  <EditProfile />
+                </ProtectedRoute>
+            }/>
             <Route path="/dashboard" element={ 
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
@@ -131,7 +124,11 @@ export default function App() {
                 <PostOpportunity />
               </ProtectedRoute>
             } />
-            
+            <Route path="/opportunities/edit/:id" element={
+              <ProtectedRoute requiredRole="provider">
+              <PostOpportunity />
+              </ProtectedRoute>
+            } />
             <Route path="/provider-registration" element={
               <ProtectedRoute requiredRole="provider">
                 <ProviderRegistration />

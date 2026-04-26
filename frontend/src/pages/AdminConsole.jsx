@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
 
 import { Sidebar as ApplicantSidebar } from "../components/dashboard/Sidebar";
@@ -8,12 +9,16 @@ import { OpportunitiesTable } from "../components/admin/OpportunitiesTable";
 
 import AdminTopbar from "../components/layout/AdminTopbar";
 
+const TABS = [
+  { label: "Approved", value: "approved" },
+  { label: "Pending Review", value: "pending" },
+];
+
 export default function AdminConsole() {
   const location = useLocation();
+  const [activeTab, setActiveTab] = useState("pending");
 
-  // default = applicant if nothing passed
   const source = location.state?.source || "applicant";
-
   const SidebarComponent =
     source === "provider" ? EmployerSidebar : ApplicantSidebar;
 
@@ -30,11 +35,9 @@ export default function AdminConsole() {
             <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
               Admin Panel
             </span>
-
             <h2 className="text-3xl font-extrabold mt-2 tracking-tight">
               Manage Opportunities
             </h2>
-
             <p className="text-gray-500 mt-2">
               Review, flag, and manage all live opportunities on the platform.
             </p>
@@ -42,28 +45,27 @@ export default function AdminConsole() {
 
           <StatsGrid />
 
-          <div className="bg-[#f5f3f3] rounded-xl p-8">
+          <div className="bg-[#f5f3f3] rounded-xl px-8 pb-8 pt-4">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-lg">All Opportunities</h3>
-
-              <div className="flex gap-2">
-                <select className="bg-white border border-gray-200 rounded-lg text-sm py-2 px-3 focus:outline-none">
-                  <option>All Status</option>
-                  <option>Live</option>
-                  <option>Flagged</option>
-                  <option>Pending</option>
-                </select>
-
-                <select className="bg-white border border-gray-200 rounded-lg text-sm py-2 px-3 focus:outline-none">
-                  <option>All Types</option>
-                  <option>Learnership</option>
-                  <option>Internship</option>
-                  <option>Apprenticeship</option>
-                </select>
+              {/* Tabs */}
+              <div className="flex gap-1 bg-white border border-gray-200 rounded-lg p-1">
+                {TABS.map((tab) => (
+                  <button
+                    key={tab.value}
+                    onClick={() => setActiveTab(tab.value)}
+                    className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === tab.value
+                        ? "bg-[#035b9d] text-white"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <OpportunitiesTable />
+            <OpportunitiesTable mode={activeTab} />
           </div>
         </div>
       </main>

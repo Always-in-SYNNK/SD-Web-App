@@ -6,8 +6,10 @@ export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
-  const isAdmin = Boolean(user?.isAdmin);
 
+  const isAdmin = Boolean(user?.isAdmin);
+  const returnTo = location.state?.from || "/dashboard";
+  const adminOrigin = location.state?.from || location.pathname;
   const isAdminMode = location.pathname.startsWith("/admin");
 
   const normalLinks = [
@@ -24,6 +26,7 @@ export function Sidebar() {
   ];
 
   const links = isAdminMode ? adminLinks : normalLinks;
+  
 
   const handleLogout = () => {
     localStorage.setItem("__logout_redirect", "true");
@@ -68,7 +71,7 @@ export function Sidebar() {
         {links.map(({ icon, label, path }) => (
           <button
             key={label}
-            onClick={() => navigate(path, { state: { source: "applicant" } })}
+            onClick={() => navigate(path, { state: { source: "applicant", from: adminOrigin } })}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
               location.pathname === path
                 ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
@@ -90,7 +93,7 @@ export function Sidebar() {
             Admin Portal
           </div>
           <button
-            onClick={() => navigate("/dashboard", {state : { source : "applicant"}})}
+            onClick={() => navigate(returnTo, { state: { source: "applicant" } })}
             className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-[#035b9d] hover:bg-[#d2e4ff] transition-all duration-200 text-left font-semibold text-sm"
           >
             <strong>Back to Portal</strong>

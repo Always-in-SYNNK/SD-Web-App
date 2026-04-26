@@ -29,10 +29,14 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
   const hasApplicantSession = Boolean(token && role);
   const hasProviderSession = providerRole === "provider";
-  const isAdmin = Boolean(user?.isAdmin) || providerIsAdmin;
+  const applicantSessionIsAdmin = hasApplicantSession && Boolean(user?.isAdmin);
+  const providerSessionIsAdmin = hasProviderSession && providerIsAdmin;
 
   if (requiredRole === "admin") {
-    if (isAdmin && (hasApplicantSession || hasProviderSession)) {
+    if (hasApplicantSession && applicantSessionIsAdmin) {
+      return children;
+    }
+    if (!hasApplicantSession && hasProviderSession && providerSessionIsAdmin) {
       return children;
     }
 
@@ -54,7 +58,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
         to={isLogout ? "/" : "/auth-error"}
         replace
         state={{
-          loginPage: "app-login",
+          loginPage: "", // No specific login page for admin - redirect to home
           message: "You must be logged in to access this page.",
           from: location.pathname,
         }}
