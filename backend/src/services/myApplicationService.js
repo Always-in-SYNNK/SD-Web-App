@@ -32,7 +32,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     .select("id")
     .eq("applicant_id", applicantId)
     .eq("opportunity_id", opportunityId)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     throw new Error("Already applied");
@@ -48,12 +48,13 @@ export async function applyToOpportunity({ userId, opportunityId }) {
         status: "received",
       },
     ])
-    .select();
+    .select()
+    .single();
 
   if (error) throw new Error(error.message);
 
 
-  const application_id = data[0].id;
+  const application_id = data.id;
   // 5. Get opportunity title
   const { data: opportunityData, error: opportunityError } = await supabase
     .from("opportunities")
