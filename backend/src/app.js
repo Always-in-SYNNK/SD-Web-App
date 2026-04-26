@@ -17,6 +17,9 @@ import opportunityRoutes from "./routes/opportunityRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { startReminderCron } from "./cronJob.js";
+
+startReminderCron();
 
 const app = express();
 

@@ -5,6 +5,7 @@ import {
   getFilteredOpportunitiesAndQualifications,
   createOpportunity,
 } from '../services/opportunityService.js';
+import { notifyAllApplicantsNewOpportunity } from '../services/reminderService.js';
 
 export async function fetchLocations(req, res, next) {
   try {
@@ -53,6 +54,7 @@ export async function fetchOpportunities(req, res, next) {
   }
 }
 
+// ✅ ONLY ONE publishOpportunity function (with notification)
 export async function publishOpportunity(req, res) {
   try {
     const userId = req.user?.id;
@@ -67,6 +69,10 @@ export async function publishOpportunity(req, res) {
       data,
       status: "pending",
     });
+
+    if (result) {
+      await notifyAllApplicantsNewOpportunity(result.id, data.title);
+    }
 
     res.status(201).json({ success: true, data: result });
   } catch (err) {
