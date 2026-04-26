@@ -1,6 +1,12 @@
 // src/components/forms/OpportunityForm.jsx
 import { useEffect, useState } from "react";
-import { publishOpportunity, saveDraft } from "../../services/opportunityService";
+import { useParams } from "react-router-dom";
+import {
+  publishOpportunity,
+  updateOpportunity,
+  saveDraft,
+  getOpportunityById,
+} from "../../services/opportunityService";
 import { getFields } from "../../lib/api";
 
 const EMPTY_FORM = {
@@ -43,25 +49,56 @@ const Section = ({ title, children }) => (
 );
 
 const OpportunityForm = () => {
+  const { id } = useParams();                    // defined when editing
+  const isEditing = Boolean(id);
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [fieldOptions, setFieldOptions] = useState([]);
-  const [status, setStatus] = useState(null); // null | 'loading' | 'success' | 'error'
+  const [status, setStatus] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [prefillLoading, setPrefillLoading] = useState(isEditing);
 
   const set = (key) => (e) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
+
+  // Prefill when editing
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchDraft = async () => {
+      const { data, error } = await getOpportunityById(id);
+
+      if (error) {
+        setErrorMsg("Could not load opportunity.");
+        setStatus("error");
+      } else {
+        setForm({
+          title:        data.title        ?? "",
+          description:  data.description  ?? "",
+          location:     data.location     ?? "",
+          requirements: data.requirements ?? "",
+          stipend:      data.stipend      ?? "",
+          nqf_level:    data.nqf_level    ?? "",
+          duration:     data.duration     ?? "",
+          closing_date: data.closing_date ?? "",
+          field:        data.field        ?? "",
+        });
+      }
+      setPrefillLoading(false);
+    };
+
+    fetchDraft();
+  }, [id]);
 
   useEffect(() => {
     const loadFieldOptions = async () => {
       try {
         const result = await getFields();
         setFieldOptions(result?.data || []);
-      } catch (err) {
-        console.error("Error fetching field options:", err);
+      } catch {
         setFieldOptions([]);
       }
     };
-
     loadFieldOptions();
   }, []);
 
@@ -74,20 +111,29 @@ const OpportunityForm = () => {
     }
     setStatus("loading");
     setErrorMsg("");
-    const { error } = await publishOpportunity(form);
+
+    // If editing an existing draft, update it; otherwise create new
+    const { error } = isEditing
+      ? await updateOpportunity(id, { ...form, status: "pending" })
+      : await publishOpportunity(form);
+
     if (error) {
       setErrorMsg(error.message);
       setStatus("error");
     } else {
       setStatus("success");
-      setForm(EMPTY_FORM);
+      if (!isEditing) setForm(EMPTY_FORM);
     }
   };
 
   const handleDraft = async () => {
     setStatus("loading");
     setErrorMsg("");
-    const { error } = await saveDraft(form);
+
+    const { error } = isEditing
+      ? await updateOpportunity(id, { ...form, status: "draft" })
+      : await saveDraft(form);
+
     if (error) {
       setErrorMsg(error.message);
       setStatus("error");
@@ -96,16 +142,24 @@ const OpportunityForm = () => {
     }
   };
 
+  if (prefillLoading) {
+    return (
+      <div className="max-w-4xl flex items-center justify-center py-32">
+        <p className="text-gray-400 text-sm">Loading draft…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl">
-      {/* Page header */}
       <header className="mb-12">
         <h2 className="font-headline text-4xl font-bold tracking-tight text-on-surface mb-3">
-          Architect a New Opportunity
+          {isEditing ? "Edit Draft" : "Architect a New Opportunity"}
         </h2>
         <p className="text-[#404850] text-base max-w-xl leading-relaxed">
-          Craft a compelling narrative for your learnership or internship. Clear,
-          aspirational listings attract the most resilient candidates.
+          {isEditing
+            ? "Update your draft before submitting it for review."
+            : "Craft a compelling narrative for your learnership or internship."}
         </p>
       </header>
 
@@ -222,6 +276,8 @@ const OpportunityForm = () => {
                   onChange={set("duration")}
                 >
                   <option value="">Select duration…</option>
+                  <option value="1 Month">1 Month</option>
+                  <option value="3 Months">3 Months</option>
                   <option value="6 Months">6 Months</option>
                   <option value="12 Months">12 Months</option>
                   <option value="18 Months">18 Months</option>

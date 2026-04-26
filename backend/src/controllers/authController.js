@@ -33,6 +33,7 @@ export const googleAuth = async (req, res) => {
         id: existingProfile.user_id,
         email: existingProfile.email,
         role: existingProfile.role,
+        isAdmin: Boolean(existingProfile.isAdmin),
       });
       return res.json({ user: existingProfile, token: jwtToken, isNewUser: false });
     }
@@ -112,6 +113,7 @@ export const googleAuth = async (req, res) => {
       id: newProfile.user_id,
       email: newProfile.email,
       role: newProfile.role,
+      isAdmin: Boolean(newProfile.isAdmin),
     });
 
     res.json({ user: newProfile, token: jwtToken, isNewUser: true });

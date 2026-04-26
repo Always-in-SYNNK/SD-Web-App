@@ -7,7 +7,7 @@ export function StatsGrid() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-2">
       {stats.map((s) => (
         <div key={s.label} className="bg-gray-100 p-6 rounded-xl">
           <p className="text-sm text-gray-500">{s.label}</p>
