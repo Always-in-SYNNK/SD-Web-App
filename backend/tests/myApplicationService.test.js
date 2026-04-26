@@ -10,12 +10,12 @@ jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
 }));
 
 //import AFTER mock
-const { 
+const {
   applyToOpportunity,
   getApplicationsForUser,
   deleteApplicationForUser,
   acceptOffer
- } = await import("../src/services/myApplicationService.js");
+} = await import("../src/services/myApplicationService.js");
 
 
 describe("myApplicationService", () => {
@@ -54,32 +54,42 @@ describe("myApplicationService", () => {
       }),
     });
 
-    // 3. applications (duplicate check)
+    // 3. duplicate check - use maybeSingle
     mockFrom.mockReturnValueOnce({
       select: () => ({
         eq: () => ({
           eq: () => ({
-            single: async () => ({
-              data: null,
-              error: null,
-            }),
+            maybeSingle: async () => ({ data: null, error: null }), // No existing application
           }),
         }),
       }),
     });
 
-    // 4. applications (insert)
+    // 4. insert application - with .single()
     mockFrom.mockReturnValueOnce({
       insert: () => ({
-        select: async () => ({
-          data: [
-            {
+        select: () => ({
+          single: async () => ({
+            data: {
+              id: "app-123",
               applicant_id: "applicant-1",
               opportunity_id: opportunityId,
-              status: "applied",
+              status: "received",
             },
-          ],
-          error: null,
+            error: null,
+          }),
+        }),
+      }),
+    });
+
+    // 5. get opportunity title
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({
+            data: { title: "Software Developer Role" },
+            error: null,
+          }),
         }),
       }),
     });
@@ -87,8 +97,8 @@ describe("myApplicationService", () => {
     const result = await applyToOpportunity({ userId, opportunityId });
 
     expect(result).toBeDefined();
+    expect(result.status).toBe("received");
   });
-
   // applytoOpportunities ===================================
   test("should return applications for user", async () => {
     // profiles

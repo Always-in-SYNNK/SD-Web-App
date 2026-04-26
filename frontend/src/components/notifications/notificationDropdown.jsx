@@ -3,7 +3,7 @@ import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
 
 export function NotificationDropdown() {
-  const { token } = useAuth();
+  const { token } = useAuth() ?? {};
   const API = import.meta.env.VITE_API_URL;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();

@@ -1,3 +1,4 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthProvider } from "./context/AuthContext";
@@ -8,8 +9,8 @@ import Opportunities from "./pages/Opportunities";
 import OpportunityDetail from "./pages/OpportunityDetail";
 import ValidationPipeline from "./pages/ValidationPipeline";
 import PostOpportunity from "./pages/PostOpportunity";
-import DefineRequirements from "./pages/DefineRequirements";
 import AdminConsole from "./pages/AdminConsole";
+import AdminAccessApplications from "./pages/AdminAccessApplications";
 import ApplicantLogin from "./pages/ApplicantLogin";
 import ProviderLogin from "./pages/ProviderLogin";
 import AuthError from "./pages/AuthError";
@@ -25,32 +26,18 @@ import ViewStudentProfile from "./pages/ViewStudentProfile";
 import Notifications from "./pages/Notifications";
 
 export default function App() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
+  const clientId =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
+
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Home */}
             <Route path="/" element={<Home />} />
-
-            {/*bypassing authentication  - not working, going straight to dashboard*/}
-           
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute requiredRole="applicant">
-                  <CompleteProfile />
-                </ProtectedRoute>
-            }/>
-
-            <Route
-              path="/profile/edit"
-              element={
-                <ProtectedRoute requiredRole="applicant">
-                  <EditProfile />
-                </ProtectedRoute>
-            }/>
-
+       
 
             {/* Authentication routes */}
             <Route path="/app-login" element={<ApplicantLogin />} />
@@ -60,6 +47,17 @@ export default function App() {
             
 
             {/* Applicant routes */}
+            <Route path="/onboarding" element={
+                <ProtectedRoute requiredRole="applicant">
+                  <CompleteProfile />
+                </ProtectedRoute>
+            }/>
+
+            <Route path="/profile/edit" element={
+                <ProtectedRoute requiredRole="applicant">
+                  <EditProfile />
+                </ProtectedRoute>
+            }/>
             <Route path="/dashboard" element={ 
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
@@ -80,17 +78,17 @@ export default function App() {
                 <Qualifications />
               </ProtectedRoute>
             } />
-            <Route path="/applications" element={ 
+            <Route path="/applications" element={
               <ProtectedRoute requiredRole="applicant">
                 <MyApplications />
               </ProtectedRoute>
             } />
-            <Route path="/analytics" element={ 
+            <Route path="/analytics" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/verification" element={ 
+            <Route path="/verification" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
               </ProtectedRoute>
@@ -106,10 +104,22 @@ export default function App() {
               </ProtectedRoute>
             }/>
 
-            <Route path="/admin" element={<AdminConsole />} />
+            {/* Admin console — shared, sidebar switches on location.state.source */}
+            {/* Admin routes — no layout wrapper needed anymore */}
+            <Route path="/admin/console" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminConsole />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/applications" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminAccessApplications />
+              </ProtectedRoute>
+            } />
 
             {/* Employer routes - removed protected routing for now */}
 
+            {/* Employer routes */}
              <Route path="/opportunity/:opportunityId/applications" element={
               <ProtectedRoute requiredRole="provider">
                 <EmployerApplications />
@@ -126,9 +136,9 @@ export default function App() {
                 <PostOpportunity />
               </ProtectedRoute>
             } />
-            <Route path="/define" element={
+            <Route path="/opportunities/edit/:id" element={
               <ProtectedRoute requiredRole="provider">
-                <DefineRequirements />
+              <PostOpportunity />
               </ProtectedRoute>
             } />
             <Route path="/provider-registration" element={
@@ -137,6 +147,7 @@ export default function App() {
               </ProtectedRoute>
             } />
           </Routes>
+
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>
