@@ -4,6 +4,8 @@ import AdminSection from "../admin/AdminSection";
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const returnTo = location.state?.from || "/pipeline";
+  const adminOrigin = location.state?.from || location.pathname;
 
   // Read isAdmin from provider localStorage
   let isAdmin = false;
@@ -46,7 +48,7 @@ const Sidebar = () => {
         {links.map(({ icon, label, path }) => (
           <button
             key={label}
-            onClick={() => navigate(path, { state: { source: "provider" } })}
+            onClick={() => navigate(path, { state: { source: "provider", from: adminOrigin } })}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
               location.pathname === path
                 ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
@@ -70,7 +72,7 @@ const Sidebar = () => {
           </div>
 
           <button
-            onClick={() => navigate("/pipeline")}
+            onClick={() => navigate(returnTo, { state: { source: "provider" } })}
             className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-[#035b9d] hover:bg-[#d2e4ff] transition-all duration-200 text-left font-semibold text-sm"
           >
             <span>↩️</span>

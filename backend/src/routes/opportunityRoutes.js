@@ -31,7 +31,6 @@ router.get('/', fetchOpportunities);
 router.post('/publish', providerAuthMiddleware, publishOpportunity);
 router.patch('/:id', providerAuthMiddleware, updateOpportunity);
 router.post('/draft', providerAuthMiddleware, saveDraft);
-router.get('/:id', providerAuthMiddleware, getOpportunity);
 
 // admin
 router.get("/pending", requireAuth, requireAdmin, getPendingOpportunities);
@@ -39,6 +38,9 @@ router.get("/approved", requireAuth, requireAdmin, getApprovedOpportunities);
 router.patch("/:id/approve", requireAuth, requireAdmin, approveOpportunity);
 router.patch("/:id/reject", requireAuth, requireAdmin, rejectOpportunity);
 router.delete("/:id", requireAuth, requireAdmin, deleteOpportunity);
+
+// provider edit prefill
+router.get('/:id', providerAuthMiddleware, getOpportunity);
 
 
 export default router;

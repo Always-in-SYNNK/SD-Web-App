@@ -29,14 +29,22 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
   const hasApplicantSession = Boolean(token && role);
   const hasProviderSession = providerRole === "provider";
-  const isAdmin = Boolean(user?.isAdmin) || providerIsAdmin;
+  const activeSession = hasApplicantSession
+    ? "applicant"
+    : hasProviderSession
+    ? "provider"
+    : null;
+
+  const applicantIsAdmin = activeSession === "applicant" && Boolean(user?.isAdmin);
+  const providerSessionIsAdmin = activeSession === "provider" && providerIsAdmin;
+  const isAdmin = applicantIsAdmin || providerSessionIsAdmin;
 
   if (requiredRole === "admin") {
-    if (isAdmin && (hasApplicantSession || hasProviderSession)) {
+    if (isAdmin && activeSession) {
       return children;
     }
 
-    if (hasApplicantSession || hasProviderSession) {
+    if (activeSession) {
       return (
         <Navigate
           to="/unauthorized"
@@ -63,11 +71,11 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole === "provider") {
-    if (hasProviderSession) {
+    if (activeSession === "provider") {
       return children;
     }
 
-    if (hasApplicantSession) {
+    if (activeSession === "applicant") {
       return (
         <Navigate
           to="/unauthorized"
@@ -94,11 +102,11 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole === "applicant") {
-    if (hasApplicantSession && role === "applicant") {
+    if (activeSession === "applicant" && role === "applicant") {
       return children;
     }
 
-    if (hasProviderSession || (hasApplicantSession && role !== "applicant")) {
+    if (activeSession === "provider" || (activeSession === "applicant" && role !== "applicant")) {
       return (
         <Navigate
           to="/unauthorized"
@@ -125,7 +133,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   //Not logged in
-  if (!hasApplicantSession && !hasProviderSession) {
+  if (!activeSession) {
     return (
       <Navigate
         to={isLogout ? "/" : "/auth-error"}
