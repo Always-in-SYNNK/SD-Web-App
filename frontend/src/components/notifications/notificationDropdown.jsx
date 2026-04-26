@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export function NotificationDropdown() {
   const { token } = useAuth();
   const API = import.meta.env.VITE_API_URL;
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef(null);
@@ -56,11 +58,14 @@ export function NotificationDropdown() {
     }
   };
 
+  //finds all unread notifications and callsmarkRead for each of them
+  //Promise.all - marks as read in parallel
   const markAllRead = async () => {
     const unread = notifications.filter((n) => !n.is_read);
     await Promise.all(unread.map((n) => markRead(n.id)));
   };
-
+  
+  //convert timestamp to human readable format
   const formatTime = (dateStr) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -71,6 +76,7 @@ export function NotificationDropdown() {
     return `${days} day${days !== 1 ? "s" : ""} ago`;
   };
 
+//UI rendering
 return (
     <section className="relative" ref={ref}>
       {/* Bell button */}
@@ -114,7 +120,7 @@ return (
                 No notifications yet
               </li>
             ) : (
-              notifications.map((n) => (
+              notifications.slice(0,10).map((n) => (
                 <li
                   key={n.id}
                   onClick={() => !n.is_read && markRead(n.id)}
@@ -149,7 +155,10 @@ return (
 
           {/* Footer */}
           <footer className="px-4 py-3 border-t border-gray-100 text-center">
-            <button className="text-xs text-[#035b9d] font-semibold hover:underline">
+            <button
+              onClick={() => { setOpen(false); navigate("/notifications"); }}
+              className="text-xs text-[#035b9d] font-semibold hover:underline"
+            >
               View all notifications
             </button>
           </footer>

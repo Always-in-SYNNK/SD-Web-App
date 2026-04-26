@@ -22,6 +22,7 @@ import CompleteProfile from "./pages/CreateStudentProfile";
 import EditProfile from "./pages/EditStudentProfile";
 import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
+import Notifications from "./pages/Notifications";
 
 export default function App() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "772613851424-kt1l3k1tioklhmok3104276d1ibp4el9.apps.googleusercontent.com";
@@ -99,6 +100,11 @@ export default function App() {
                 <ViewStudentProfile />
               </ProtectedRoute>
             } />
+            <Route path="/notifications" element={
+              <ProtectedRoute requiredRole="applicant">
+                <Notifications />
+              </ProtectedRoute>
+            }/>
 
             <Route path="/admin" element={<AdminConsole />} />
 
