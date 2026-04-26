@@ -29,22 +29,18 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
   const hasApplicantSession = Boolean(token && role);
   const hasProviderSession = providerRole === "provider";
-  const activeSession = hasApplicantSession
-    ? "applicant"
-    : hasProviderSession
-    ? "provider"
-    : null;
-
-  const applicantIsAdmin = activeSession === "applicant" && Boolean(user?.isAdmin);
-  const providerSessionIsAdmin = activeSession === "provider" && providerIsAdmin;
-  const isAdmin = applicantIsAdmin || providerSessionIsAdmin;
+  const applicantSessionIsAdmin = hasApplicantSession && Boolean(user?.isAdmin);
+  const providerSessionIsAdmin = hasProviderSession && providerIsAdmin;
 
   if (requiredRole === "admin") {
-    if (isAdmin && activeSession) {
+    if (hasApplicantSession && applicantSessionIsAdmin) {
+      return children;
+    }
+    if (!hasApplicantSession && hasProviderSession && providerSessionIsAdmin) {
       return children;
     }
 
-    if (activeSession) {
+    if (hasApplicantSession || hasProviderSession) {
       return (
         <Navigate
           to="/unauthorized"
@@ -71,11 +67,11 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole === "provider") {
-    if (activeSession === "provider") {
+    if (hasProviderSession) {
       return children;
     }
 
-    if (activeSession === "applicant") {
+    if (hasApplicantSession) {
       return (
         <Navigate
           to="/unauthorized"
@@ -102,11 +98,11 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole === "applicant") {
-    if (activeSession === "applicant" && role === "applicant") {
+    if (hasApplicantSession && role === "applicant") {
       return children;
     }
 
-    if (activeSession === "provider" || (activeSession === "applicant" && role !== "applicant")) {
+    if (hasProviderSession || (hasApplicantSession && role !== "applicant")) {
       return (
         <Navigate
           to="/unauthorized"
@@ -133,7 +129,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   //Not logged in
-  if (!activeSession) {
+  if (!hasApplicantSession && !hasProviderSession) {
     return (
       <Navigate
         to={isLogout ? "/" : "/auth-error"}
