@@ -6,6 +6,8 @@ import EmployerSidebar from "../components/layout/Sidebar";
 import { StatsGrid } from "../components/admin/StatsGrid";
 import { OpportunitiesTable } from "../components/admin/OpportunitiesTable";
 
+import AdminTopbar from "../components/layout/AdminTopbar";
+
 export default function AdminConsole() {
   const location = useLocation();
 
@@ -21,20 +23,7 @@ export default function AdminConsole() {
 
       <main className="ml-64 min-h-screen w-full">
         {/* Top bar */}
-        <header className="sticky top-0 z-40 flex justify-between items-center px-12 h-16 bg-white border-b border-gray-200">
-          <h1 className="text-lg font-bold text-gray-900">
-            Admin Console
-          </h1>
-
-          <div className="flex gap-3 items-center">
-            <input
-              placeholder="Search live opportunities..."
-              className="bg-gray-100 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 w-64"
-            />
-            <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
-            <button className="p-2 hover:bg-gray-100 rounded-full">⚙️</button>
-          </div>
-        </header>
+        <AdminTopbar title="Admin Console" source={source} />
 
         <div className="p-12">
           <header className="mb-8">

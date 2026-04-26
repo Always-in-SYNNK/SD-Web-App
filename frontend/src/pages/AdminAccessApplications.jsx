@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Sidebar as ApplicantSidebar } from "../components/dashboard/Sidebar";
 import EmployerSidebar from "../components/layout/Sidebar";
-import Topbar from "../components/layout/Topbar";
+import AdminTopbar from "../components/layout/AdminTopbar";
 import { useAuth } from "../context/useAuth";
 import {
   getAdminApplications,
@@ -43,40 +43,18 @@ export default function AdminAccessApplications() {
   const { user } = useAuth();
   const source = location.state?.source || "applicant";
   const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
-  const isAdmin = Boolean(user?.isAdmin); //NEW ADMIN CHECK USING AUTH CONTEXT
+  const isAdmin = Boolean(user?.isAdmin);
 
-  // For Topbar: provider uses session cookie; applicant uses Supabase
-  const [topbarUser, setTopbarUser]   = useState(null);
-  const [onLogout,   setOnLogout]     = useState(null);
-
-  // Page state
-  const [pending,        setPending]        = useState([]);
-  const [history,        setHistory]        = useState([]);
-  const [filter,         setFilter]         = useState("all"); // all | pending | approved | rejected
-  const [loading,        setLoading]        = useState(true);
-  const [actionLoading,  setActionLoading]  = useState(null);
+  const [pending,       setPending]       = useState([]);
+  const [history,       setHistory]       = useState([]);
+  const [filter,        setFilter]        = useState("all");
+  const [loading,       setLoading]       = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
 
   // ── resolve logged-in user ────────────────────────────────────────────────
   useEffect(() => {
-    const resolve = async () => {
-      if (source === "provider") {
-        try {
-          const res  = await fetch(`${API_URL}/api/auth/provider/me`, { credentials: "include" });
-          const data = await res.json();
-          if (data.authenticated) {
-            setTopbarUser(data.user);
-            // wrap logout so we can pass it as a stable value
-            setOnLogout(() => async () => {
-              await fetch(`${API_URL}/api/auth/provider/logout`, { method: "POST", credentials: "include" });
-              localStorage.removeItem("provider_user");
-              window.location.href = "/";
-            });
-          }
-        } catch {/* ignore */}
-      }
-      setLoading(false);
-    };
-    resolve();
+    // No async user resolution needed — AdminTopbar handles it internally
+    setLoading(false);
   }, [source]);
 
   // ── fetch all applications (pending + history) ────────────────────────────
@@ -90,9 +68,7 @@ export default function AdminAccessApplications() {
 
   useEffect(() => {
     if (!loading) {
-      queueMicrotask(() => {
-        void fetchAll();
-      });
+      queueMicrotask(() => { void fetchAll(); });
     }
   }, [loading, fetchAll]);
 
@@ -116,10 +92,8 @@ export default function AdminAccessApplications() {
   const approved   = history.filter(r => r.status === "approved");
   const rejected   = history.filter(r => r.status === "rejected");
 
-  const displayRows = filter === "all"
-    ? allRows
-    : filter === "pending"
-    ? pending
+  const displayRows = filter === "all"      ? allRows
+    : filter === "pending"   ? pending
     : history.filter(r => r.status === filter);
 
   // ── loading gate ──────────────────────────────────────────────────────────
@@ -135,18 +109,10 @@ export default function AdminAccessApplications() {
     <div className="flex min-h-screen bg-[#faf9f8]">
       <SidebarComponent />
 
-      <main className="ml-64 min-h-screen w-full">
+      <main className="ml-64 min-h-screen w-full min-w-0">
 
-        {/* ── Topbar — matches AdminConsole header style ── */}
-        <header className="sticky top-0 z-40 flex justify-between items-center px-12 h-16 bg-white border-b border-gray-200">
-          <h1 className="text-lg font-bold text-gray-900">
-            Admin Access Applications
-          </h1>
-          <div className="flex gap-3 items-center">
-            {/* Reuse the shared Topbar avatar/logout widget */}
-            <Topbar user={topbarUser} onLogout={onLogout || undefined} />
-          </div>
-        </header>
+        {/* ── Topbar ── */}
+        <AdminTopbar title="Admin Access Applications" source={source} />
 
         <div className="p-12">
 
@@ -165,9 +131,9 @@ export default function AdminAccessApplications() {
 
           {/* ── stat cards ── */}
           <section className="grid grid-cols-3 gap-4 mb-10">
-            <StatCard label="Total Applications" value={allRows.length}     color="text-gray-800" />
-            <StatCard label="Pending Review"      value={pending.length}    color="text-yellow-600" />
-            <StatCard label="Approved Admins"     value={approved.length}   color="text-green-600" />
+            <StatCard label="Total Applications" value={allRows.length}   color="text-gray-800" />
+            <StatCard label="Pending Review"      value={pending.length}  color="text-yellow-600" />
+            <StatCard label="Approved Admins"     value={approved.length} color="text-green-600" />
           </section>
 
           {/* ── table section ── */}
@@ -211,9 +177,7 @@ export default function AdminAccessApplications() {
                       <th className="pb-3 pr-6 font-semibold">Role</th>
                       <th className="pb-3 pr-6 font-semibold">Applied</th>
                       <th className="pb-3 pr-6 font-semibold">Status</th>
-                      {isAdmin && (
-                        <th className="pb-3 font-semibold">Actions</th>
-                      )}
+                      {isAdmin && <th className="pb-3 font-semibold">Actions</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
