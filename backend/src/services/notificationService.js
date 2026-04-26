@@ -91,7 +91,7 @@ export async function createNotification({
 export async function notifyApplicationStatusChange({
     applicantId,
     applicationId,
-    opportunityId = null,
+    opportunityId,
     newStatus,
 }) {
     const normalized = String(newStatus).toLowerCase();
@@ -114,11 +114,23 @@ export async function notifyApplicationStatusChange({
         accepted: "Your acceptance has been recorded.",
     };
 
+    // Get opportunity title
+    const { data: opportunityData, error: opportunityError } = await supabase
+        .from("opportunities")
+        .select("title")
+        .eq("id", opportunityId)
+        .single();
+
+    if (opportunityError) {
+        // Log error but don't fail the application - notification is secondary
+        console.error("Could not fetch opportunity title:", opportunityError);
+    }
+
     return createNotification({
         applicantId,
         type: "application_status_change",
         title: titleMap[normalized] || "Application status updated",
-        message: messageMap[normalized] || `Your application status changed to ${newStatus}.`,
+        message: messageMap[normalized] || `Your application status for ${opportunityData.title} has changed to ${newStatus}.`,
         applicationId,
         opportunityId,
     });

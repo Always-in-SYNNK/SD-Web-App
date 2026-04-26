@@ -1,5 +1,5 @@
 import { supabase } from "../config/supabaseClient.js";
-import { createNotification } from "./notificationService.js";
+import { createNotification, notifyApplicationStatusChange } from "./notificationService.js";
 
 export async function applyToOpportunity({ userId, opportunityId }) {
   // 1. Get profile
@@ -52,7 +52,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
 
   if (error) throw new Error(error.message);
 
-  
+
   const application_id = data[0].id;
   // 5. Get opportunity title
   const { data: opportunityData, error: opportunityError } = await supabase
@@ -232,6 +232,13 @@ export async function acceptOffer({ userId, applicationId }) {
   if (updateError) {
     throw new Error(updateError.message);
   }
+
+  try {
+    await notifyApplicationStatusChange(applicantId, application.id, application.opportunity_id, "accepted");
+  } catch (notificationError) {
+    console.error("Failed to create notification:", notificationError);
+  }
+
 
   return data;
 }

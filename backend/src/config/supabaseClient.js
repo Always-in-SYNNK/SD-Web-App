@@ -1,5 +1,6 @@
 //DON'T CHANGE THIS FOR FILE DEPLOYMENT TO WORK
-
+import dotenv from "dotenv";
+dotenv.config();
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL;
