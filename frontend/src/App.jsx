@@ -117,6 +117,11 @@ export default function App() {
                 <PostOpportunity />
               </ProtectedRoute>
             } />
+            <Route path="/opportunities/edit/:id" element={
+              <ProtectedRoute requiredRole="provider">
+              <PostOpportunity />
+              </ProtectedRoute>
+            } />
             <Route path="/provider-registration" element={
               <ProtectedRoute requiredRole="provider">
                 <ProviderRegistration />

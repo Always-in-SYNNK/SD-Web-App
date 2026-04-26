@@ -3,7 +3,11 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 const API = `${API_URL}/api/opportunities`;
 
-const getAuthConfig = () => {
+const getSessionConfig = () => ({
+  withCredentials: true,
+});
+
+const getAdminAuthConfig = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -28,9 +32,7 @@ function toError(err) {
 /* PROVIDER */
 export async function publishOpportunity(data) {
   try {
-    const res = await axios.post(`${API}/publish`, data, {
-      withCredentials: true,
-    });
+    const res = await axios.post(`${API}/publish`, data, getSessionConfig());
 
     return {
       data: res?.data?.data ?? null,
@@ -44,11 +46,27 @@ export async function publishOpportunity(data) {
   }
 }
 
+export const updateOpportunity = async (id, fields) => {
+  try {
+    const res = await axios.patch(`${API}/${id}`, fields, getSessionConfig());
+    return { data: res?.data?.data ?? null, error: null };
+  } catch (err) {
+    return { data: null, error: toError(err) };
+  }
+};
+
+export const getOpportunityById = async (id) => {
+  try {
+    const res = await axios.get(`${API}/${id}`, getSessionConfig());
+    return { data: res?.data?.data ?? null, error: null };
+  } catch (err) {
+    return { data: null, error: toError(err) };
+  }
+};
+
 export async function saveDraft(data) {
   try {
-    const res = await axios.post(`${API}/draft`, data, {
-      withCredentials: true,
-    });
+    const res = await axios.post(`${API}/draft`, data, getSessionConfig());
 
     return {
       data: res?.data?.data ?? null,
@@ -65,7 +83,7 @@ export async function saveDraft(data) {
 /* ADMIN */
 export const getPendingOpportunities = async () => {
   try {
-    const res = await axios.get(`${API}/pending`, getAuthConfig());
+    const res = await axios.get(`${API}/pending`, getAdminAuthConfig());
 
     const payload = res?.data;
     const pending = Array.isArray(payload) ? payload : payload?.data ?? [];
@@ -84,7 +102,7 @@ export const getPendingOpportunities = async () => {
 
 export const getApprovedOpportunities = async () => {
   try {
-    const res = await axios.get(`${API}/approved`, getAuthConfig());
+    const res = await axios.get(`${API}/approved`, getAdminAuthConfig());
 
     const payload = res?.data;
     const approved = Array.isArray(payload) ? payload : payload?.data ?? [];
@@ -97,7 +115,7 @@ export const getApprovedOpportunities = async () => {
 
 export const approveOpportunity = async (id) => {
   try {
-    const res = await axios.patch(`${API}/${id}/approve`, null, getAuthConfig());
+    const res = await axios.patch(`${API}/${id}/approve`, null, getAdminAuthConfig());
 
     return {
       data: res?.data?.data ?? null,
@@ -113,7 +131,7 @@ export const approveOpportunity = async (id) => {
 
 export const rejectOpportunity = async (id) => {
   try {
-    const res = await axios.patch(`${API}/${id}/reject`, null, getAuthConfig());
+    const res = await axios.patch(`${API}/${id}/reject`, null, getAdminAuthConfig());
 
     return {
       data: res?.data?.data ?? null,
@@ -129,7 +147,7 @@ export const rejectOpportunity = async (id) => {
 
 export const deleteOpportunity = async (id) => {
   try {
-    await axios.delete(`${API}/${id}`, getAuthConfig());
+    await axios.delete(`${API}/${id}`, getAdminAuthConfig());
 
     return {
       data: { id },
