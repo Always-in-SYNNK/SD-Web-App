@@ -1,25 +1,28 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export function NotificationDropdown() {
   const { token } = useAuth() ?? {};
   const API = import.meta.env.VITE_API_URL;
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef(null);
 
+  //badge number on bell (counts unread notifications)
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // fetch notifications
+  // fetch notifications (API call)
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`${API}/api/notifications`, {
+        const res = await fetch(`${API}/api/notifications`, { //calls GET/api/notifications
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setNotifications(data.notifications || []);
+        setNotifications(data.notifications || []); //saves response
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       } finally {
@@ -32,18 +35,21 @@ export function NotificationDropdown() {
   // close on outside click
   useEffect(() => {
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false); //set open is false when another part of screen is clicked
     };
+    //adds event listener
     document.addEventListener("mousedown", handleClick);
+    //prevent memory leaks
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   const markRead = async (id) => {
     try {
-      await fetch(`${API}/api/notifications/${id}`, {
+      await fetch(`${API}/api/notifications/${id}`, { //requests PATCH/api/notifications/:id to mark as read
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
+      //update frontend state
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
@@ -52,11 +58,14 @@ export function NotificationDropdown() {
     }
   };
 
+  //finds all unread notifications and callsmarkRead for each of them
+  //Promise.all - marks as read in parallel
   const markAllRead = async () => {
     const unread = notifications.filter((n) => !n.is_read);
     await Promise.all(unread.map((n) => markRead(n.id)));
   };
-
+  
+  //convert timestamp to human readable format
   const formatTime = (dateStr) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -67,6 +76,7 @@ export function NotificationDropdown() {
     return `${days} day${days !== 1 ? "s" : ""} ago`;
   };
 
+//UI rendering
 return (
     <section className="relative" ref={ref}>
       {/* Bell button */}
@@ -110,7 +120,7 @@ return (
                 No notifications yet
               </li>
             ) : (
-              notifications.map((n) => (
+              notifications.slice(0,10).map((n) => (
                 <li
                   key={n.id}
                   onClick={() => !n.is_read && markRead(n.id)}
@@ -145,7 +155,10 @@ return (
 
           {/* Footer */}
           <footer className="px-4 py-3 border-t border-gray-100 text-center">
-            <button className="text-xs text-[#035b9d] font-semibold hover:underline">
+            <button
+              onClick={() => { setOpen(false); navigate("/notifications"); }}
+              className="text-xs text-[#035b9d] font-semibold hover:underline"
+            >
               View all notifications
             </button>
           </footer>

@@ -5,6 +5,7 @@ import {
     getMyApplicantProfile,
     saveMyApplicantProfile,
     uploadMyApplicantCV,
+    getSignedCVUrl,
 } from "../controllers/profileController.js";
 import { 
     addMyQualification, 
@@ -17,6 +18,7 @@ const router = express.Router();
 router.get("/me", authMiddleware, getMyApplicantProfile);
 router.post("/me", authMiddleware, saveMyApplicantProfile);
 router.post("/me/cv", authMiddleware, uploadCV.single("cv"), uploadMyApplicantCV);
+router.get("/me/cv/signed-url", authMiddleware, getSignedCVUrl);
 
 router.get("/me/qualifications", authMiddleware, getMyQualifications);
 router.post("/me/qualifications", authMiddleware, addMyQualification);

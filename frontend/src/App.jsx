@@ -22,6 +22,8 @@ import MyApplications from "./pages/MyApplications";
 import CompleteProfile from "./pages/CreateStudentProfile";
 import EditProfile from "./pages/EditStudentProfile";
 import EmployerApplications from './pages/EmployerApplications';
+import ViewStudentProfile from "./pages/ViewStudentProfile";
+import Notifications from "./pages/Notifications";
 
 export default function App() {
   const clientId =
@@ -91,6 +93,16 @@ export default function App() {
                 <StudentDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/profile" element={
+              <ProtectedRoute requiredRole="applicant">
+                <ViewStudentProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute requiredRole="applicant">
+                <Notifications />
+              </ProtectedRoute>
+            }/>
 
             {/* Admin console — shared, sidebar switches on location.state.source */}
             {/* Admin routes — no layout wrapper needed anymore */}
