@@ -20,6 +20,12 @@ export default defineConfig({
         "src/components/employer/EmployerApplicationCard.jsx",
         "src/pages/EmployerApplications.jsx",
         "src/services/employerApplicationService.js",
+
+        "src/components/notifications/notificationDropdown.jsx",
+        "src/components/studentProfile/profileForm.jsx",
+        "src/components/studentProfile/editProfileForm.jsx",
+        "src/pages/CreateStudentProfile.jsx",
+        "src/lib/api.js",
       ],
       exclude: [],
     },

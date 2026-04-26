@@ -9,17 +9,18 @@ export function NotificationDropdown() {
   const [loading, setLoading] = useState(true);
   const ref = useRef(null);
 
+  //badge number on bell (counts unread notifications)
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // fetch notifications
+  // fetch notifications (API call)
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`${API}/api/notifications`, {
+        const res = await fetch(`${API}/api/notifications`, { //calls GET/api/notifications
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setNotifications(data.notifications || []);
+        setNotifications(data.notifications || []); //saves response
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       } finally {
@@ -32,18 +33,21 @@ export function NotificationDropdown() {
   // close on outside click
   useEffect(() => {
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false); //set open is false when another part of screen is clicked
     };
+    //adds event listener
     document.addEventListener("mousedown", handleClick);
+    //prevent memory leaks
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   const markRead = async (id) => {
     try {
-      await fetch(`${API}/api/notifications/${id}`, {
+      await fetch(`${API}/api/notifications/${id}`, { //requests PATCH/api/notifications/:id to mark as read
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
+      //update frontend state
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );

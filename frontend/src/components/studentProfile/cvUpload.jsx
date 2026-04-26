@@ -4,10 +4,10 @@ export function CVUploadSection({ onFileSelect }) {
   const [fileName, setFileName] = useState(null);
 
   const handleChange = (e) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]; //get first file of all selected files
     if (file) {
       setFileName(file.name);
-      onFileSelect(file);
+      onFileSelect(file); //sends file to parent
     }
   };
 
@@ -29,10 +29,10 @@ export function CVUploadSection({ onFileSelect }) {
             <h4 className="font-bold text-[#1b1c1c] mb-2">
               Drop your CV here, or <span className="text-[#035b9d] cursor-pointer hover:underline">browse files</span>
             </h4>
-            <p className="text-sm text-gray-400">PDF, Word or Image (Max 5MB)</p>
+            <p className="text-sm text-gray-400">PDF</p>
           </>
         )}
-        <input type="file" accept=".pdf,.doc,.docx,image/*" onChange={handleChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+        <input type="file" accept=".pdf,application/*" onChange={handleChange} className="absolute inset-0 opacity-0 cursor-pointer" />
       </div>
     </section>
   );

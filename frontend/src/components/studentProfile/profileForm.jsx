@@ -30,8 +30,9 @@ export function ProfileForm() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        //insert {API}
         const res = await fetch(`${API}/api/profile/me`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }, //unique to each user so correct profile is returned
         });
         const { profile } = await res.json();
         if (profile) {
