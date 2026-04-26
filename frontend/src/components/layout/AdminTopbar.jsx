@@ -6,35 +6,47 @@ import { useAuth } from "../../context/useAuth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// ── Hardcoded applicant-side admin user ──────────────────────────────────────
+const APPLICANT_ADMIN_USER = {
+  displayName: "JD",
+  subtitle: "Admin",
+  avatar: "JD", // two-letter initials shown in the circle
+};
+
 const AdminTopbar = ({ title, source = "applicant" }) => {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
 
-  const [fullName, setFullName] = useState("");
-  const [subtitle, setSubtitle] = useState("");
-  const [avatar, setAvatar] = useState("?");
-  const [showMenu, setShowMenu] = useState(false);
+  const [fullName,  setFullName]  = useState("");
+  const [subtitle,  setSubtitle]  = useState("");
+  const [avatar,    setAvatar]    = useState("?");
+  const [showMenu,  setShowMenu]  = useState(false);
 
   useEffect(() => {
+    // ── Applicant side: always show hardcoded JD ─────────────────────────
+    if (source === "applicant") {
+      setFullName(APPLICANT_ADMIN_USER.displayName);
+      setSubtitle(APPLICANT_ADMIN_USER.subtitle);
+      setAvatar(APPLICANT_ADMIN_USER.avatar);
+      return;
+    }
+
+    // ── Provider side: resolve from DB/session ───────────────────────────
     const resolveUser = async () => {
       // Priority 1: Provider session cookie
-      if (source === "provider") {
-        try {
-          const res = await fetch(`${API_URL}/api/auth/provider/me`, {
-            credentials: "include",
-          });
-          const data = await res.json();
-          if (data.authenticated && data.user) {
-            const name = data.user.name || data.user.full_name || "User";
-            setFullName(name);
-            setSubtitle(data.user.organisation_name || "Employer");
-            setAvatar(name.charAt(0).toUpperCase());
-            return;
-          }
-        } catch {/* ignore */}
-      }
+      try {
+        const res  = await fetch(`${API_URL}/api/auth/provider/me`, { credentials: "include" });
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          const name = data.user.name || data.user.full_name || "User";
+          setFullName(name);
+          setSubtitle(data.user.organisation_name || "Employer");
+          setAvatar(name.charAt(0).toUpperCase());
+          return;
+        }
+      } catch {/* ignore */}
 
-      // Priority 2: AuthContext (Supabase)
+      // Priority 2: AuthContext
       if (authUser) {
         const name = authUser.name || authUser.full_name || "User";
         setFullName(name);
@@ -48,7 +60,7 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          const name = parsed.name || parsed.full_name || "User";
+          const name   = parsed.name || parsed.full_name || "User";
           setFullName(name);
           setSubtitle(parsed.role || "Admin");
           setAvatar(name.charAt(0).toUpperCase());
@@ -59,7 +71,7 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
     resolveUser();
   }, [source, authUser]);
 
-  // Close menu on outside click
+  // ── Close menu on outside click ──────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest("[data-admin-menu]")) setShowMenu(false);
@@ -104,14 +116,16 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-2"
           >
+            {/* Name + subtitle — hidden on very small screens */}
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-gray-700 leading-tight truncate max-w-[160px]">
-                {fullName || "User"}
+                {fullName}
               </p>
               <p className="text-xs text-gray-400 leading-tight truncate max-w-[160px]">
                 {subtitle}
               </p>
             </div>
+
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs shrink-0">
               {avatar}
             </figure>
