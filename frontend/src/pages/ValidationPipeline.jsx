@@ -21,15 +21,13 @@ const ValidationPipeline = () => {
         credentials: "include",
       });
       const data = await response.json();
-      
+
       if (!data.authenticated) {
-        window.location.href = "/prov-login";
         return null;
       }
       return data.user;
     } catch (err) {
       console.error("Auth check failed:", err);
-      window.location.href = "/prov-login";
       return null;
     }
   }, []);

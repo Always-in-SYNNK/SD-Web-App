@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { ProfileForm } from "./profileForm";
+import { ProfileForm } from "../components/studentProfile/profileForm";
 
 const mockNavigate = vi.fn();
 
@@ -9,27 +9,27 @@ vi.mock("react-router-dom", async () => ({
   useNavigate: () => mockNavigate,
 }));
 
-vi.mock("../../context/useAuth", () => ({
+vi.mock("../context/useAuth", () => ({
   useAuth: () => ({ token: "mock-token" }),
 }));
 
-vi.mock("./personalInfo", () => ({
+vi.mock("../components/studentProfile/personalInfo", () => ({
   PersonalInfoSection: () => <div>PersonalInfoSection</div>,
 }));
 
-vi.mock("./education", () => ({
+vi.mock("../components/studentProfile/education", () => ({
   EducationSection: () => <div>EducationSection</div>,
 }));
 
-vi.mock("./skills", () => ({
+vi.mock("../components/studentProfile/skills", () => ({
   SkillsSection: () => <div>SkillsSection</div>,
 }));
 
-vi.mock("./connectivity", () => ({
+vi.mock("../components/studentProfile/connectivity", () => ({
   ConnectivitySection: () => <div>ConnectivitySection</div>,
 }));
 
-vi.mock("./cvUpload", () => ({
+vi.mock("../components/studentProfile/cvUpload", () => ({
   CVUploadSection: () => <div>CVUploadSection</div>,
 }));
 

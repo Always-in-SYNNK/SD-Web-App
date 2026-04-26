@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/useAuth";
 
 export function NotificationDropdown() {
-  const { token } = useAuth();
+  const { token } = useAuth() ?? {};
   const API = import.meta.env.VITE_API_URL;
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
