@@ -116,9 +116,10 @@ export const getApprovedOpportunities = async () => {
 export const approveOpportunity = async (id) => {
   try {
     const res = await axios.patch(`${API}/${id}/approve`, null, getAdminAuthConfig());
+    const payload = res?.data;
 
     return {
-      data: res?.data?.data ?? null,
+      data: payload?.data ?? payload ?? { id, status: "approved" },
       error: null,
     };
   } catch (err) {
@@ -132,9 +133,10 @@ export const approveOpportunity = async (id) => {
 export const rejectOpportunity = async (id) => {
   try {
     const res = await axios.patch(`${API}/${id}/reject`, null, getAdminAuthConfig());
+    const payload = res?.data;
 
     return {
-      data: res?.data?.data ?? null,
+      data: payload?.data ?? payload ?? { id, status: "rejected" },
       error: null,
     };
   } catch (err) {
@@ -147,10 +149,11 @@ export const rejectOpportunity = async (id) => {
 
 export const deleteOpportunity = async (id) => {
   try {
-    await axios.delete(`${API}/${id}`, getAdminAuthConfig());
+    const res = await axios.delete(`${API}/${id}`, getAdminAuthConfig());
+    const payload = res?.data;
 
     return {
-      data: { id },
+      data: payload?.data ?? payload ?? { id },
       error: null,
     };
   } catch (err) {

@@ -54,7 +54,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
         to={isLogout ? "/" : "/auth-error"}
         replace
         state={{
-          loginPage: "/", // No specific login page for admin - redirect to home
+          loginPage: "", // No specific login page for admin - redirect to home
           message: "You must be logged in to access this page.",
           from: location.pathname,
         }}

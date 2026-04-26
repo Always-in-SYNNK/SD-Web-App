@@ -161,7 +161,7 @@ export async function getOpportunity(req, res) {
 export const getPendingOpportunities = async (req, res) => {
   try {
     const data = await getPending();
-    res.json(data);
+    res.status(200).json({ success: true, data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -170,7 +170,7 @@ export const getPendingOpportunities = async (req, res) => {
 export const getApprovedOpportunities = async (req, res) => {
   try {
     const data = await getApproved();
-    res.json(data);
+    res.status(200).json({ success: true, data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -182,7 +182,10 @@ export const approveOpportunity = async (req, res) => {
 
     await updateStatus(id, "approved");
 
-    res.json({ message: "Approved" });
+    res.status(200).json({
+      success: true,
+      data: { id, status: "approved", message: "Approved" },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -194,7 +197,10 @@ export const rejectOpportunity = async (req, res) => {
 
     await updateStatus(id, "rejected");
 
-    res.json({ message: "Rejected" });
+    res.status(200).json({
+      success: true,
+      data: { id, status: "rejected", message: "Rejected" },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -206,7 +212,10 @@ export const deleteOpportunity = async (req, res) => {
 
     await deleteOpportunityById(id);
 
-    res.json({ message: "Deleted" });
+    res.status(200).json({
+      success: true,
+      data: { id, message: "Deleted" },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

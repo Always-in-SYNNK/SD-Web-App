@@ -73,7 +73,7 @@ export default function AdminSection({ isAdmin, source = "applicant" }) {
   if (isAdmin) {
     return (
       <button
-        onClick={() => navigate("/admin-access", { state: { source } })}
+        onClick={() => navigate("/admin/applications", { state: { from: location.pathname, source: "provider" } })}
         className="w-full flex items-center justify-between px-4 py-3 bg-[#d2e4ff] text-[#035b9d] rounded-lg font-semibold text-sm hover:bg-[#bdd6ff] transition-colors group"
       >
         <span className="flex items-center gap-2">

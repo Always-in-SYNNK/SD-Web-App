@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { OpportunityCard } from "../opportunities/OpportunityCard";
 
 import {
@@ -15,7 +14,6 @@ export function OpportunitiesTable({ mode = "pending" }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,7 +75,9 @@ export function OpportunitiesTable({ mode = "pending" }) {
           isAdmin={true}
           // approved view: delete + edit only
           onDelete={mode === "approved" ? handleDelete : undefined}
-          onEdit={mode === "approved" ? (id) => navigate(`/opportunities/${id}`) : undefined} 
+          // Disabled for now: admin users cannot access /opportunities/:id (applicant-only route).
+          // onEdit={mode === "approved" ? (id) => navigate(`/opportunities/${id}`) : undefined}
+          
           // pending view: approve + reject only
           onApprove={mode === "pending" ? handleApprove : undefined}
           onReject={mode === "pending" ? handleReject : undefined}          

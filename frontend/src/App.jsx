@@ -99,6 +99,20 @@ export default function App() {
               </ProtectedRoute>
             } />
 
+            {/* Admin console — shared, sidebar switches on location.state.source */}
+            {/* Admin routes — no layout wrapper needed anymore */}
+            <Route path="/admin/console" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminConsole />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/applications" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminAccessApplications />
+              </ProtectedRoute>
+            } />
+
+            {/* Employer routes - removed protected routing for now */}
 
             {/* Employer routes */}
              <Route path="/opportunity/:opportunityId/applications" element={
@@ -125,19 +139,6 @@ export default function App() {
             <Route path="/provider-registration" element={
               <ProtectedRoute requiredRole="provider">
                 <ProviderRegistration />
-              </ProtectedRoute>
-            } />
-
-            
-            {/* Admin routes — shared, sidebar switches on location.state.source */}
-            <Route path="/admin" element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminConsole />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin-access" element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminAccessApplications />
               </ProtectedRoute>
             } />
           </Routes>
