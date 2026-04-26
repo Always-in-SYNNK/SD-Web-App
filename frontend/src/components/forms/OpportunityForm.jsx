@@ -222,6 +222,8 @@ const OpportunityForm = () => {
                   onChange={set("duration")}
                 >
                   <option value="">Select duration…</option>
+                  <option value="1 Month">1 Month</option>
+                  <option value="3 Months">3 Months</option>
                   <option value="6 Months">6 Months</option>
                   <option value="12 Months">12 Months</option>
                   <option value="18 Months">18 Months</option>

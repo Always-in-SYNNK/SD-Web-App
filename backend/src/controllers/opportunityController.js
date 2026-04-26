@@ -4,6 +4,10 @@ import {
   getDistinctNqfLevels,
   getFilteredOpportunitiesAndQualifications,
   createOpportunity,
+  getPending,
+  getApproved,
+  updateStatus,
+  deleteOpportunityById,
 } from '../services/opportunityService.js';
 
 export async function fetchLocations(req, res, next) {
@@ -94,3 +98,57 @@ export async function saveDraft(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export const getPendingOpportunities = async (req, res) => {
+  try {
+    const data = await getPending();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getApprovedOpportunities = async (req, res) => {
+  try {
+    const data = await getApproved();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const approveOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await updateStatus(id, "approved");
+
+    res.json({ message: "Approved" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const rejectOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await updateStatus(id, "rejected");
+
+    res.json({ message: "Rejected" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await deleteOpportunityById(id);
+
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

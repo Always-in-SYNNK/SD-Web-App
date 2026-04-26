@@ -13,7 +13,9 @@ export function OpportunityCard({
   isApplied = false,
   isAdmin = false,
   onEdit,
-  onDelete
+  onDelete,
+  onApprove,  // new
+  onReject,   // new
 }) {
   const navigate = useNavigate();
 
@@ -79,25 +81,41 @@ export function OpportunityCard({
       <nav className="flex flex-row md:flex-col gap-3 shrink-0">
         {isAdmin ? (
           <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit && onEdit(id);
-              }}
-              className="px-5 py-2 bg-gray-100 rounded-lg font-bold text-sm hover:bg-gray-200 transition"
-            >
-              Edit
-            </button>
+            {/* Approve/Reject — pending tab only */}
+            {onApprove && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onApprove(id); }}
+                className="px-5 py-2 bg-green-100 text-green-700 rounded-lg font-bold text-sm hover:bg-green-200 transition"
+              >
+                Approve
+              </button>
+            )}
+            {onReject && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onReject(id); }}
+                className="px-5 py-2 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm hover:bg-orange-200 transition"
+              >
+                Reject
+              </button>
+            )}
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete && onDelete(id);
-              }}
-              className="px-5 py-2 bg-red-100 text-red-600 rounded-lg font-bold text-sm hover:bg-red-200 transition"
-            >
-              Delete
-            </button>
+            {/* Edit/Delete — approved tab only */}
+            {onEdit && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit(id); }}
+                className="px-5 py-2 bg-gray-100 rounded-lg font-bold text-sm hover:bg-gray-200 transition"
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(id); }}
+                className="px-5 py-2 bg-red-100 text-red-600 rounded-lg font-bold text-sm hover:bg-red-200 transition"
+              >
+                Delete
+              </button>
+            )}
           </>
         ) : (
           <button

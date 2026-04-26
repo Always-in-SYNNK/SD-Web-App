@@ -25,12 +25,14 @@ const JobCard = ({ id, title, location, status }) => {
         <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${badgeClass}`}>
           {status}
         </span>
-        <button
-          onClick={() => navigate(`/opportunity/${id}/applications`)}
-          className="px-3 py-1 bg-[#035b9d] text-white rounded text-sm hover:opacity-90"
-        >
-          View Applications
-        </button>
+        {status === "approved" && (
+          <button
+            onClick={() => navigate(`/opportunity/${id}/applications`)}
+            className="px-3 py-1 bg-[#035b9d] text-white rounded text-sm hover:opacity-90"
+          >
+            View Applications
+          </button>
+        )}
       </section>
     </article>
   );

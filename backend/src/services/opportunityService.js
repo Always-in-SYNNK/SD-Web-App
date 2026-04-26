@@ -108,8 +108,11 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
   const parsedPage = Math.max(Number(page) || 1, 1);
   const parsedLimit = Math.max(Number(limit) || 12, 1);
 
-  // Pull all matching opportunities first so count reflects filtered total.
-  let oppQuery = supabase.from("opportunities").select("*", { count: "exact" });
+  // Pull all APPROVED matching opportunities first so count reflects filtered total.
+  let oppQuery = supabase
+    .from("opportunities")
+    .select("*", { count: "exact" })
+    .eq("status", "approved");
 
   oppQuery = buildOpportunitySearchQuery(oppQuery, {
     search,
@@ -215,3 +218,37 @@ export async function createOpportunity({ userId, data, status }) {
 
   return inserted;
 }
+
+// admin functions
+export const getOpportunitiesByStatus = async (status) => {
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select("*")
+    .eq("status", status)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const getPending = async () => getOpportunitiesByStatus("pending");
+
+export const getApproved = async () => getOpportunitiesByStatus("approved");
+
+export const updateStatus = async (id, status) => {
+  const { error } = await supabase
+    .from("opportunities")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) throw error;
+};
+
+export const deleteOpportunityById = async (id) => {
+  const { error } = await supabase
+    .from("opportunities")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+};
