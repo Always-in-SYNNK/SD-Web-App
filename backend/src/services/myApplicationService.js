@@ -234,7 +234,7 @@ export async function acceptOffer({ userId, applicationId }) {
   }
 
   try {
-    await notifyApplicationStatusChange(applicantId, application.id, application.opportunity_id, "accepted");
+    await notifyApplicationStatusChange(applicant.id, applicationId, application.opportunity_id, "accepted");
   } catch (notificationError) {
     console.error("Failed to create notification:", notificationError);
   }

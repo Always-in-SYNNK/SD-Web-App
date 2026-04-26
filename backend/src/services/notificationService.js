@@ -144,6 +144,7 @@ export async function triggerUpcomingClosingDateNotifications(daysAhead = 3) {
     const start = today.toISOString().slice(0, 10);
     const end = endDate.toISOString().slice(0, 10);
 
+    //Getting the rows of applications that have upcoming closing date notifications
     const { data: rows, error } = await supabase
         .from("applications")
         .select(`
@@ -162,12 +163,14 @@ export async function triggerUpcomingClosingDateNotifications(daysAhead = 3) {
 
     if (error) throw error;
 
+    //filtering out rows which are invalid (e.g. not sending a closing date noti for opportunities that have already closed)
     const validRows = (rows || []).filter(
         (row) => row.opportunities && row.opportunities.status !== "closed"
     );
 
     const created = [];
 
+    //Getting rows relevant to the applicant and opportunity
     for (const row of validRows) {
         const closingDate = row.opportunities.closing_date;
         const title = row.opportunities.title;
