@@ -21,7 +21,6 @@ const Sidebar = () => {
   const isAdminMode = location.pathname.startsWith("/admin");
 
   const normalLinks = [
-    { icon: "🏠", label: "Home", path: "/" },
     { icon: "🔍", label: "Validation Pipeline", path: "/pipeline" },
   ];
 
