@@ -108,11 +108,8 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
   const parsedPage = Math.max(Number(page) || 1, 1);
   const parsedLimit = Math.max(Number(limit) || 12, 1);
 
-  // Pull all APPROVED matching opportunities first so count reflects filtered total.
-  let oppQuery = supabase
-    .from("opportunities")
-    .select("*", { count: "exact" })
-    .eq("status", "approved");
+  // Pull all matching opportunities first so count reflects filtered total.
+  let oppQuery = supabase.from("opportunities").select("*", { count: "exact" });
 
   oppQuery = buildOpportunitySearchQuery(oppQuery, {
     search,
@@ -218,90 +215,3 @@ export async function createOpportunity({ userId, data, status }) {
 
   return inserted;
 }
-
-export async function updateOpportunityForProvider({ providerId, opportunityId, data }) {
-  const { data: existing, error: fetchError } = await supabase
-    .from("opportunities")
-    .select("id, provider_id")
-    .eq("id", opportunityId)
-    .maybeSingle();
-
-  if (fetchError) throw new Error(fetchError.message);
-  if (!existing) throw new Error("Opportunity not found");
-  if (existing.provider_id !== providerId) {
-    throw new Error("Not authorized to update this opportunity");
-  }
-
-  const payload = {
-    title: data.title,
-    description: data.description,
-    location: data.location,
-    stipend: data.stipend ? Number(data.stipend) : null,
-    nqf_level: data.nqf_level ? Number(data.nqf_level) : null,
-    duration: data.duration,
-    closing_date: data.closing_date || null,
-    field: data.field ?? null,
-    status: data.status,
-  };
-
-  const { data: updated, error: updateError } = await supabase
-    .from("opportunities")
-    .update(payload)
-    .eq("id", opportunityId)
-    .select()
-    .single();
-
-  if (updateError) throw new Error(updateError.message);
-
-  return updated;
-}
-
-export async function getOpportunityForProvider({ providerId, opportunityId }) {
-  const { data: opportunity, error } = await supabase
-    .from("opportunities")
-    .select("*")
-    .eq("id", opportunityId)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-  if (!opportunity) throw new Error("Opportunity not found");
-  if (opportunity.provider_id !== providerId) {
-    throw new Error("Not authorized to view this opportunity");
-  }
-
-  return opportunity;
-}
-
-// admin functions
-export const getOpportunitiesByStatus = async (status) => {
-  const { data, error } = await supabase
-    .from("opportunities")
-    .select("*")
-    .eq("status", status)
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-  return data;
-};
-
-export const getPending = async () => getOpportunitiesByStatus("pending");
-
-export const getApproved = async () => getOpportunitiesByStatus("approved");
-
-export const updateStatus = async (id, status) => {
-  const { error } = await supabase
-    .from("opportunities")
-    .update({ status })
-    .eq("id", id);
-
-  if (error) throw error;
-};
-
-export const deleteOpportunityById = async (id) => {
-  const { error } = await supabase
-    .from("opportunities")
-    .delete()
-    .eq("id", id);
-
-  if (error) throw error;
-};

@@ -422,10 +422,9 @@ router.post('/signin', async (req, res) => {
         
         // ✅ Generate JWT token
         const jwtToken = generateJWT({
-            id: profile.id, //profile.user_id is the auth.users id, profile.id is the profiles table id
+            id: profile.id,
             email: profile.email,
-            role: profile.role,
-            isAdmin: Boolean(profile.isAdmin)
+            role: profile.role
         });
         
         // Create session

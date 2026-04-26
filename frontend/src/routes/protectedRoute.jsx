@@ -4,7 +4,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 
 export default function ProtectedRoute({ children, requiredRole }) {
-  const { token, role, user } = useAuth();
+  const { token, role } = useAuth();
   const location = useLocation();
   const isLogout = localStorage.getItem("__logout_redirect") === "true";
 
@@ -14,14 +14,11 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   let providerRole = null;
-  let providerIsAdmin = false;
 
   try {
     const providerUser = localStorage.getItem("provider_user");
     if (providerUser) {
-      const parsedProviderUser = JSON.parse(providerUser);
-      providerRole = parsedProviderUser?.role || null;
-      providerIsAdmin = Boolean(parsedProviderUser?.isAdmin);
+      providerRole = JSON.parse(providerUser)?.role || null;
     }
   } catch {
     localStorage.removeItem("provider_user");
@@ -29,42 +26,6 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
   const hasApplicantSession = Boolean(token && role);
   const hasProviderSession = providerRole === "provider";
-  const applicantSessionIsAdmin = hasApplicantSession && Boolean(user?.isAdmin);
-  const providerSessionIsAdmin = hasProviderSession && providerIsAdmin;
-
-  if (requiredRole === "admin") {
-    if (hasApplicantSession && applicantSessionIsAdmin) {
-      return children;
-    }
-    if (!hasApplicantSession && hasProviderSession && providerSessionIsAdmin) {
-      return children;
-    }
-
-    if (hasApplicantSession || hasProviderSession) {
-      return (
-        <Navigate
-          to="/unauthorized"
-          replace
-          state={{
-            message: "You are not authorized to access this page.",
-            from: location.pathname,
-          }}
-        />
-      );
-    }
-
-    return (
-      <Navigate
-        to={isLogout ? "/" : "/auth-error"}
-        replace
-        state={{
-          loginPage: "", // No specific login page for admin - redirect to home
-          message: "You must be logged in to access this page.",
-          from: location.pathname,
-        }}
-      />
-    );
-  }
 
   if (requiredRole === "provider") {
     if (hasProviderSession) {
