@@ -10,6 +10,7 @@ export default {
         'src/services/**/*.js',
         'src/controllers/**/*.js',
         'src/middleware/**/*.js',
+        'src/routes/**/*.js',
         '!src/**/*.test.js'
     ],
     coverageThreshold: {
