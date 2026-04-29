@@ -2,11 +2,18 @@ import { jest } from "@jest/globals";
 
 //mock
 const mockFrom = jest.fn();
+const mockCreateNotification = jest.fn();
+const mockNotifyApplicationStatusChange = jest.fn();
 
 jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
   supabase: {
     from: mockFrom,
   },
+}));
+
+jest.unstable_mockModule("../src/services/notificationService.js", () => ({
+  createNotification: mockCreateNotification,
+  notifyApplicationStatusChange: mockNotifyApplicationStatusChange,
 }));
 
 //import AFTER mock
@@ -27,6 +34,8 @@ describe("myApplicationService", () => {
 
   beforeEach(() => {
     mockFrom.mockReset();
+    mockCreateNotification.mockReset();
+    mockNotifyApplicationStatusChange.mockReset();
   });
 
   test("should create application with status 'received'", async () => {
@@ -94,10 +103,19 @@ describe("myApplicationService", () => {
       }),
     });
 
+    mockCreateNotification.mockResolvedValue({ id: "noti-1" });
+
     const result = await applyToOpportunity({ userId, opportunityId });
 
     expect(result).toBeDefined();
     expect(result.status).toBe("received");
+    expect(mockCreateNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        applicantId: "applicant-1",
+        applicationId: "app-123",
+        opportunityId,
+      })
+    );
   });
   // applytoOpportunities ===================================
   test("should return applications for user", async () => {
@@ -255,7 +273,7 @@ describe("myApplicationService", () => {
         eq: () => ({
           eq: () => ({
             single: async () => ({
-              data: { id: applicationId, status: "offered" },
+              data: { id: applicationId, status: "offered", opportunity_id: opportunityId },
             }),
           }),
         }),
@@ -275,9 +293,17 @@ describe("myApplicationService", () => {
       }),
     });
 
+    mockNotifyApplicationStatusChange.mockResolvedValue({ id: "noti-2" });
+
     const result = await acceptOffer({ userId, applicationId });
 
     expect(result.status).toBe("accepted");
+    expect(mockNotifyApplicationStatusChange).toHaveBeenCalledWith(
+      applicantId,
+      applicationId,
+      opportunityId,
+      "accepted"
+    );
   });
 
   test("should reject if not offered", async () => {

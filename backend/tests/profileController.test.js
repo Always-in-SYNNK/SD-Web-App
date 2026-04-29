@@ -21,6 +21,7 @@ const mockService = {
     saveApplicantCVPath: jest.fn(),
     deleteApplicantCVIfExists: jest.fn(),
     addApplicantQualificationByUserId: jest.fn(),
+    getApplicantCVSignedUrl: jest.fn(),
 };
 
 jest.unstable_mockModule("../src/services/profileService.js", () => mockService);
