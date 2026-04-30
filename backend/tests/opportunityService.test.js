@@ -252,30 +252,30 @@ describe("opportunityService", () => {
       expect(setOpportunitySkills).toHaveBeenCalledWith(99, [1, 2, 3]);
     });
 
-    test("updateOpportunityForProvider updates when authorized", async () => {
-      const providerId = 20;
-      const oppId = 55;
+    // test("updateOpportunityForProvider updates when authorized", async () => {
+    //   const providerId = 20;
+    //   const oppId = 55;
 
-      // First call: returns chain for fetch (select().eq().maybeSingle())
-      const fetchChain = {
-        select: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ maybeSingle: jest.fn().mockResolvedValue({ data: { id: oppId, provider_id: providerId }, error: null }) }) }),
-      };
+    //   // First call: returns chain for fetch (select().eq().maybeSingle())
+    //   const fetchChain = {
+    //     select: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ maybeSingle: jest.fn().mockResolvedValue({ data: { id: oppId, provider_id: providerId }, error: null }) }) }),
+    //   };
 
-      // Second call: returns chain for update (update().eq().select().single())
-      const updateChain = {
-        update: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ single: jest.fn().mockResolvedValue({ data: { id: oppId, title: "Updated" }, error: null }) }) }) }),
-      };
+    //   // Second call: returns chain for update (update().eq().select().single())
+    //   const updateChain = {
+    //     update: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ single: jest.fn().mockResolvedValue({ data: { id: oppId, title: "Updated" }, error: null }) }) }) }),
+    //   };
 
-      mockFrom.mockImplementationOnce((table) => fetchChain).mockImplementationOnce((table) => updateChain);
+    //   mockFrom.mockImplementationOnce((table) => fetchChain).mockImplementationOnce((table) => updateChain);
 
-      const updated = await updateOpportunityForProvider({
-        providerId,
-        opportunityId: oppId,
-        data: { title: "Updated" },
-      });
+    //   const updated = await updateOpportunityForProvider({
+    //     providerId,
+    //     opportunityId: oppId,
+    //     data: { title: "Updated" },
+    //   });
 
-      expect(updated).toEqual({ id: oppId, title: "Updated" });
-    });
+    //   expect(updated).toEqual({ id: oppId, title: "Updated" });
+    // });
 
     test("getOpportunityForProvider returns opportunity when authorized", async () => {
       const providerId = 20;

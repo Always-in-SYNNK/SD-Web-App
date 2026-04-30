@@ -220,9 +220,11 @@ export async function createOpportunity({ userId, data, status }) {
   if (error) throw new Error(error.message);
 
 
-  //Update opportunity_skills table by calling setOpportunitySkills in the skillsService
-  const { error: skillsError} = await setOpportunitySkills(inserted.id, data.skillIds || []);
-  if (error) throw new Error(skillsError.message);
+  // Only update skills if skillIds are provided
+  if (data.skillIds && data.skillIds.length > 0) {
+    const { error: skillsError } = await setOpportunitySkills(inserted.id, data.skillIds);
+    if (skillsError) throw new Error(skillsError.message);
+  }
   return inserted;
 }
 
