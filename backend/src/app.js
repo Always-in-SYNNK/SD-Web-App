@@ -18,6 +18,9 @@ import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { startReminderCron } from "./cronJob.js";
+
+startReminderCron();
 
 const app = express();
 
