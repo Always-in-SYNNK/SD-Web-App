@@ -18,6 +18,7 @@ import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import skillsRoutes from "./routes/skillsRoutes.js";
 
 const app = express();
 
@@ -43,6 +44,9 @@ app.use(session({
 
 // ─── Application Routes ───────────────────────────────────────────────────────
 app.use('/api/applications', applicationRoutes);
+
+// ─── Skills Routes ───────────────────────────────────────────────────────
+app.use('/api/skills', skillsRoutes);
 
 // ─── Employer Application Routes ──────────────────────────────────────────────
 app.use('/api/employer/applications', employerApplicationRoutes);

@@ -163,6 +163,7 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
 
 
 export async function createOpportunity({ userId, data, status }) {
+  //The data passed into the function needs to have a skills array attached?
   // 1. Resolve profile from either auth user ID (profiles.user_id) or profile ID (profiles.id).
   let { data: profile } = await supabase
     .from("profiles")
@@ -216,6 +217,8 @@ export async function createOpportunity({ userId, data, status }) {
 
   if (error) throw new Error(error.message);
 
+
+  //Update opportunity_skills table by calling setOpportunitySkills in the skillsService
   return inserted;
 }
 
@@ -231,6 +234,8 @@ export async function updateOpportunityForProvider({ providerId, opportunityId, 
   if (existing.provider_id !== providerId) {
     throw new Error("Not authorized to update this opportunity");
   }
+
+  //We need to account for updates to the skills required for opportunities, needs to be included in the payload
 
   const payload = {
     title: data.title,

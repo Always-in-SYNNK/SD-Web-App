@@ -21,6 +21,7 @@ const mockService = {
     saveApplicantCVPath: jest.fn(),
     deleteApplicantCVIfExists: jest.fn(),
     addApplicantQualificationByUserId: jest.fn(),
+    getApplicantCVSignedUrl: jest.fn(),
 };
 
 jest.unstable_mockModule("../src/services/profileService.js", () => mockService);
@@ -33,6 +34,7 @@ const {
     getMyQualifications,
     addMyQualification,
     deleteMyQualification,
+    getSignedCVUrl,
 } = await import("../src/controllers/profileController.js");
 
 // Helper to create response object

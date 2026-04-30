@@ -263,16 +263,3 @@ export async function addApplicantQualificationByUserId(userId, payload) {
 
     return data;
 }
-
-// const mappedQualifications = (qualifications || []).map((row) => ({
-//     id: row.id,
-//     qualification_id: row.qualification_id,
-//     name: row.qualification_id ? row.qualifications?.name : row.custom_name,
-//     nqf_level: row.qualification_id ? row.qualifications?.nqf_level : row.custom_nqf_level,
-//     field: row.qualification_id ? row.qualifications?.field : row.custom_field,
-//     subfield: row.qualification_id ? row.qualifications?.subfield : row.custom_subfield,
-//     status: row.status,
-//     institution: row.institution,
-//     date_obtained: row.date_obtained,
-//     is_custom: row.is_custom,
-// }));
