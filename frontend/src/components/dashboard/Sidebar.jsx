@@ -47,26 +47,6 @@ export function Sidebar() {
         )}
       </header>
 
-      {!isAdminMode && (
-        <section className="flex items-center space-x-3 p-2">
-          <figure className="w-10 h-10 rounded-full overflow-hidden">
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-z7itmKWV7NjJbhpxnyw_qdsz2Il1QFJy6pvQjFEYVrBh8N8nY4RbU14flm7NenzotuJj7qfQypMOkAbdxfLzbDpq4T0CL1ItdaYiQHR1NdOehffuKgWfXwRbVbXcJ4tbwAVE_sv1cw3UOonk19nDe8NJcrGmdJpNadUb4Ezbb70yPYsBNN1rxhV9t3_FQMSOlT9M5FfTf1xhGzhbQe4t95P1S6Xf5LS9JxNzoX-CmGwKE6Axz-y83G5l8ATh10sk3X8vyX08Ajgf"
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          </figure>
-          <section className="flex flex-col">
-            <strong className="font-bold text-gray-800 truncate">
-              The Resilient Architect
-            </strong>
-            <small className="text-xs text-gray-500">
-              Professional Youth Portal
-            </small>
-          </section>
-        </section>
-      )}
-
       <nav className="flex-1 space-y-2">
         {links.map(({ icon, label, path }) => (
           <button
