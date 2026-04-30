@@ -93,7 +93,7 @@ export default function App() {
                 <StudentDashboard />
               </ProtectedRoute>
             } />
-            <Route path="/profile" element={
+            <Route path="/profile/view" element={
               <ProtectedRoute requiredRole="applicant">
                 <ViewStudentProfile />
               </ProtectedRoute>

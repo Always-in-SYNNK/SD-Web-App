@@ -84,10 +84,10 @@ export function Sidebar() {
           <AdminSection isAdmin={isAdmin} source="applicant" />
 
           <button
-            onClick={() => navigate("/profile/edit")}
+            onClick={() => navigate("/profile/view")}
             className="w-full bg-[#035b9d] text-white py-3 rounded-full text-sm font-semibold hover:opacity-90 transition"
           >
-            Update Profile
+            View Profile
           </button>
           <div className="space-y-2">
             <a
