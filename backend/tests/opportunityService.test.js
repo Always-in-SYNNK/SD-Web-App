@@ -18,6 +18,15 @@ mockOr.mockReturnValue({ ilike: mockIlike });
 mockSelect.mockReturnValue({ or: mockOr });
 mockFrom.mockReturnValue({ select: mockSelect });
 
+// Add this near the top of your test file, before importing opportunityService
+jest.unstable_mockModule("../src/services/skillsService.js", () => ({
+  setOpportunitySkills: jest.fn().mockResolvedValue({ error: null }),
+  setApplicantSkills: jest.fn().mockResolvedValue({ error: null }),
+  getSkillsByField: jest.fn().mockResolvedValue([]),
+  getApplicantSkills: jest.fn().mockResolvedValue([]),
+  getOpportunitySkills: jest.fn().mockResolvedValue([]),
+}));
+
 jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
   supabase: {
     rpc: mockRpc,
@@ -194,13 +203,17 @@ describe("opportunityService", () => {
     });
 
     test("createOpportunity inserts and returns the inserted record", async () => {
-      // Mock profiles -> returns profile by user_id
+      // Mock the setOpportunitySkills call
+      const { setOpportunitySkills } = await import("../src/services/skillsService.js");
+      setOpportunitySkills.mockResolvedValue({ error: null });
+
+      // Mock profiles and provider_profiles
       mockFrom.mockImplementation((table) => {
         if (table === "profiles") {
           return {
             select: jest.fn().mockReturnValue({
               eq: jest.fn().mockReturnValue({
-                single: jest.fn().mockResolvedValue({ data: { id: 10 } }),
+                single: jest.fn().mockResolvedValue({ data: { id: 10 }, error: null }),
               }),
             }),
           };
@@ -209,7 +222,9 @@ describe("opportunityService", () => {
         if (table === "provider_profiles") {
           return {
             select: jest.fn().mockReturnValue({
-              eq: jest.fn().mockReturnValue({ single: jest.fn().mockResolvedValue({ data: { id: 20 }, error: null }) }),
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: { id: 20 }, error: null }),
+              }),
             }),
           };
         }
@@ -217,7 +232,9 @@ describe("opportunityService", () => {
         if (table === "opportunities") {
           return {
             insert: jest.fn().mockReturnValue({
-              select: jest.fn().mockReturnValue({ single: jest.fn().mockResolvedValue({ data: { id: 99 }, error: null }) }),
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: { id: 99 }, error: null }),
+              }),
             }),
           };
         }
@@ -227,11 +244,12 @@ describe("opportunityService", () => {
 
       const inserted = await createOpportunity({
         userId: "u1",
-        data: { title: "Test" },
+        data: { title: "Test", skillIds: [1, 2, 3] },
         status: "pending",
       });
 
       expect(inserted).toEqual({ id: 99 });
+      expect(setOpportunitySkills).toHaveBeenCalledWith(99, [1, 2, 3]);
     });
 
     test("updateOpportunityForProvider updates when authorized", async () => {
@@ -263,17 +281,19 @@ describe("opportunityService", () => {
       const providerId = 20;
       const oppId = 77;
 
-      mockFrom.mockImplementation((table) => {
-        if (table === "opportunities") {
-          return {
-            select: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ maybeSingle: jest.fn().mockResolvedValue({ data: { id: oppId, provider_id: providerId }, error: null }) }) }),
-          };
-        }
-        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
-      });
+      // Create a proper chainable mock
+      const mockQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: { id: oppId, provider_id: providerId },
+          error: null
+        }),
+      };
+
+      mockFrom.mockReturnValue(mockQueryBuilder);
 
       const result = await getOpportunityForProvider({ providerId, opportunityId: oppId });
-
       expect(result).toEqual({ id: oppId, provider_id: providerId });
     });
 

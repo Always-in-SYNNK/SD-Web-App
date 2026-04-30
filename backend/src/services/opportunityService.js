@@ -1,5 +1,6 @@
 import { supabase } from "../config/supabaseClient.js";
 import { createNotification } from "./notificationService.js";
+import { setOpportunitySkills } from "./skillsService.js";
 
 function buildOpportunitySearchQuery(baseQuery, { search, location, nqfLevel, field }) {
   let query = baseQuery;
@@ -213,13 +214,15 @@ export async function createOpportunity({ userId, data, status }) {
         status,
       },
     ])
-    .select()
+    .select('id')
     .single();
 
   if (error) throw new Error(error.message);
 
 
   //Update opportunity_skills table by calling setOpportunitySkills in the skillsService
+  const { error: skillsError} = await setOpportunitySkills(inserted.id, data.skillIds || []);
+  if (error) throw new Error(skillsError.message);
   return inserted;
 }
 
@@ -237,6 +240,7 @@ export async function updateOpportunityForProvider({ providerId, opportunityId, 
   }
 
   //We need to account for updates to the skills required for opportunities, needs to be included in the payload
+  await setOpportunitySkills(opportunityId, data.skillIds || []);
 
   const payload = {
     title: data.title,
@@ -258,6 +262,7 @@ export async function updateOpportunityForProvider({ providerId, opportunityId, 
     .single();
 
   if (updateError) throw new Error(updateError.message);
+
 
   return updated;
 }
