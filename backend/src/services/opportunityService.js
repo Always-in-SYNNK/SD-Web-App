@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabaseClient.js";
+import { createNotification } from "./notificationService.js";
 
 function buildOpportunitySearchQuery(baseQuery, { search, location, nqfLevel, field }) {
   let query = baseQuery;

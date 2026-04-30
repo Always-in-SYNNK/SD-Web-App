@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { supabase } from '../config/supabaseClient.js';
 import providerAuthMiddleware from '../middleware/providerAuthMiddleware.js';
+import { notifyApplicationStatusChange } from "../services/notificationService.js";
+
 
 const router = Router();
 
@@ -86,6 +88,17 @@ router.patch('/:applicationId', async (req, res) => {
 
     console.log(`📝 Updating application ${applicationId} to status: ${status}`);
 
+     // Get the OLD status before updating (for notification)
+    const { data: oldApplication, error: fetchError } = await supabase
+      .from('applications')
+      .select('status, applicant_id, opportunity_id')
+      .eq('id', applicationId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching old status:', fetchError);
+    }
+
     const { data, error } = await supabase
       .from('applications')
       .update({ status })
@@ -96,6 +109,31 @@ router.patch('/:applicationId', async (req, res) => {
     if (error) {
       console.error('Supabase error:', error);
       return res.status(500).json({ success: false, error: error.message });
+    }
+
+       //TRIGGER NOTIFICATION TO APPLICANT (only if status actually changed)
+    if (oldApplication && oldApplication.status !== status) {
+      try {
+        // Get the applicant's profile ID
+        const { data: applicantProfile } = await supabase
+          .from('applicant_profiles')
+          .select('id')
+          .eq('id', oldApplication.applicant_id)
+          .single();
+
+        if (applicantProfile) {
+          await notifyApplicationStatusChange({
+            applicantId: applicantProfile.id,
+            applicationId: applicationId,
+            opportunityId: oldApplication.opportunity_id,
+            newStatus: status
+          });
+          console.log(`✅ Notification sent to applicant for status change to: ${status}`);
+        }
+      } catch (notifyError) {
+        // Don't let notification failure break the main flow
+        console.error('Notification error:', notifyError);
+      }
     }
 
     const message = status === 'shortlisted' ? 'Candidate shortlisted successfully' :
