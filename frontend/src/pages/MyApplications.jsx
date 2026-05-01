@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/useAuth";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { ApplicationList } from "../components/applications/myApplicationList";
 import { RecommendedPanel } from "../components/applications/RecommendedPanel";
@@ -85,6 +86,29 @@ export default function MyApplications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const { token, user } = useAuth();
+    const API = import.meta.env.VITE_API_URL;
+    const [profile, setProfile] = useState(null);
+  
+    useEffect(() => {
+      const fetchProfile = async () => {
+        try {
+          const res = await fetch(`${API}/api/profile/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (data.profile) setProfile(data.profile);
+        } catch (err) {
+          console.error("Failed to load profile:", err);
+        }
+      };
+      if (token) fetchProfile();
+    }, [token]);
+  
+    const initials = profile?.full_name
+      ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+      : user?.email?.[0]?.toUpperCase() ?? "JD";
+
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -150,7 +174,7 @@ export default function MyApplications() {
             <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
             <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
-              RA
+              {initials}
             </figure>
           </section>
         </nav>
