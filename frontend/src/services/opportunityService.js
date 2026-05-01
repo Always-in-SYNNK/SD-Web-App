@@ -7,6 +7,18 @@ const getSessionConfig = () => ({
   withCredentials: true,
 });
 
+const getAuthConfig = () => {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  return {
+    withCredentials: true,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+};
+
 const getAdminAuthConfig = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -159,6 +171,63 @@ export const deleteOpportunity = async (id) => {
   } catch (err) {
     return {
       data: null,
+      error: toError(err),
+    };
+  }
+};
+
+/* SKILLS */
+export const getOpportunitySkills = async (opportunityId) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/api/skills/opportunity/${opportunityId}`,
+      getSessionConfig()
+    );
+    const skills = res?.data?.opportunitySkills ?? [];
+    return {
+      data: skills.map((s) => ({ id: s.id ?? s.skills_id, name: s.name ?? s.skill_name })),
+      error: null,
+    };
+  } catch (err) {
+    return {
+      data: [],
+      error: toError(err),
+    };
+  }
+};
+
+export const saveOpportunitySkills = async (opportunityId, skillIds) => {
+  try {
+    const res = await axios.put(
+      `${API_URL}/api/skills/opportunity/${opportunityId}`,
+      { skillIds },
+      getAuthConfig()
+    );
+    return {
+      data: res?.data?.skills ?? null,
+      error: null,
+    };
+  } catch (err) {
+    return {
+      data: null,
+      error: toError(err),
+    };
+  }
+};
+
+export const getSkillsByField = async (field) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/api/skills/field/${encodeURIComponent(field)}`,
+      getSessionConfig()
+    );
+    return {
+      data: res?.data?.data ?? [],
+      error: null,
+    };
+  } catch (err) {
+    return {
+      data: [],
       error: toError(err),
     };
   }
