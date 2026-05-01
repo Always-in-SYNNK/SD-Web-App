@@ -34,6 +34,7 @@ const {
     getMyQualifications,
     addMyQualification,
     deleteMyQualification,
+    getSignedCVUrl,
 } = await import("../src/controllers/profileController.js");
 
 // Helper to create response object

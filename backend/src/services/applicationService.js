@@ -42,6 +42,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
     // STEP 2: FETCH APPLICATIONS
     // Get all applications with the applicant's full profile
     // The '!inner' means only get applications that have matching applicant data
+
     const { data: applications, error: appError } = await supabase
         .from('applications')
         .select(`
@@ -92,7 +93,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
             bio: app.applicant_profiles.bio,
             location: app.applicant_profiles.location,
             nqfLevel: app.applicant_profiles.nqf_level,
-            skills: app.applicant_profiles.skills || [],
+            skills: app.applicant_profiles.skills || [],    //We need to go into applicant_skills for this
             phoneNumber: app.applicant_profiles.phone_number
         }
     }));

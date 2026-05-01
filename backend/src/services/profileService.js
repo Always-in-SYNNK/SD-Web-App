@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabaseClient.js";
+import { getApplicantSkills } from "./skillsService.js";
 
 export async function getApplicantProfileByUserId(userId) {
     // 1. Get base profile
@@ -70,6 +71,10 @@ export async function getApplicantProfileByUserId(userId) {
         date_obtained: row.date_obtained,
     }));
 
+    //Get Applicant skills
+    const { data: applicantSkills, error} = await getApplicantSkills(applicantProfile.id);
+    if(error) throw new Error(error.message);
+
     // 5. Return unified profile object
     return {
         user_id: userId,
@@ -82,6 +87,7 @@ export async function getApplicantProfileByUserId(userId) {
         nqf_level: applicantProfile?.nqf_level ?? null,
         cv_url: applicantProfile?.cv_url ?? null,
         qualifications: mappedQualifications,
+        skills: applicantSkills ?? null,
     };
 }
 
@@ -263,16 +269,3 @@ export async function addApplicantQualificationByUserId(userId, payload) {
 
     return data;
 }
-
-// const mappedQualifications = (qualifications || []).map((row) => ({
-//     id: row.id,
-//     qualification_id: row.qualification_id,
-//     name: row.qualification_id ? row.qualifications?.name : row.custom_name,
-//     nqf_level: row.qualification_id ? row.qualifications?.nqf_level : row.custom_nqf_level,
-//     field: row.qualification_id ? row.qualifications?.field : row.custom_field,
-//     subfield: row.qualification_id ? row.qualifications?.subfield : row.custom_subfield,
-//     status: row.status,
-//     institution: row.institution,
-//     date_obtained: row.date_obtained,
-//     is_custom: row.is_custom,
-// }));
