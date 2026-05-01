@@ -12,22 +12,34 @@ export default function ViewStudentProfile() {
   const [loading, setLoading] = useState(true);
   const [cvUrl, setCvUrl] = useState(null);
 
+  const [skills, setSkills] = useState([]);
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch(`${API}/api/profile/me`, {
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch(`${API}/api/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.profile) {
+        setProfile(data.profile);
+
+        // fetch skills using applicant_profile_id from the profile
+        const skillsRes = await fetch(`${API}/api/skills/applicant/${data.profile.applicant_profile_id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await res.json();
-        if (data.profile) setProfile(data.profile);
-      } catch (err) {
-        console.error("Failed to load profile:", err);
-      } finally {
-        setLoading(false);
+        const skillsData = await skillsRes.json();
+        console.log("SKILLS:", skillsData);
+        if (skillsData.success) setSkills(skillsData.applicantSkills || []);
       }
-    };
-    if (token) fetchProfile();
-  }, [token]);
+    } catch (err) {
+      console.error("Failed to load profile:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  if (token) fetchProfile();
+}, [token]);
 
   useEffect(() => {
     const fetchSignedUrl = async () => {
@@ -47,6 +59,7 @@ export default function ViewStudentProfile() {
   const initials = profile?.full_name
     ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
     : "JD";
+
 
   return (
     <main className="flex min-h-screen bg-[#faf9f8]">
@@ -132,6 +145,7 @@ export default function ViewStudentProfile() {
                   </dl>
                 </section>
 
+                
                 <section className="bg-white p-8 rounded-xl shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-1 h-full bg-[#035b9d]" />
                   <div className="flex items-center justify-between mb-6">
@@ -143,6 +157,7 @@ export default function ViewStudentProfile() {
                       + Add
                     </button>
                   </div>
+
                   {!profile?.qualifications?.length ? (
                     <p className="text-gray-400 text-sm">No qualifications added yet.</p>
                   ) : (
@@ -175,6 +190,42 @@ export default function ViewStudentProfile() {
                         </li>
                       ))}
                     </ul>
+                  )}
+                </section>
+
+                
+                <section className="bg-white p-8 rounded-xl shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1 h-full bg-[#035b9d]" />
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-[#1b1c1c]">Skills</h3>
+                    <button
+                      onClick={() => navigate("/profile/edit")}
+                      className="text-xs text-[#035b9d] font-semibold hover:underline"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  {!skills?.length ? (
+                    <p className="text-gray-400 text-sm">
+                      No skills added yet.
+                      <button
+                        onClick={() => navigate("/profile/edit")}
+                        className="ml-2 text-[#035b9d] font-semibold hover:underline"
+                      >
+                        Add some →
+                      </button>
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {skills.map((skill) => (
+                        <span
+                          key={skill.id}
+                          className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm"
+                        >
+                          {skill.name}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </section>
 
