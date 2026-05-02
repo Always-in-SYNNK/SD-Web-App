@@ -12,6 +12,21 @@ export default function OpportunityDetail() {
   const [error, setError] = useState(null);
   const [applied, setApplied] = useState(false);
   const [applying, setApplying] = useState(false);
+  const [skills, setSkills] = useState([]);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/skills/opportunity/${id}`);
+        const data = await res.json();
+        console.log("OPPORTUNITY SKILLS:", data); 
+        if (data.success) setSkills(data.opportunitySkills || []);
+      } catch (err) {
+        console.error("Failed to fetch opportunity skills:", err);
+      }
+    };
+    fetchSkills();
+  }, [id]);
 
   useEffect(() => {
     const fetchOpportunity = async () => {
@@ -189,6 +204,22 @@ export default function OpportunityDetail() {
           <h2 className="text-xl font-bold mb-4">About this opportunity</h2>
           <p className="text-gray-600 leading-relaxed">{opportunity.description}</p>
         </section>
+
+        {skills.length > 0 && (
+          <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6">
+            <h2 className="text-xl font-bold mb-4">Required Skills</h2>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill) => (
+                <span
+                  key={skill.id}
+                  className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm"
+                >
+                  {skill.name}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Apply */}
         <section className="bg-[#035b9d] rounded-xl p-8 flex items-center justify-between">

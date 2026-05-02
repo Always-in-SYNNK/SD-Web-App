@@ -24,6 +24,7 @@ import EditProfile from "./pages/EditStudentProfile";
 import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
 import Notifications from "./pages/Notifications";
+import QualificationDetail from "./pages/QualificationDetail";
 
 export default function App() {
   const clientId =
@@ -78,6 +79,11 @@ export default function App() {
                 <Qualifications />
               </ProtectedRoute>
             } />
+            <Route path="/qualifications/:id" element={
+              <ProtectedRoute requiredRole="applicant">
+                <QualificationDetail />
+              </ProtectedRoute>
+            } /> 
             <Route path="/applications" element={
               <ProtectedRoute requiredRole="applicant">
                 <MyApplications />
