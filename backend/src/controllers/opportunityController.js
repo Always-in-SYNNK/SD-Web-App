@@ -10,6 +10,7 @@ import {
   getApproved,
   updateStatus,
   deleteOpportunityById,
+  matchingOpportunity
 } from '../services/opportunityService.js';
 import { notifyAllApplicantsNewOpportunity } from '../services/reminderService.js';
 
@@ -21,7 +22,20 @@ export async function fetchLocations(req, res, next) {
     next(error);
   }
 }
-
+export async function getMatchingOpportunities(req, res, next){
+  try{
+    const userId = req.user.id;
+    
+    const matches = await matchingOpportunity(userId);
+    res.status(200).json({
+      success: true,
+      count: matches.length,
+      data: matches,
+    })
+  }catch(error){
+    next(error);
+  }
+}
 export async function fetchFields(req, res, next) {
   try {
     const fields = await getDistinctFields();

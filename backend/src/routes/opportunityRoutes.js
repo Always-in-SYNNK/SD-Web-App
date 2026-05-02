@@ -13,6 +13,7 @@ import {
   approveOpportunity,
   rejectOpportunity,
   deleteOpportunity,
+  getMatchingOpportunities,
 } from '../controllers/opportunityController.js';
 
 // provider and admin auth middleware
@@ -26,6 +27,7 @@ router.get('/filters/locations', fetchLocations);
 router.get('/filters/fields', fetchFields);
 router.get('/filters/nqf-levels', fetchNqfLevels);
 router.get('/', fetchOpportunities);
+
 
 // provider
 router.post('/publish', providerAuthMiddleware, publishOpportunity);
@@ -42,5 +44,6 @@ router.delete("/:id", requireAuth, requireAdmin, deleteOpportunity);
 // provider edit prefill
 router.get('/:id', providerAuthMiddleware, getOpportunity);
 
+router.get("/matches", authMiddleware,getMatchingOpportunities);
 
 export default router;

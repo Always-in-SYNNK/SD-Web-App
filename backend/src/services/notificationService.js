@@ -2,12 +2,13 @@ import { supabase } from "../config/supabaseClient.js";
 import { sendEmailNotification } from "./emailService.js";
 
 export async function getNotificationsByUserId(userId) {
+    console.log(userId);
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id")
         .eq("user_id", userId)
         .single();
-
+    
     if (profileError) throw profileError;
 
     const { data: applicantProfile, error: applicantError } = await supabase
@@ -17,7 +18,7 @@ export async function getNotificationsByUserId(userId) {
         .single();
 
     if (applicantError) throw applicantError;
-
+    console.log(applicantProfile.id);
     const { data: notifications, error } = await supabase
         .from("applicant_notifications")
         .select("id, type, title, message, is_read, created_at, application_id, opportunity_id")
