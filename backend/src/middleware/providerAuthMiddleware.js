@@ -7,6 +7,26 @@
 
 import jwt from "jsonwebtoken";
 
+async function getProviderProfileByTokenId(supabase, tokenUserId) {
+    const { data: byUserId } = await supabase
+        .from('profiles')
+        .select('id, user_id, email, role, isAdmin')
+        .eq('user_id', tokenUserId)
+        .maybeSingle();
+
+    if (byUserId) {
+        return byUserId;
+    }
+
+    const { data: byProfileId } = await supabase
+        .from('profiles')
+        .select('id, user_id, email, role, isAdmin')
+        .eq('id', tokenUserId)
+        .maybeSingle();
+
+    return byProfileId || null;
+}
+
 /**
  * Provider Authentication Middleware
  * Checks if the user is logged in AND is a provider
@@ -85,13 +105,9 @@ async function providerAuthMiddleware(req, res, next) {
 
         const { supabase } = await import("../config/supabaseClient.js");
 
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('user_id', decoded.id)
-            .single();
+        const profile = await getProviderProfileByTokenId(supabase, decoded.id);
 
-        if (profileError || !profile) {
+        if (!profile) {
             return res.status(401).json({ error: "Profile not found" });
         }
 

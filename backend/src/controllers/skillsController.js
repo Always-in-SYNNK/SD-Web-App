@@ -178,23 +178,54 @@ export async function setOppSkills(req, res, next) {
             });
         }
         
-        // Optional: Verify the user owns this opportunity
-        const { data: profile, error: profileError } = await supabase
+        // Get the user's profile. Support tokens that contain either the
+        // auth user id (`profiles.user_id`) or the app's `profiles.id`.
+        let profile = null;
+
+        // Try resolving by user_id first
+        const { data: profileByUserId } = await supabase
             .from("profiles")
             .select("id")
             .eq("user_id", userId)
-            .single();
-        
-        if (profileError || !profile) {
+            .maybeSingle();
+
+        if (profileByUserId) {
+            profile = profileByUserId;
+        } else {
+            const { data: profileById } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("id", userId)
+                .maybeSingle();
+
+            if (profileById) profile = profileById;
+        }
+
+        if (!profile) {
             return res.status(404).json({ 
                 success: false, 
                 error: "Profile not found" 
             });
         }
+
+        // Get the user's provider profile
+        const { data: providerProfile, error: providerError } = await supabase
+            .from("provider_profiles")
+            .select("id")
+            .eq("profile_id", profile.id)
+            .single();
+
+        if (providerError || !providerProfile) {
+            return res.status(404).json({ 
+                success: false, 
+                error: "Provider profile not found" 
+            });
+        }
         
+        // Verify the user owns this opportunity by checking provider_id
         const { data: opportunity, error: opportunityError } = await supabase
             .from("opportunities")
-            .select("created_by")
+            .select("provider_id")
             .eq("id", opportunityId)
             .single();
         
@@ -205,8 +236,8 @@ export async function setOppSkills(req, res, next) {
             });
         }
         
-        // Check if user owns the opportunity
-        if (opportunity.created_by !== profile.id) {
+        // Check if user's provider owns the opportunity
+        if (opportunity.provider_id !== providerProfile.id) {
             return res.status(403).json({ 
                 success: false, 
                 error: "Not authorized to modify this opportunity's skills" 
