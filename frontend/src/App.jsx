@@ -24,6 +24,7 @@ import EditProfile from "./pages/EditStudentProfile";
 import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
 import Notifications from "./pages/Notifications";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 export default function App() {
   const clientId =
@@ -117,6 +118,8 @@ export default function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/analytics" element={<AnalyticsPage />} />
+
             {/* Employer routes - removed protected routing for now */}
 
             {/* Employer routes */}
@@ -146,6 +149,9 @@ export default function App() {
                 <ProviderRegistration />
               </ProtectedRoute>
             } />
+
+            <Route path="/analytics" element={<AnalyticsPage />} />
+
           </Routes>
 
         </BrowserRouter>
