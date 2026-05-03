@@ -16,6 +16,7 @@ jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
 // Mock profileService with all functions
 const mockService = {
     getApplicantProfileByUserId: jest.fn(),
+    getApplicantProfileByProfileId: jest.fn(),
     upsertApplicantProfileByUserId: jest.fn(),
     uploadApplicantCV: jest.fn(),
     saveApplicantCVPath: jest.fn(),

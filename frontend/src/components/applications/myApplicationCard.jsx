@@ -24,8 +24,8 @@ const STATUS_STYLES = {
 };
 
 const STATUS_ICONS = {
-  Received: "📐",
-  Shortlisted: "🏗️",
+  Received: "⏳",
+  Shortlisted: "⭐",
   Offered: "🌿",
   Accepted: "✅",
   Rejected: "❌",

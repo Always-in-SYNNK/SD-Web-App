@@ -4,7 +4,7 @@ import EmployerApplicationCard from '../components/employer/EmployerApplicationC
 
 describe('EmployerApplicationCard', () => {
   const mockOnShortlist = vi.fn();
-  const mockOnAccept = vi.fn();
+  const mockOnOffer = vi.fn();
   const mockOnReject = vi.fn();
 
   const mockApplication = {
@@ -30,7 +30,7 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={mockApplication}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
@@ -42,7 +42,7 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={mockApplication}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
@@ -54,10 +54,12 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={mockApplication}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
+    // expand card to reveal details
+    fireEvent.click(screen.getByText('John Doe'));
     expect(screen.getByText('📍 Cape Town')).toBeDefined();
   });
 
@@ -66,10 +68,12 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={mockApplication}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
+    // expand card to reveal details
+    fireEvent.click(screen.getByText('John Doe'));
     expect(screen.getByText('🎓 NQF 7')).toBeDefined();
   });
 
@@ -78,10 +82,12 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={mockApplication}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
+    // expand card to reveal action buttons
+    fireEvent.click(screen.getByText('John Doe'));
     expect(screen.getByText('⭐ Shortlist')).toBeDefined();
     expect(screen.getByText('❌ Reject')).toBeDefined();
   });
@@ -92,12 +98,30 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={shortlistedApp}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
-    expect(screen.getByText('✅ Accept Offer')).toBeDefined();
+    // expand card to reveal action buttons
+    fireEvent.click(screen.getByText('John Doe'));
+    expect(screen.getByText('📩 Send Offer')).toBeDefined();
     expect(screen.getByText('❌ Reject')).toBeDefined();
+  });
+
+  it('should display offer sent state when status is offered', () => {
+    const offeredApp = { ...mockApplication, status: 'offered' };
+    render(
+      <EmployerApplicationCard
+        application={offeredApp}
+        onShortlist={mockOnShortlist}
+        onOffer={mockOnOffer}
+        onReject={mockOnReject}
+      />
+    );
+    // header shows status label, but expand to see the message body
+    expect(screen.getByText('📩 Offer Sent')).toBeDefined();
+    fireEvent.click(screen.getByText('John Doe'));
+    expect(screen.getByText(/waiting for the applicant's response/i)).toBeDefined();
   });
 
   it('should call onShortlist when Shortlist button clicked', () => {
@@ -105,26 +129,30 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={mockApplication}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
+    // expand card to reveal action buttons
+    fireEvent.click(screen.getByText('John Doe'));
     fireEvent.click(screen.getByText('⭐ Shortlist'));
     expect(mockOnShortlist).toHaveBeenCalledWith('app-123');
   });
 
-  it('should call onAccept when Accept button clicked', () => {
+  it('should call onOffer when Offer button clicked', () => {
     const shortlistedApp = { ...mockApplication, status: 'shortlisted' };
     render(
       <EmployerApplicationCard
         application={shortlistedApp}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
-    fireEvent.click(screen.getByText('✅ Accept Offer'));
-    expect(mockOnAccept).toHaveBeenCalledWith('app-123');
+    // expand card to reveal action buttons
+    fireEvent.click(screen.getByText('John Doe'));
+    fireEvent.click(screen.getByText('📩 Send Offer'));
+    expect(mockOnOffer).toHaveBeenCalledWith('app-123');
   });
 
   it('should call onReject when Reject button clicked', () => {
@@ -132,10 +160,12 @@ describe('EmployerApplicationCard', () => {
       <EmployerApplicationCard
         application={mockApplication}
         onShortlist={mockOnShortlist}
-        onAccept={mockOnAccept}
+        onOffer={mockOnOffer}
         onReject={mockOnReject}
       />
     );
+    // expand card to reveal action buttons
+    fireEvent.click(screen.getByText('John Doe'));
     fireEvent.click(screen.getByText('❌ Reject'));
     expect(mockOnReject).toHaveBeenCalledWith('app-123');
   });

@@ -1,8 +1,10 @@
 import express from "express";
 import authMiddleware from "../middleware/authMiddleware.js";
+import providerAuthMiddleware from "../middleware/providerAuthMiddleware.js";
 import { uploadCV } from "../middleware/uploadMiddleware.js";
 import {
     getMyApplicantProfile,
+    getApplicantProfileById,
     saveMyApplicantProfile,
     uploadMyApplicantCV,
     getSignedCVUrl,
@@ -16,6 +18,7 @@ import {
 const router = express.Router();
 
 router.get("/me", authMiddleware, getMyApplicantProfile);
+router.get("/:applicantProfileId", providerAuthMiddleware, getApplicantProfileById);
 router.post("/me", authMiddleware, saveMyApplicantProfile);
 router.post("/me/cv", authMiddleware, uploadCV.single("cv"), uploadMyApplicantCV);
 router.get("/me/cv/signed-url", authMiddleware, getSignedCVUrl);

@@ -26,6 +26,19 @@ const FIELDS = [
   "Communication Studies and Language",
 ];
 
+const LOCATION = [
+  "Eastern Cape",
+  "Free State",
+  "Gauteng",
+  "KwaZulu-Natal",
+  "Limpopo",
+  "Mpumalanga",
+  "North West",
+  "Northern Cape",
+  "Western Cape",
+  "Remote",
+];
+
 const EMPTY_FORM = {
   title: "",
   description: "",
@@ -53,7 +66,7 @@ const inputCls =
 
 const Section = ({ title, children }) => (
   <section className="relative bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(27,28,28,0.06)] px-10 py-10 border-0 overflow-hidden">
-    <span className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-[#9f6400]" />
+    <span className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-[#035b9d]" />
     <h3 className="font-headline text-2xl font-semibold text-on-surface mb-8 mb-4">
       {title}
     </h3>
@@ -92,7 +105,6 @@ const OpportunityForm = () => {
           title:        data.title        ?? "",
           description:  data.description  ?? "",
           location:     data.location     ?? "",
-          requirements: data.requirements ?? "",
           stipend:      data.stipend      ?? "",
           nqf_level:    data.nqf_level    ?? "",
           duration:     data.duration     ?? "",
@@ -172,6 +184,12 @@ const OpportunityForm = () => {
     return data;
   };
 
+  const buildOpportunityPayload = (status) => ({
+    ...form,
+    status,
+    skillIds: selectedSkills.map((skill) => skill.id),
+  });
+
   // ── Form actions ──────────────────────────────────────────────────────────
   const handlePublish = async (e) => {
     e.preventDefault();
@@ -184,7 +202,7 @@ const OpportunityForm = () => {
     setErrorMsg("");
 
     const { data, error } = isEditing
-      ? await updateOpportunity(id, { ...form, status: "pending" })
+      ? await updateOpportunity(id, buildOpportunityPayload("pending"))
       : await publishOpportunity(form);
 
     if (error) {
@@ -193,9 +211,10 @@ const OpportunityForm = () => {
       return;
     }
 
-    // Save skills using the returned/existing opportunity id
+    // Create flows still need a separate skills write because the initial
+    // publish request may not have persisted the opportunity id yet.
     const opportunityId = id ?? data?.id;
-    if (opportunityId) {
+    if (!isEditing && opportunityId) {
       try {
         await persistSkills(opportunityId);
       } catch (skillsErr) {
@@ -206,7 +225,10 @@ const OpportunityForm = () => {
     }
 
     setStatus("success");
-    if (!isEditing) setForm(EMPTY_FORM);
+    if (!isEditing) {
+      setForm(EMPTY_FORM);
+      setSelectedSkills([]);
+    }
   };
 
   const handleDraft = async () => {
@@ -214,7 +236,7 @@ const OpportunityForm = () => {
     setErrorMsg("");
 
     const { data, error } = isEditing
-      ? await updateOpportunity(id, { ...form, status: "draft" })
+      ? await updateOpportunity(id, buildOpportunityPayload("draft"))
       : await saveDraft(form);
 
     if (error) {
@@ -224,7 +246,7 @@ const OpportunityForm = () => {
     }
 
     const opportunityId = id ?? data?.id;
-    if (opportunityId) {
+    if (!isEditing && opportunityId) {
       try {
         await persistSkills(opportunityId);
       } catch (skillsErr) {
@@ -284,13 +306,23 @@ const OpportunityForm = () => {
             </Field>
 
             <Field label="Workplace Location">
-              <input
-                className={inputCls}
-                type="text"
-                placeholder="e.g., Hybrid (Cape Town Base)"
-                value={form.location}
-                onChange={set("location")}
-              />
+              <div className="relative">
+                <select
+                  className={`${inputCls} appearance-none`}
+                  value={form.location}
+                  onChange={set("location")}
+                >
+                  <option value="">Select location...</option>
+                  {LOCATION.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-[#707881] pointer-events-none text-lg">
+                  expand_more
+                </span>
+              </div>
             </Field>
 
             {/* Field selection also drives the skills picker below */}
@@ -386,19 +418,6 @@ const OpportunityForm = () => {
               </div>
             )}
           </div>
-        </Section>
-
-        {/* ── Candidate Requirements ── */}
-        <Section title="Candidate Requirements">
-          <Field label="Essential Qualifications & Traits">
-            <textarea
-              className={`${inputCls} resize-none`}
-              rows={6}
-              placeholder="List the necessary technical skills, educational background, and behavioural traits expected..."
-              value={form.requirements}
-              onChange={set("requirements")}
-            />
-          </Field>
         </Section>
 
         {/* ── Program Logistics ── */}
