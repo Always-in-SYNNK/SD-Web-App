@@ -19,18 +19,6 @@ const getAuthConfig = () => {
   };
 };
 
-const getAdminAuthConfig = () => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-  return {
-    withCredentials: true,
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  };
-};
-
 function toError(err) {
   const message =
     err?.response?.data?.error ||
@@ -95,7 +83,7 @@ export async function saveDraft(data) {
 /* ADMIN */
 export const getPendingOpportunities = async () => {
   try {
-    const res = await axios.get(`${API}/pending`, getAdminAuthConfig());
+    const res = await axios.get(`${API}/pending`, getAuthConfig());
 
     const payload = res?.data;
     const pending = Array.isArray(payload) ? payload : payload?.data ?? [];
@@ -114,7 +102,7 @@ export const getPendingOpportunities = async () => {
 
 export const getApprovedOpportunities = async () => {
   try {
-    const res = await axios.get(`${API}/approved`, getAdminAuthConfig());
+    const res = await axios.get(`${API}/approved`, getAuthConfig());
 
     const payload = res?.data;
     const approved = Array.isArray(payload) ? payload : payload?.data ?? [];
@@ -127,7 +115,7 @@ export const getApprovedOpportunities = async () => {
 
 export const approveOpportunity = async (id) => {
   try {
-    const res = await axios.patch(`${API}/${id}/approve`, null, getAdminAuthConfig());
+    const res = await axios.patch(`${API}/${id}/approve`, null, getAuthConfig());
     const payload = res?.data;
 
     return {
@@ -144,7 +132,7 @@ export const approveOpportunity = async (id) => {
 
 export const rejectOpportunity = async (id) => {
   try {
-    const res = await axios.patch(`${API}/${id}/reject`, null, getAdminAuthConfig());
+    const res = await axios.patch(`${API}/${id}/reject`, null, getAuthConfig());
     const payload = res?.data;
 
     return {
@@ -161,7 +149,7 @@ export const rejectOpportunity = async (id) => {
 
 export const deleteOpportunity = async (id) => {
   try {
-    const res = await axios.delete(`${API}/${id}`, getAdminAuthConfig());
+    const res = await axios.delete(`${API}/${id}`, getAuthConfig());
     const payload = res?.data;
 
     return {

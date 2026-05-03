@@ -172,6 +172,12 @@ const OpportunityForm = () => {
     return data;
   };
 
+  const buildOpportunityPayload = (status) => ({
+    ...form,
+    status,
+    skillIds: selectedSkills.map((skill) => skill.id),
+  });
+
   // ── Form actions ──────────────────────────────────────────────────────────
   const handlePublish = async (e) => {
     e.preventDefault();
@@ -184,7 +190,7 @@ const OpportunityForm = () => {
     setErrorMsg("");
 
     const { data, error } = isEditing
-      ? await updateOpportunity(id, { ...form, status: "pending" })
+      ? await updateOpportunity(id, buildOpportunityPayload("pending"))
       : await publishOpportunity(form);
 
     if (error) {
@@ -193,9 +199,10 @@ const OpportunityForm = () => {
       return;
     }
 
-    // Save skills using the returned/existing opportunity id
+    // Create flows still need a separate skills write because the initial
+    // publish request may not have persisted the opportunity id yet.
     const opportunityId = id ?? data?.id;
-    if (opportunityId) {
+    if (!isEditing && opportunityId) {
       try {
         await persistSkills(opportunityId);
       } catch (skillsErr) {
@@ -207,6 +214,7 @@ const OpportunityForm = () => {
 
     setStatus("success");
     if (!isEditing) setForm(EMPTY_FORM);
+    setSelectedSkills([]);
   };
 
   const handleDraft = async () => {
@@ -214,7 +222,7 @@ const OpportunityForm = () => {
     setErrorMsg("");
 
     const { data, error } = isEditing
-      ? await updateOpportunity(id, { ...form, status: "draft" })
+      ? await updateOpportunity(id, buildOpportunityPayload("draft"))
       : await saveDraft(form);
 
     if (error) {
@@ -224,7 +232,7 @@ const OpportunityForm = () => {
     }
 
     const opportunityId = id ?? data?.id;
-    if (opportunityId) {
+    if (!isEditing && opportunityId) {
       try {
         await persistSkills(opportunityId);
       } catch (skillsErr) {

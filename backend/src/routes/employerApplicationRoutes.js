@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { supabase } from '../config/supabaseClient.js';
 import providerAuthMiddleware from '../middleware/providerAuthMiddleware.js';
+import { getApplicantCVSignedUrl } from '../services/profileService.js';
 import { notifyApplicationStatusChange } from "../services/notificationService.js";
 
 
@@ -27,6 +28,7 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
         created_at,
         applicant_profiles!inner (
           id,
+          surname,
           bio,
           location,
           nqf_level,
@@ -50,7 +52,9 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
       appliedAt: app.created_at,
       applicant: {
         id: app.applicant_profiles.profile_id,
+        applicantProfileId: app.applicant_profiles.id,
         name: app.applicant_profiles.profiles.full_name,
+        surname: app.applicant_profiles.surname,
         email: app.applicant_profiles.profiles.email,
         bio: app.applicant_profiles.bio,
         location: app.applicant_profiles.location,
@@ -63,6 +67,52 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
 
   } catch (error) {
     console.error('Error fetching applications:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// GET /api/employer/applications/:applicationId/cv/signed-url
+router.get('/:applicationId/cv/signed-url', async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    if (!applicationId) {
+      return res.status(400).json({ success: false, error: 'Application ID required' });
+    }
+
+    const { data: application, error: appError } = await supabase
+      .from('applications')
+      .select(`
+        id,
+        opportunity_id,
+        applicant_profiles!inner (
+          cv_url
+        ),
+        opportunities!inner (
+          provider_id
+        )
+      `)
+      .eq('id', applicationId)
+      .single();
+
+    if (appError || !application) {
+      return res.status(404).json({ success: false, error: 'Application not found' });
+    }
+
+    if (application.opportunities.provider_id !== req.user?.profileId) {
+      return res.status(403).json({ success: false, error: 'Unauthorized: You do not own this opportunity' });
+    }
+
+    const cvPath = application.applicant_profiles?.cv_url;
+
+    if (!cvPath) {
+      return res.json({ success: true, signed_url: null });
+    }
+
+    const signedUrl = await getApplicantCVSignedUrl(cvPath);
+    res.json({ success: true, signed_url: signedUrl });
+  } catch (error) {
+    console.error('Error fetching signed CV URL:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

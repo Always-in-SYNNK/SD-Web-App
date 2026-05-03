@@ -11,6 +11,7 @@ const EmployerApplications = () => {
     const { opportunityId } = useParams();
     const navigate = useNavigate();
     const providerUser = JSON.parse(localStorage.getItem("user") || "null");
+    const token = localStorage.getItem("token");
     const [applications, setApplications] = useState([]);
     const [filteredApps, setFilteredApps] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -95,7 +96,7 @@ const EmployerApplications = () => {
     const handleAccept = async (appId) => {
         setProcessingId(appId);
         try {
-            const response = await updateApplicationStatus(appId, 'accepted');
+            const response = await updateApplicationStatus(appId, 'offered'); //applicants will accept on their side
             if (response.success) {
                 await fetchApplications();
                 setSuccessMessage(response.message);
@@ -234,6 +235,7 @@ const EmployerApplications = () => {
                                 onAccept={handleAccept}
                                 onReject={handleReject}
                                 isProcessing={processingId === app.applicationId}
+                                token={token}
                             />
                         ))}
                     </section>

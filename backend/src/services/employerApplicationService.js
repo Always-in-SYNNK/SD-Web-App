@@ -48,6 +48,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
         appliedAt: app.created_at,
         applicant: {
             id: app.applicant_profiles.profile_id,
+            applicantProfileId: app.applicant_profiles.id,
             name: app.applicant_profiles.profiles.full_name,
             email: app.applicant_profiles.profiles.email,
             bio: app.applicant_profiles.bio,

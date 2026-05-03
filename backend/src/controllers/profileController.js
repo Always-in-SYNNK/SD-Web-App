@@ -1,6 +1,7 @@
 //Calls service functions and handle request/response
 import {
     getApplicantProfileByUserId,
+    getApplicantProfileByProfileId,
     upsertApplicantProfileByUserId,
     uploadApplicantCV,
     saveApplicantCVPath,
@@ -124,4 +125,26 @@ export async function getSignedCVUrl(req, res, next) {
   } catch (error) {
     next(error);
   }
+}
+
+export async function getApplicantProfileById(req, res, next) {
+    try {
+        const { applicantProfileId } = req.params;
+
+        if (!applicantProfileId) {
+            return res.status(400).json({ success: false, error: "Applicant profile ID is required" });
+        }
+
+        const profile = await getApplicantProfileByProfileId(applicantProfileId);
+        res.json({ success: true, profile });
+    } catch (error) {
+        console.error("getApplicantProfileById failed:", {
+            message: error?.message,
+            details: error?.details,
+            hint: error?.hint,
+            code: error?.code,
+            stack: error?.stack,
+        });
+        next(error);
+    }
 }

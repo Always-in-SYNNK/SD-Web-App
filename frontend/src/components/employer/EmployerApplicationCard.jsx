@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const STATUS_CONFIG = {
     received: { color: 'bg-yellow-100 text-yellow-800', icon: '⏳', label: 'Pending Review' },
@@ -7,14 +7,99 @@ const STATUS_CONFIG = {
     rejected: { color: 'bg-red-100 text-red-800', icon: '❌', label: 'Rejected' }
 };
 
-const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject, isProcessing = false }) => {
-    const [isExpanded, setIsExpanded] = useState(true);
+const SectionBlock = ({ title, children }) => (
+    <section className="bg-gray-50 rounded-xl p-4 relative overflow-hidden"> 
+        <h4 className="text-sm font-bold text-gray-700 mb-3 ml-2">{title}</h4>
+        <div className="ml-2">{children}</div>
+    </section>
+);
+
+const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject, isProcessing = false, token }) => {
+
+    const API = import.meta.env.VITE_API_URL;
+
+    const [isExpanded, setIsExpanded] = useState(false); 
+    const [skills, setSkills]               = useState([]);
+    const [qualifications, setQualifications] = useState([]);
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    const [detailsFetched, setDetailsFetched] = useState(false); // fetch once only
+    const [cvUrl, setCvUrl] = useState(null);
+
     const config = STATUS_CONFIG[application.status] || STATUS_CONFIG.received;
     const { applicant, status, appliedAt } = application;
 
     const formatDate = (date) => new Date(date).toLocaleDateString('en-ZA', {
         day: 'numeric', month: 'short', year: 'numeric'
     });
+
+    // Fetch skills + qualifications the first time the card is expanded
+    useEffect(() => {
+        if (!isExpanded || detailsFetched || !applicant.applicantProfileId) return;
+
+        const fetchDetails = async () => {
+            setDetailsLoading(true);
+            try {
+                const headers = { Authorization: `Bearer ${token}` };
+
+                const [skillsRes, profileRes] = await Promise.all([
+                    fetch(`${API}/api/skills/applicant/${applicant.applicantProfileId}`, { headers }),
+                    fetch(`${API}/api/profile/${applicant.applicantProfileId}`, { headers }),
+                ]);
+
+                const [skillsData, profileData] = await Promise.all([
+                    skillsRes.json(),
+                    profileRes.json(),
+                ]);
+
+                if (skillsData.success) {
+                    setSkills(skillsData.applicantSkills || skillsData.data || skillsData.skills || []);
+                }
+
+                const qualificationsData =
+                    profileData.profile?.qualifications ||
+                    profileData.profile?.data?.qualifications ||
+                    profileData.qualifications ||
+                    [];
+
+                setQualifications(qualificationsData);
+
+            } catch (err) {
+                console.error('Failed to fetch applicant details:', err);
+            } finally {
+                setDetailsLoading(false);
+                setDetailsFetched(true);
+            }
+        };
+
+        fetchDetails();
+    }, [isExpanded, detailsFetched, applicant.applicantProfileId, token, API]);
+
+    useEffect(() => {
+        const fetchSignedCvUrl = async () => {
+            if (!token || !application.applicationId) return;
+
+            try {
+                const res = await fetch(
+                    `${API}/api/employer/applications/${application.applicationId}/cv/signed-url`,
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+
+                const data = await res.json();
+
+                if (data.signed_url) {
+                    setCvUrl(data.signed_url);
+                }
+            } catch (err) {
+                console.error("Failed to fetch signed CV URL:", err);
+            }
+        };
+
+        if (isExpanded) {
+            fetchSignedCvUrl();
+        }
+    }, [API, application.applicationId, isExpanded, token]);
 
     return (
         <article className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
@@ -28,7 +113,9 @@ const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject,
                             {applicant.name?.charAt(0) || 'A'}
                         </figure>
                         <section>
-                            <h3 className="font-bold text-lg text-gray-900">{applicant.name}</h3>
+                            <h3 className="font-bold text-lg text-gray-900">
+                                {applicant.name}{applicant.surname ? ` ${applicant.surname}` : ''}
+                            </h3>
                             <p className="text-sm text-gray-500">{applicant.email}</p>
                         </section>
                     </section>
@@ -60,21 +147,104 @@ const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject,
                     </section>
 
                     {applicant.bio && (
-                        <section>
-                            <h4 className="text-sm font-semibold text-gray-700 mb-2">About</h4>
-                            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{applicant.bio}</p>
-                        </section>
+                        <SectionBlock title="About">
+                            <p className="text-sm text-gray-600 leading-relaxed">{applicant.bio}</p>
+                        </SectionBlock>
                     )}
 
-                    {applicant.cvUrl && (
-                        <section>
-                            <a href={applicant.cvUrl} target="_blank" rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                                onClick={(e) => e.stopPropagation()}>
-                                📄 Download CV / Resume
-                            </a>
-                        </section>
+                    {/* Loading state for fetched details */}
+                    {detailsLoading && (
+                        <p className="text-xs text-gray-400 animate-pulse">Loading profile details…</p>
                     )}
+
+                    {/* Skills */}
+                    {!detailsLoading && (
+                        <SectionBlock title="Skills">
+                            {skills.length === 0 ? (
+                                <p className="text-sm text-gray-400">No skills listed.</p>
+                            ) : (
+                                <div className="flex flex-wrap gap-2">
+                                    {skills.map((skill) => (
+                                        <span
+                                            key={skill.id ?? skill.skills_id}
+                                            className="px-3 py-1 bg-blue-50 text-[#035b9d] font-semibold rounded-full text-xs"
+                                        >
+                                            {skill.name ?? skill.skill_name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </SectionBlock>
+                    )}
+
+                    {/* Qualifications */}
+                    {!detailsLoading && (
+                        <SectionBlock title="Qualifications">
+                            {qualifications.length === 0 ? (
+                                <p className="text-sm text-gray-400">No qualifications listed.</p>
+                            ) : (
+                                <ul className="space-y-2">
+                                    {qualifications.map((q) => (
+                                        <li
+                                            key={q.id}
+                                            className="flex items-start gap-3 bg-white border border-gray-100 p-3 rounded-xl"
+                                        >
+                                            <figure className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-base shrink-0">
+                                                🎓
+                                            </figure>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-800">
+                                                    {q.title ?? q.qualification_name}
+                                                </p>
+                                                {q.field && (
+                                                    <p className="text-xs text-gray-400 mt-0.5">
+                                                        {q.field}{q.subfield ? ` · ${q.subfield}` : ''}
+                                                    </p>
+                                                )}
+                                                {q.originator && (
+                                                    <p className="text-xs text-gray-400">{q.originator}</p>
+                                                )}
+                                                <div className="flex gap-2 mt-1.5 flex-wrap">
+                                                    {q.nqf_level && (
+                                                        <span className="text-xs bg-blue-50 text-[#035b9d] px-2 py-0.5 rounded-full font-semibold">
+                                                            NQF {q.nqf_level}
+                                                        </span>
+                                                    )}
+                                                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                                                        q.status === 'completed'
+                                                            ? 'bg-green-50 text-green-600'
+                                                            : 'bg-amber-50 text-amber-600'
+                                                    }`}>
+                                                        {q.status === 'completed' ? 'Completed' : 'In Progress'}
+                                                    </span>
+                                                    {q.date_obtained && (
+                                                        <span className="text-xs text-gray-300">{q.date_obtained}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </SectionBlock>
+                    )}
+
+                    <SectionBlock title="Uploads">
+                        {cvUrl ? (
+                            <a
+                                href={cvUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            >
+                                📄 CV / Resume
+                            </a>
+                        ) : (
+                            <p className="text-gray-400 text-sm">No CV uploaded yet.</p>
+                        )}
+                    </SectionBlock>
+
+
 
                     {/* Action Buttons based on status */}
                     {status === 'received' && (

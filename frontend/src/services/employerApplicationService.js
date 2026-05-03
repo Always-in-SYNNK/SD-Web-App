@@ -1,14 +1,22 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+const getAuthConfig = () => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  return {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+};
+
 export async function getApplicationsForOpportunity(opportunityId) {
   const response = await fetch(
     `${API_URL}/api/employer/applications/opportunity/${opportunityId}`,
     {
       method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      ...getAuthConfig(),
     }
   );
   
@@ -23,10 +31,7 @@ export async function updateApplicationStatus(applicationId, status) {
     `${API_URL}/api/employer/applications/${applicationId}`,
     {
       method: 'PATCH',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      ...getAuthConfig(),
       body: JSON.stringify({ status })
     }
   );
