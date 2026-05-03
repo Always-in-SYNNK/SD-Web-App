@@ -56,7 +56,7 @@ function StatCard({ label, value, color }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
   const location = useLocation();
-  const { user } = useAuth();
+  const {user} = useAuth();
   const source           = location.state?.source || "applicant";
   const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
 

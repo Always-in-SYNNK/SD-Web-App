@@ -84,11 +84,6 @@ export default function App() {
                 <MyApplications />
               </ProtectedRoute>
             } />
-            <Route path="/analytics" element={
-              <ProtectedRoute requiredRole="applicant">
-                <StudentDashboard />
-              </ProtectedRoute>
-            } />
             <Route path="/verification" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
@@ -117,8 +112,6 @@ export default function App() {
                 <AdminAccessApplications />
               </ProtectedRoute>
             } />
-
-            <Route path="/analytics" element={<AnalyticsPage />} />
 
             {/* Employer routes - removed protected routing for now */}
 
@@ -150,12 +143,17 @@ export default function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/analytics" element={<AnalyticsPage />} />
-
+              <Route path="/analytics" element={<AnalyticsPage />} />
+            
           </Routes>
-
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
 }
+
+/*<Route path="/analytics" element={
+  <ProtectedRoute requiredRole={["provider", "admin"]}>
+    <AnalyticsPage />
+  </ProtectedRoute>
+} />*/

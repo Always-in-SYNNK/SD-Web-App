@@ -22,8 +22,13 @@ import { startReminderCron } from "./cronJob.js";
 
 startReminderCron();
 import skillsRoutes from "./routes/skillsRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 const app = express();
+
+
+//analytics routes
+app.use("/api/analytics", analyticsRoutes);
 
 // SIMPLE CORS 
 app.use(cors({
