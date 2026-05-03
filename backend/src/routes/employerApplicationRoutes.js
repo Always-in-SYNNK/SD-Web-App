@@ -25,7 +25,12 @@ router.get('/:applicationId/details', async (req, res) => {
 
     res.json({ success: true, ...details });
   } catch (error) {
-    const status = error.message?.startsWith('Unauthorized') ? 403 : 500;
+    let status = 500;
+    if (error.message?.startsWith('Unauthorized')) {
+      status = 403;
+    } else if (error.message?.includes('not found')) {
+      status = 404;
+    }
     res.status(status).json({ success: false, error: error.message });
   }
 });
@@ -147,8 +152,8 @@ router.patch('/:applicationId', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Application ID required' });
     }
 
-    // Allow ALL valid statuses from your database
-    const validStatuses = ['received', 'shortlisted', 'rejected', 'offered', 'accepted'];
+    // Employer actions should only move an application to shortlist, reject, or offer.
+    const validStatuses = ['shortlisted', 'rejected', 'offered'];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({ 
         success: false, 
@@ -157,6 +162,7 @@ router.patch('/:applicationId', async (req, res) => {
     }
 
     console.log(`📝 Updating application ${applicationId} to status: ${status}`);
+
 
      // Get the OLD status before updating (for notification)
     const { data: oldApplication, error: fetchError } = await supabase

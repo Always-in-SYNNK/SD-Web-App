@@ -1,5 +1,7 @@
 import { jest } from "@jest/globals";
 
+const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
 // Mock supabase with a more flexible approach
 const mockSupabaseEq = jest.fn();
 const mockSupabaseDelete = jest.fn();
@@ -36,6 +38,7 @@ const {
     addMyQualification,
     deleteMyQualification,
     getSignedCVUrl,
+    getApplicantProfileById,
 } = await import("../src/controllers/profileController.js");
 
 // Helper to create response object
@@ -62,6 +65,10 @@ describe("profileController", () => {
         mockSupabaseFrom.mockClear();
         mockSupabaseDelete.mockClear();
         mockSupabaseEq.mockClear();
+    });
+
+    afterAll(() => {
+        consoleErrorSpy.mockRestore();
     });
 
     describe("getMyApplicantProfile", () => {
@@ -151,6 +158,15 @@ describe("profileController", () => {
 
             expect(res.json).toHaveBeenCalledWith({ success: true, qualifications });
         });
+
+        test("handles errors", async () => {
+            const error = new Error("Qualifications failed");
+            mockService.getApplicantProfileByUserId.mockRejectedValue(error);
+
+            await getMyQualifications(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(error);
+        });
     });
 
     describe("addMyQualification", () => {
@@ -164,52 +180,178 @@ describe("profileController", () => {
             expect(res.status).toHaveBeenCalledWith(201);
             expect(res.json).toHaveBeenCalledWith({ success: true, qualification: newQualification });
         });
+
+        test("handles errors", async () => {
+            const error = new Error("Create qualification failed");
+            mockService.addApplicantQualificationByUserId.mockRejectedValue(error);
+
+            await addMyQualification(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(error);
+        });
     });
 
-    // describe("deleteMyQualification", () => {
-    //     beforeEach(() => {
-    //         // Reset and set up the mock chain before each test
-    //         mockSupabaseFrom.mockClear();
-    //         mockSupabaseDelete.mockClear();
-    //         mockSupabaseEq.mockClear();
+    describe("deleteMyQualification", () => {
+        test("deletes qualification", async () => {
+            req.params = { id: "qual-123" };
+            mockSupabaseDelete.mockReturnValue({ eq: mockSupabaseEq });
+            mockSupabaseFrom.mockReturnValue({ delete: mockSupabaseDelete });
+            mockSupabaseEq.mockResolvedValue({ error: null });
 
-    //         // Ensure the chain is properly set up
-    //         mockSupabaseDelete.mockReturnValue({ eq: mockSupabaseEq });
-    //         mockSupabaseFrom.mockReturnValue({ delete: mockSupabaseDelete });
-    //     });
+            await deleteMyQualification(req, res, next);
 
-    //     test("deletes qualification", async () => {
-    //         req.params = { id: "qual-123" };
-    //         mockSupabaseEq.mockResolvedValue({ error: null });
+            expect(mockSupabaseFrom).toHaveBeenCalledWith("applicant_qualifications");
+            expect(mockSupabaseDelete).toHaveBeenCalled();
+            expect(mockSupabaseEq).toHaveBeenCalledWith("id", "qual-123");
+            expect(res.json).toHaveBeenCalledWith({ success: true });
+        });
 
-    //         await deleteMyQualification(req, res, next);
+        test("handles deletion error result", async () => {
+            req.params = { id: "qual-123" };
+            const error = new Error("Delete failed");
+            mockSupabaseDelete.mockReturnValue({ eq: mockSupabaseEq });
+            mockSupabaseFrom.mockReturnValue({ delete: mockSupabaseDelete });
+            mockSupabaseEq.mockResolvedValue({ error });
 
-    //         expect(mockSupabaseFrom).toHaveBeenCalledWith("applicant_qualifications");
-    //         expect(mockSupabaseDelete).toHaveBeenCalled();
-    //         expect(mockSupabaseEq).toHaveBeenCalledWith("id", "qual-123");
-    //         expect(res.json).toHaveBeenCalledWith({ success: true });
-    //     });
+            await deleteMyQualification(req, res, next);
 
-    //     test("handles deletion error", async () => {
-    //         req.params = { id: "qual-123" };
-    //         const error = new Error("Delete failed");
-    //         mockSupabaseEq.mockResolvedValue({ error });
+            expect(next).toHaveBeenCalledWith(error);
+        });
 
-    //         await deleteMyQualification(req, res, next);
+        test("handles query rejection", async () => {
+            req.params = { id: "qual-123" };
+            const error = new Error("Database connection failed");
+            mockSupabaseDelete.mockReturnValue({ eq: mockSupabaseEq });
+            mockSupabaseFrom.mockReturnValue({ delete: mockSupabaseDelete });
+            mockSupabaseEq.mockRejectedValue(error);
 
-    //         expect(mockSupabaseFrom).toHaveBeenCalledWith("applicant_qualifications");
-    //         expect(next).toHaveBeenCalledWith(error);
-    //     });
+            await deleteMyQualification(req, res, next);
 
-    //     test("handles database query error", async () => {
-    //         req.params = { id: "qual-123" };
-    //         const error = new Error("Database connection failed");
-    //         mockSupabaseEq.mockRejectedValue(error);
+            expect(next).toHaveBeenCalledWith(error);
+        });
+    });
 
-    //         await deleteMyQualification(req, res, next);
+    describe("getSignedCVUrl", () => {
+        test("returns null when no CV exists", async () => {
+            mockSupabaseFrom.mockImplementation((table) => {
+                if (table === "profiles") {
+                    return {
+                        select: () => ({
+                            eq: () => ({
+                                single: async () => ({ data: { id: "profile-1" } }),
+                            }),
+                        }),
+                    };
+                }
 
-    //         expect(mockSupabaseFrom).toHaveBeenCalledWith("applicant_qualifications");
-    //         expect(next).toHaveBeenCalledWith(error);
-    //     });
-    // });
+                if (table === "applicant_profiles") {
+                    return {
+                        select: () => ({
+                            eq: () => ({
+                                single: async () => ({ data: { cv_url: null } }),
+                            }),
+                        }),
+                    };
+                }
+
+                return undefined;
+            });
+
+            await getSignedCVUrl(req, res, next);
+
+            expect(res.json).toHaveBeenCalledWith({ success: true, signed_url: null });
+            expect(mockService.getApplicantCVSignedUrl).not.toHaveBeenCalled();
+        });
+
+        test("returns signed URL when CV exists", async () => {
+            mockSupabaseFrom.mockImplementation((table) => {
+                if (table === "profiles") {
+                    return {
+                        select: () => ({
+                            eq: () => ({
+                                single: async () => ({ data: { id: "profile-1" } }),
+                            }),
+                        }),
+                    };
+                }
+
+                if (table === "applicant_profiles") {
+                    return {
+                        select: () => ({
+                            eq: () => ({
+                                single: async () => ({ data: { cv_url: "cv/path.pdf" } }),
+                            }),
+                        }),
+                    };
+                }
+
+                return undefined;
+            });
+            mockService.getApplicantCVSignedUrl.mockResolvedValue("https://signed-url");
+
+            await getSignedCVUrl(req, res, next);
+
+            expect(mockService.getApplicantCVSignedUrl).toHaveBeenCalledWith("cv/path.pdf");
+            expect(res.json).toHaveBeenCalledWith({ success: true, signed_url: "https://signed-url" });
+        });
+
+        test("passes errors to next", async () => {
+            const error = new Error("Profile query failed");
+            mockSupabaseFrom.mockImplementation((table) => {
+                if (table === "profiles") {
+                    return {
+                        select: () => ({
+                            eq: () => ({
+                                single: async () => {
+                                    throw error;
+                                },
+                            }),
+                        }),
+                    };
+                }
+
+                return undefined;
+            });
+
+            await getSignedCVUrl(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(error);
+        });
+    });
+
+    describe("getApplicantProfileById", () => {
+        test("returns 400 when applicant profile id is missing", async () => {
+            req.params = {};
+
+            await getApplicantProfileById(req, res, next);
+
+            expect(res.status).toHaveBeenCalledWith(400);
+            expect(res.json).toHaveBeenCalledWith({
+                success: false,
+                error: "Applicant profile ID is required",
+            });
+            expect(mockService.getApplicantProfileByProfileId).not.toHaveBeenCalled();
+        });
+
+        test("returns applicant profile by id", async () => {
+            req.params = { applicantProfileId: "ap-123" };
+            const profile = { id: "ap-123", headline: "Engineer" };
+            mockService.getApplicantProfileByProfileId.mockResolvedValue(profile);
+
+            await getApplicantProfileById(req, res, next);
+
+            expect(mockService.getApplicantProfileByProfileId).toHaveBeenCalledWith("ap-123");
+            expect(res.json).toHaveBeenCalledWith({ success: true, profile });
+        });
+
+        test("handles errors", async () => {
+            req.params = { applicantProfileId: "ap-123" };
+            const error = new Error("Lookup failed");
+            mockService.getApplicantProfileByProfileId.mockRejectedValue(error);
+
+            await getApplicantProfileById(req, res, next);
+
+            expect(next).toHaveBeenCalledWith(error);
+        });
+    });
 });

@@ -1,5 +1,7 @@
 import { jest } from "@jest/globals";
 
+const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
 const mockVerifyGoogleToken = jest.fn();
 const mockGenerateJWT = jest.fn(() => "mock-jwt");
 const mockFrom = jest.fn();
@@ -39,6 +41,10 @@ describe("googleAuth controller", () => {
       json: jest.fn(),
     };
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   test("returns 400 if no token provided", async () => {
