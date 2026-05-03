@@ -225,8 +225,10 @@ const OpportunityForm = () => {
     }
 
     setStatus("success");
-    if (!isEditing) setForm(EMPTY_FORM);
-    setSelectedSkills([]);
+    if (!isEditing) {
+      setForm(EMPTY_FORM);
+      setSelectedSkills([]);
+    }
   };
 
   const handleDraft = async () => {

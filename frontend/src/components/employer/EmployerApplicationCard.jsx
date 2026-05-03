@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 const STATUS_CONFIG = {
     received: { color: 'bg-yellow-100 text-yellow-800', icon: '⏳', label: 'Pending Review' },
     shortlisted: { color: 'bg-blue-100 text-blue-800', icon: '⭐', label: 'Shortlisted' },
+    offered: { color: 'bg-green-100 text-green-800', icon: '📩', label: 'Offer Sent' },
     accepted: { color: 'bg-green-100 text-green-800', icon: '✅', label: 'Accepted' },
     rejected: { color: 'bg-red-100 text-red-800', icon: '❌', label: 'Rejected' }
 };
@@ -14,7 +15,7 @@ const SectionBlock = ({ title, children }) => (
     </section>
 );
 
-const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject, isProcessing = false, token }) => {
+const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, isProcessing = false, token }) => {
 
     const API = import.meta.env.VITE_API_URL;
 
@@ -41,24 +42,21 @@ const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject,
             try {
                 const headers = { Authorization: `Bearer ${token}` };
 
-                const [skillsRes, profileRes] = await Promise.all([
-                    fetch(`${API}/api/skills/applicant/${applicant.applicantProfileId}`, { headers }),
-                    fetch(`${API}/api/profile/${applicant.applicantProfileId}`, { headers }),
-                ]);
+                const detailsRes = await fetch(
+                    `${API}/api/employer/applications/${application.applicationId}/details`,
+                    { headers }
+                );
 
-                const [skillsData, profileData] = await Promise.all([
-                    skillsRes.json(),
-                    profileRes.json(),
-                ]);
+                const detailsData = await detailsRes.json();
 
-                if (skillsData.success) {
-                    setSkills(skillsData.applicantSkills || skillsData.data || skillsData.skills || []);
+                if (detailsData.success) {
+                    setSkills(detailsData.applicantSkills || detailsData.data || detailsData.skills || []);
                 }
 
                 const qualificationsData =
-                    profileData.profile?.qualifications ||
-                    profileData.profile?.data?.qualifications ||
-                    profileData.qualifications ||
+                    detailsData.qualifications ||
+                    detailsData.profile?.qualifications ||
+                    detailsData.profile?.data?.qualifications ||
                     [];
 
                 setQualifications(qualificationsData);
@@ -269,11 +267,11 @@ const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject,
                     {status === 'shortlisted' && (
                         <nav className="flex gap-3 pt-2">
                             <button
-                                onClick={(e) => { e.stopPropagation(); onAccept(application.applicationId); }}
+                                onClick={(e) => { e.stopPropagation(); onOffer(application.applicationId); }}
                                 disabled={isProcessing}
                                 className="px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 transition disabled:opacity-50"
                             >
-                                ✅ Accept Offer
+                                📩 Send Offer
                             </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); onReject(application.applicationId); }}
@@ -289,6 +287,12 @@ const EmployerApplicationCard = ({ application, onShortlist, onAccept, onReject,
                     {status === 'shortlisted' && (
                         <section className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                             <p className="text-sm text-blue-700">⭐ Candidate has been shortlisted. You can now accept or reject.</p>
+                        </section>
+                    )}
+
+                    {status === 'offered' && (
+                        <section className="mt-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <p className="text-sm text-green-700">📩 Offer has been sent. Waiting for the applicant's response.</p>
                         </section>
                     )}
 

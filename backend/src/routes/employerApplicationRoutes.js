@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { supabase } from '../config/supabaseClient.js';
 import providerAuthMiddleware from '../middleware/providerAuthMiddleware.js';
 import { getApplicantCVSignedUrl } from '../services/profileService.js';
+import { getApplicantDetailsForApplication } from '../services/employerApplicationService.js';
 import { notifyApplicationStatusChange } from "../services/notificationService.js";
 
 
@@ -9,6 +10,25 @@ const router = Router();
 
 // All routes require provider authentication
 router.use(providerAuthMiddleware);
+
+// GET /api/employer/applications/:applicationId/details
+router.get('/:applicationId/details', async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const providerProfileId = req.user?.profileId;
+
+    if (!applicationId) {
+      return res.status(400).json({ success: false, error: 'Application ID required' });
+    }
+
+    const details = await getApplicantDetailsForApplication(applicationId, providerProfileId);
+
+    res.json({ success: true, ...details });
+  } catch (error) {
+    const status = error.message?.startsWith('Unauthorized') ? 403 : 500;
+    res.status(status).json({ success: false, error: error.message });
+  }
+});
 
 // GET /api/employer/applications/opportunity/:opportunityId
 router.get('/opportunity/:opportunityId', async (req, res) => {
@@ -187,9 +207,8 @@ router.patch('/:applicationId', async (req, res) => {
     }
 
     const message = status === 'shortlisted' ? 'Candidate shortlisted successfully' :
-                    status === 'accepted' ? 'Candidate accepted successfully' :
-                    status === 'offered' ? 'Offer sent successfully' :
-                    'Candidate rejected successfully';
+            status === 'offered' ? 'Offer sent successfully' :
+            'Candidate rejected successfully';
 
     res.json({ success: true, message, data });
 

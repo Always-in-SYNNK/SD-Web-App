@@ -23,9 +23,10 @@ const JobCard = ({
   const styles = STATUS_STYLES[status] || STATUS_STYLES.draft;
   const isDraft = status === "draft";
 
-  const formattedStipend = stipend
-    ? `R${Number(stipend).toLocaleString()}/month`
-    : null;
+  const formattedStipend =
+    stipend !== null && stipend !== undefined && stipend !== ""
+      ? `R${Number(stipend).toLocaleString()}/month`
+      : null;
 
   const formattedDate = closing_date
     ? new Date(closing_date).toLocaleDateString("en-ZA", {

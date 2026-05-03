@@ -24,6 +24,7 @@ describe('Employer Application Service', () => {
     expect(fetch).toHaveBeenCalledWith(
       'http://localhost:3000/api/employer/applications/opportunity/opp-123',
       {
+        credentials: 'include',
         method: 'GET',
         headers: {
           'Authorization': 'Bearer fake-token',
