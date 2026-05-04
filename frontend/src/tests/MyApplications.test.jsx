@@ -14,6 +14,10 @@ vi.mock("../services/myApplicationService", () => ({
   unapplyFromApplication: mockUnapply,
 }));
 
+vi.mock("../context/useAuth", () => ({
+  useAuth: vi.fn(),
+}));
+
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
@@ -26,11 +30,19 @@ vi.mock("../components/applications/RecommendedPanel", () => ({
   RecommendedPanel: () => null,
 }));
 
+import { useAuth } from "../context/useAuth";
+
 const { default: MyApplications } = await import("../pages/MyApplications");
 
 describe("MyApplications", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuth.mockReturnValue({ token: "mock-token", user: { email: "jane@example.com" } });
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({
+        json: () => Promise.resolve({ profile: { full_name: "Jane Doe" } }),
+      })
+    );
   });
 
   // =========================

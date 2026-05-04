@@ -302,6 +302,82 @@ describe('Employer Application Service', () => {
   });
 
   // ============================================
+  // TEST 8B: Get applicant details - Linked qualification
+  // ============================================
+  test('getApplicantDetailsForApplication - returns linked qualification details', async () => {
+    const { getApplicantDetailsForApplication } = await import('../src/services/employerApplicationService.js');
+    const mockApplicationId = 'app-456';
+    const mockProviderId = 'provider-789';
+
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single.mockResolvedValueOnce({
+          data: {
+            id: mockApplicationId,
+            applicant_profiles: {
+              id: 'ap-2',
+              bio: 'Junior developer',
+              location: 'Pretoria',
+              nqf_level: 6,
+              cv_url: 'https://cv-2.pdf',
+              profiles: {
+                id: 'user-2',
+                full_name: 'Jane Smith',
+                email: 'jane@example.com',
+                role: 'applicant'
+              }
+            },
+            opportunities: { provider_id: mockProviderId }
+          },
+          error: null
+        });
+      }
+
+      if (table === 'applicant_qualifications') {
+        chain.eq.mockResolvedValueOnce({
+          data: [{
+            id: 'qual-2',
+            qualification_id: 'linked-qual-1',
+            qualification_name: null,
+            nqf_level: null,
+            field: null,
+            subfield: null,
+            status: 'verified',
+            originator: 'school',
+            date_obtained: '2023-12-01',
+            qualifications: {
+              title: 'BSc Information Technology',
+              nqf_level: 7,
+              field: 'IT',
+              subfield: 'Software Development'
+            }
+          }],
+          error: null
+        });
+      }
+
+      if (table === 'applicant_skills') {
+        chain.eq.mockResolvedValueOnce({ data: [], error: null });
+      }
+
+      return chain;
+    });
+
+    const result = await getApplicantDetailsForApplication(mockApplicationId, mockProviderId);
+
+    expect(result.qualifications).toHaveLength(1);
+    expect(result.qualifications[0].title).toBe('BSc Information Technology');
+    expect(result.qualifications[0].nqf_level).toBe(7);
+    expect(result.qualifications[0].field).toBe('IT');
+    expect(result.qualifications[0].subfield).toBe('Software Development');
+    expect(result.qualifications[0].originator).toBe('school');
+  });
+
+  // ============================================
   // TEST 9: Get applicant details - Missing applicationId
   // ============================================
   test('getApplicantDetailsForApplication - throws error when applicationId missing', async () => {
@@ -368,7 +444,59 @@ describe('Employer Application Service', () => {
   });
 
   // ============================================
-  // TEST 13: Update status - Offer status
+  // TEST 13: Get applicant details - Qualifications query failure
+  // ============================================
+  test('getApplicantDetailsForApplication - throws error when qualifications query fails', async () => {
+    const { getApplicantDetailsForApplication } = await import('../src/services/employerApplicationService.js');
+
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single.mockResolvedValueOnce({
+          data: {
+            id: 'app-123',
+            applicant_profiles: {
+              id: 'ap-1',
+              bio: 'Experienced developer',
+              location: 'Cape Town',
+              nqf_level: 7,
+              cv_url: 'https://cv.pdf',
+              profiles: {
+                id: 'user-1',
+                full_name: 'John Doe',
+                email: 'john@example.com',
+                role: 'applicant'
+              }
+            },
+            opportunities: { provider_id: 'provider-456' }
+          },
+          error: null
+        });
+      }
+
+      if (table === 'applicant_qualifications') {
+        chain.eq.mockResolvedValueOnce({
+          data: null,
+          error: new Error('Qualification query failed')
+        });
+      }
+
+      if (table === 'applicant_skills') {
+        chain.eq.mockResolvedValueOnce({ data: [], error: null });
+      }
+
+      return chain;
+    });
+
+    await expect(getApplicantDetailsForApplication('app-123', 'provider-456'))
+      .rejects.toThrow('Qualification query failed');
+  });
+
+  // ============================================
+  // TEST 14: Update status - Offer status
   // ============================================
   test('updateApplicationStatus - throws error for offered status in service', async () => {
     const mockApplicationId = 'app-123';
@@ -380,7 +508,7 @@ describe('Employer Application Service', () => {
   });
 
   // ============================================
-  // TEST 14: Update status - Unauthorized provider
+  // TEST 15: Update status - Unauthorized provider
   // ============================================
   test('updateApplicationStatus - throws error when provider unauthorized', async () => {
     const mockApplicationId = 'app-123';

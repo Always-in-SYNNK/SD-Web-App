@@ -54,4 +54,37 @@ describe('Employer Application Service', () => {
     const result = await updateApplicationStatus('app-123', 'rejected');
     expect(result.success).toBe(true);
   });
+
+  it('should handle fetch error when fetching applications', async () => {
+    localStorage.setItem('token', 'fake-token');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
+
+    await expect(getApplicationsForOpportunity('opp-123')).rejects.toThrow('Network error');
+  });
+
+  it('should handle unsuccessful fetch response', async () => {
+    localStorage.setItem('token', 'fake-token');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ success: false, error: 'Not found' })
+    }));
+
+    await expect(getApplicationsForOpportunity('opp-123')).rejects.toThrow();
+  });
+
+  it('should include authorization header in requests', async () => {
+    localStorage.setItem('token', 'test-token-123');
+    mockFetchResponse({ success: true, data: [] });
+
+    await getApplicationsForOpportunity('opp-456');
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'Authorization': 'Bearer test-token-123'
+        })
+      })
+    );
+  });
 });
