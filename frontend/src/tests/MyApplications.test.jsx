@@ -26,7 +26,7 @@ vi.mock("../components/applications/RecommendedPanel", () => ({
   RecommendedPanel: () => null,
 }));
 
-const { default: MyApplications } = await import("./MyApplications");
+const { default: MyApplications } = await import("../pages/MyApplications");
 
 describe("MyApplications", () => {
   beforeEach(() => {

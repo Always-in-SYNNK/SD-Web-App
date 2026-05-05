@@ -1,0 +1,174 @@
+import { getApplicationAnalytics, getTrendAnalytics, exportAnalytics } from "../src/controllers/analyticsController.js";
+import { getApplicationsPerOpportunity, getApplicationTrends, exportAnalyticsData } from "../src/services/analyticsService.js";
+
+// Mock the service functions
+jest.mock("../src/services/analyticsService.js");
+
+describe("Analytics Controller", () => {
+    let mockRequest;
+    let mockResponse;
+
+    beforeEach(() => {
+        mockRequest = {
+            user: { profileId: "test-provider-123", id: "test-provider-123", role: "provider" },
+        };
+        mockResponse = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+        };
+        jest.clearAllMocks();
+    });
+
+    describe("getApplicationAnalytics", () => {
+        test("should return analytics data successfully for authenticated provider", async () => {
+            const mockServiceResponse = {
+                data: [
+                    { opportunityTitle: "Test Role", count: 5, status: "approved" },
+                    { opportunityTitle: "Another Role", count: 3, status: "pending" },
+                ],
+                totals: {
+                    totalApplications: 8,
+                    activeOpportunities: 1,
+                    averagePerOpportunity: 4,
+                },
+            };
+
+            getApplicationsPerOpportunity.mockResolvedValue(mockServiceResponse);
+
+            await getApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(getApplicationsPerOpportunity).toHaveBeenCalledWith("test-provider-123");
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: mockServiceResponse.data,
+                totals: mockServiceResponse.totals,
+            });
+        });
+
+        test("should return 401 when user is not authenticated", async () => {
+            mockRequest.user = null;
+
+            await getApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: expect.stringContaining("Authentication required"),
+            });
+        });
+
+        test("should return 401 when profileId is missing", async () => {
+            mockRequest.user = { id: "user-123", role: "provider" };
+
+            await getApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: expect.stringContaining("Authentication required"),
+            });
+        });
+
+        test("should handle service errors with 500 status", async () => {
+            const serviceError = new Error("Database connection failed");
+            getApplicationsPerOpportunity.mockRejectedValue(serviceError);
+
+            await getApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(500);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: "Database connection failed",
+            });
+        });
+
+        test("should handle invalid provider ID with 400 status", async () => {
+            const validationError = new Error("Valid provider profile ID is required");
+            getApplicationsPerOpportunity.mockRejectedValue(validationError);
+
+            await getApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(400);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: "Valid provider profile ID is required",
+            });
+        });
+
+        test("should return empty data when provider has no opportunities", async () => {
+            const emptyResponse = {
+                data: [],
+                totals: {
+                    totalApplications: 0,
+                    activeOpportunities: 0,
+                    averagePerOpportunity: 0,
+                },
+            };
+            getApplicationsPerOpportunity.mockResolvedValue(emptyResponse);
+
+            await getApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: [],
+                totals: emptyResponse.totals,
+            });
+        });
+    });
+
+    describe("getTrendAnalytics", () => {
+        test("should return trend data successfully", async () => {
+            const mockTrendData = {
+                trends: [
+                    { month: "Jan", year: 2024, applications: 10 },
+                    { month: "Feb", year: 2024, applications: 15 },
+                ],
+            };
+            getApplicationTrends.mockResolvedValue(mockTrendData);
+
+            await getTrendAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: mockTrendData.trends,
+            });
+        });
+
+        test("should return 401 when user not authenticated for trends", async () => {
+            mockRequest.user = null;
+
+            await getTrendAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+        });
+    });
+
+    describe("exportAnalytics", () => {
+        test("should return export data successfully", async () => {
+            const mockExportData = {
+                data: [{ "Opportunity Title": "Test", "Total Applications": 5 }],
+                metadata: { generatedAt: "2024-01-01", totalOpportunities: 1, totalApplications: 5 },
+            };
+            exportAnalyticsData.mockResolvedValue(mockExportData);
+
+            await exportAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: mockExportData.data,
+                metadata: mockExportData.metadata,
+            });
+        });
+
+        test("should return 401 when user not authenticated for export", async () => {
+            mockRequest.user = null;
+
+            await exportAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+        });
+    });
+});

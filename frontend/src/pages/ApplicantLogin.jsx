@@ -28,11 +28,7 @@ export default function ApplicantLogin() {
 
     if (role === "applicant") {
       navigate(from || "/dashboard");
-    } else if (role === "employer") {
-      navigate("/employer/dashboard");
-    } else if (role === "admin") {
-      navigate("/admin");
-    }
+    } 
   };
 
   return (

@@ -11,11 +11,11 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-vi.mock("../../services/myApplicationService", () => ({
+vi.mock("../services/myApplicationService", () => ({
   applyToOpportunity: mockApply,
 }));
 
-const { OpportunityCard } = await import("./OpportunityCard");
+const { OpportunityCard } = await import("../components/opportunities/OpportunityCard");
 
 describe("OpportunityCard", () => {
   beforeEach(() => {

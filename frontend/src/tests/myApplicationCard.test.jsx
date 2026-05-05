@@ -7,7 +7,7 @@ vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
 }));
 
-const { ApplicationCard } = await import("./myApplicationCard");
+const { ApplicationCard } = await import("../components/applications/myApplicationCard");
 
 describe("ApplicationCard", () => {
   beforeEach(() => {

@@ -4,11 +4,11 @@ import {
   getFields,
   getNqfLevels,
   getOpportunities,
-} from "./api";
+} from "../lib/api";
 
 global.fetch = vi.fn();
 
-vi.mock("./api", () => ({
+vi.mock("../lib/api", () => ({
   getLocations: vi.fn(),
   getFields: vi.fn(),
   getNqfLevels: vi.fn(),

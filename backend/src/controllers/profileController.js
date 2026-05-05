@@ -6,7 +6,9 @@ import {
     saveApplicantCVPath,
     deleteApplicantCVIfExists,
     addApplicantQualificationByUserId,
+    getApplicantCVSignedUrl
 } from "../services/profileService.js";
+import { supabase } from "../config/supabaseClient.js";
 
 export async function getMyApplicantProfile(req, res, next) {
     try {
@@ -103,4 +105,23 @@ export async function deleteMyQualification(req, res, next) {
         if (error) throw error;
         res.json({ success: true });
     } catch (error) { next(error); }
+}
+
+export async function getSignedCVUrl(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { data: profile } = await supabase
+      .from("profiles").select("id").eq("user_id", userId).single();
+    const { data: applicantProfile } = await supabase
+      .from("applicant_profiles").select("cv_url").eq("profile_id", profile.id).single();
+
+    if (!applicantProfile?.cv_url) {
+      return res.json({ success: true, signed_url: null });
+    }
+
+    const signedUrl = await getApplicantCVSignedUrl(applicantProfile.cv_url);
+    res.json({ success: true, signed_url: signedUrl });
+  } catch (error) {
+    next(error);
+  }
 }

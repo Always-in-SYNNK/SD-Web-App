@@ -1,4 +1,6 @@
 import { supabase } from "../config/supabaseClient.js";
+import { createNotification } from "./notificationService.js";
+import { setOpportunitySkills } from "./skillsService.js";
 
 function buildOpportunitySearchQuery(baseQuery, { search, location, nqfLevel, field }) {
   let query = baseQuery;
@@ -108,8 +110,11 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
   const parsedPage = Math.max(Number(page) || 1, 1);
   const parsedLimit = Math.max(Number(limit) || 12, 1);
 
-  // Pull all matching opportunities first so count reflects filtered total.
-  let oppQuery = supabase.from("opportunities").select("*", { count: "exact" });
+  // Pull all APPROVED matching opportunities first so count reflects filtered total.
+  let oppQuery = supabase
+    .from("opportunities")
+    .select("*", { count: "exact" })
+    .eq("status", "approved");
 
   oppQuery = buildOpportunitySearchQuery(oppQuery, {
     search,
@@ -160,6 +165,7 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
 
 
 export async function createOpportunity({ userId, data, status }) {
+  //The data passed into the function needs to have a skills array attached?
   // 1. Resolve profile from either auth user ID (profiles.user_id) or profile ID (profiles.id).
   let { data: profile } = await supabase
     .from("profiles")
@@ -208,10 +214,107 @@ export async function createOpportunity({ userId, data, status }) {
         status,
       },
     ])
-    .select()
+    .select('id')
     .single();
 
   if (error) throw new Error(error.message);
 
+
+  // Only update skills if skillIds are provided
+  if (data.skillIds && data.skillIds.length > 0) {
+    const { error: skillsError } = await setOpportunitySkills(inserted.id, data.skillIds);
+    if (skillsError) throw new Error(skillsError.message);
+  }
   return inserted;
 }
+
+export async function updateOpportunityForProvider({ providerId, opportunityId, data }) {
+  const { data: existing, error: fetchError } = await supabase
+    .from("opportunities")
+    .select("id, provider_id")
+    .eq("id", opportunityId)
+    .maybeSingle();
+
+  if (fetchError) throw new Error(fetchError.message);
+  if (!existing) throw new Error("Opportunity not found");
+  if (existing.provider_id !== providerId) {
+    throw new Error("Not authorized to update this opportunity");
+  }
+
+  //We need to account for updates to the skills required for opportunities, needs to be included in the payload
+  await setOpportunitySkills(opportunityId, data.skillIds || []);
+
+  const payload = {
+    title: data.title,
+    description: data.description,
+    location: data.location,
+    stipend: data.stipend ? Number(data.stipend) : null,
+    nqf_level: data.nqf_level ? Number(data.nqf_level) : null,
+    duration: data.duration,
+    closing_date: data.closing_date || null,
+    field: data.field ?? null,
+    status: data.status,
+  };
+
+  const { data: updated, error: updateError } = await supabase
+    .from("opportunities")
+    .update(payload)
+    .eq("id", opportunityId)
+    .select()
+    .single();
+
+  if (updateError) throw new Error(updateError.message);
+
+
+  return updated;
+}
+
+export async function getOpportunityForProvider({ providerId, opportunityId }) {
+  const { data: opportunity, error } = await supabase
+    .from("opportunities")
+    .select("*")
+    .eq("id", opportunityId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!opportunity) throw new Error("Opportunity not found");
+  if (opportunity.provider_id !== providerId) {
+    throw new Error("Not authorized to view this opportunity");
+  }
+
+  return opportunity;
+}
+
+// admin functions
+export const getOpportunitiesByStatus = async (status) => {
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select("*")
+    .eq("status", status)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+export const getPending = async () => getOpportunitiesByStatus("pending");
+
+export const getApproved = async () => getOpportunitiesByStatus("approved");
+
+export const updateStatus = async (id, status) => {
+  const { error } = await supabase
+    .from("opportunities")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) throw error;
+};
+
+export const deleteOpportunityById = async (id) => {
+  const { error } = await supabase
+    .from("opportunities")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+};

@@ -16,13 +16,22 @@ import myApplicationRoutes from "./routes/myApplicationRoutes.js";
 import opportunityRoutes from "./routes/opportunityRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { startReminderCron } from "./cronJob.js";
+
+startReminderCron();
+import skillsRoutes from "./routes/skillsRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 const app = express();
 
+
+
+
 // SIMPLE CORS 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   credentials: true,
 }));
 
@@ -43,18 +52,26 @@ app.use(session({
 // ─── Application Routes ───────────────────────────────────────────────────────
 app.use('/api/applications', applicationRoutes);
 
-// ─── Employer Application Routes ──────────────────────────────────────────────────────
+// ─── Skills Routes ───────────────────────────────────────────────────────
+app.use('/api/skills', skillsRoutes);
+
+// ─── Employer Application Routes ──────────────────────────────────────────────
 app.use('/api/employer/applications', employerApplicationRoutes);
 
+// ─── Admin Routes ─────────────────────────────────────────────────────────────
+app.use("/api/admin", adminRoutes);
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
 app.use("/api/auth/applicant", applicantAuthRoutes);
 app.use("/api/auth/provider",  providerAuthRoutes);
 
-// ─── Application routes ─────────────────────────────────────────────────────────────
+// ─── Application routes ────────────────────────────────────────────────────────
 
 app.use("/applications", myApplicationRoutes);
+
+// ─── Analytics routes ────────────────────────────────────────────────────────
+app.use("/api/analytics", analyticsRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
 import { supabase } from "./config/supabaseClient.js";

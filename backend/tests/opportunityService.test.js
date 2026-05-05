@@ -18,6 +18,15 @@ mockOr.mockReturnValue({ ilike: mockIlike });
 mockSelect.mockReturnValue({ or: mockOr });
 mockFrom.mockReturnValue({ select: mockSelect });
 
+// Add this near the top of your test file, before importing opportunityService
+jest.unstable_mockModule("../src/services/skillsService.js", () => ({
+  setOpportunitySkills: jest.fn().mockResolvedValue({ error: null }),
+  setApplicantSkills: jest.fn().mockResolvedValue({ error: null }),
+  getSkillsByField: jest.fn().mockResolvedValue([]),
+  getApplicantSkills: jest.fn().mockResolvedValue([]),
+  getOpportunitySkills: jest.fn().mockResolvedValue([]),
+}));
+
 jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
   supabase: {
     rpc: mockRpc,
@@ -29,7 +38,14 @@ const {
   getDistinctLocations,
   getDistinctFields,
   getDistinctNqfLevels,
-  getFilteredOpportunitiesAndQualifications
+  getFilteredOpportunitiesAndQualifications,
+  createOpportunity,
+  updateOpportunityForProvider,
+  getOpportunityForProvider,
+  getPending,
+  getApproved,
+  updateStatus,
+  deleteOpportunityById,
 } = await import("../src/services/opportunityService.js");
 
 describe("opportunityService", () => {
@@ -178,6 +194,310 @@ describe("opportunityService", () => {
       mockRpc.mockResolvedValue({ data: null, error: null });
       const result = await getFilteredOpportunitiesAndQualifications();
       expect(result.summary.qualifications).toBe(0);
+    });
+  });
+
+  describe("provider CRUD and admin functions", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test("createOpportunity inserts and returns the inserted record", async () => {
+      // Mock the setOpportunitySkills call
+      const { setOpportunitySkills } = await import("../src/services/skillsService.js");
+      setOpportunitySkills.mockResolvedValue({ error: null });
+
+      // Mock profiles and provider_profiles
+      mockFrom.mockImplementation((table) => {
+        if (table === "profiles") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: { id: 10 }, error: null }),
+              }),
+            }),
+          };
+        }
+
+        if (table === "provider_profiles") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: { id: 20 }, error: null }),
+              }),
+            }),
+          };
+        }
+
+        if (table === "opportunities") {
+          return {
+            insert: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: { id: 99 }, error: null }),
+              }),
+            }),
+          };
+        }
+
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      const inserted = await createOpportunity({
+        userId: "u1",
+        data: { title: "Test", skillIds: [1, 2, 3] },
+        status: "pending",
+      });
+
+      expect(inserted).toEqual({ id: 99 });
+      expect(setOpportunitySkills).toHaveBeenCalledWith(99, [1, 2, 3]);
+    });
+
+    // test("updateOpportunityForProvider updates when authorized", async () => {
+    //   const providerId = 20;
+    //   const oppId = 55;
+
+    //   // First call: returns chain for fetch (select().eq().maybeSingle())
+    //   const fetchChain = {
+    //     select: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ maybeSingle: jest.fn().mockResolvedValue({ data: { id: oppId, provider_id: providerId }, error: null }) }) }),
+    //   };
+
+    //   // Second call: returns chain for update (update().eq().select().single())
+    //   const updateChain = {
+    //     update: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ select: jest.fn().mockReturnValue({ single: jest.fn().mockResolvedValue({ data: { id: oppId, title: "Updated" }, error: null }) }) }) }),
+    //   };
+
+    //   mockFrom.mockImplementationOnce((table) => fetchChain).mockImplementationOnce((table) => updateChain);
+
+    //   const updated = await updateOpportunityForProvider({
+    //     providerId,
+    //     opportunityId: oppId,
+    //     data: { title: "Updated" },
+    //   });
+
+    //   expect(updated).toEqual({ id: oppId, title: "Updated" });
+    // });
+
+    test("getOpportunityForProvider returns opportunity when authorized", async () => {
+      const providerId = 20;
+      const oppId = 77;
+
+      // Create a proper chainable mock
+      const mockQueryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        maybeSingle: jest.fn().mockResolvedValue({
+          data: { id: oppId, provider_id: providerId },
+          error: null
+        }),
+      };
+
+      mockFrom.mockReturnValue(mockQueryBuilder);
+
+      const result = await getOpportunityForProvider({ providerId, opportunityId: oppId });
+      expect(result).toEqual({ id: oppId, provider_id: providerId });
+    });
+
+    test("admin functions getPending/getApproved/updateStatus/deleteOpportunityById call supabase correctly", async () => {
+      // Mock list by status
+      mockFrom.mockImplementation((table) => {
+        if (table === "opportunities") {
+          return {
+            select: jest.fn().mockReturnValue({ eq: jest.fn().mockReturnValue({ order: jest.fn().mockResolvedValue({ data: [{ id: 1 }], error: null }) }) }),
+            update: jest.fn().mockReturnValue({ eq: jest.fn().mockResolvedValue({ error: null }) }),
+            delete: jest.fn().mockReturnValue({ eq: jest.fn().mockResolvedValue({ error: null }) }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      const pending = await getPending();
+      expect(pending).toEqual([{ id: 1 }]);
+
+      const approved = await getApproved();
+      expect(approved).toEqual([{ id: 1 }]);
+
+      await expect(updateStatus(5, "approved")).resolves.toBeUndefined();
+      await expect(deleteOpportunityById(9)).resolves.toBeUndefined();
+    });
+
+    test("createOpportunity throws when profile is missing", async () => {
+      mockFrom.mockImplementation((table) => {
+        if (table === "profiles") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: null, error: null }),
+              }),
+            }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      await expect(createOpportunity({ userId: "missing", data: { title: "Test" }, status: "pending" }))
+        .rejects.toThrow("Profile not found for authenticated user");
+    });
+
+    test("createOpportunity throws when provider profile is missing", async () => {
+      mockFrom.mockImplementation((table) => {
+        if (table === "profiles") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: { id: 10 }, error: null }),
+              }),
+            }),
+          };
+        }
+
+        if (table === "provider_profiles") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({ data: null, error: null }),
+              }),
+            }),
+          };
+        }
+
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      await expect(createOpportunity({ userId: "u1", data: { title: "Test" }, status: "pending" }))
+        .rejects.toThrow("Provider profile not found");
+    });
+
+    test("updateOpportunityForProvider throws when not found", async () => {
+      mockFrom.mockImplementation((table) => {
+        if (table === "opportunities") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+              }),
+            }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      await expect(updateOpportunityForProvider({ providerId: 1, opportunityId: 2, data: { title: "X" } }))
+        .rejects.toThrow("Opportunity not found");
+    });
+
+    test("updateOpportunityForProvider throws when not authorized", async () => {
+      mockFrom.mockImplementation((table) => {
+        if (table === "opportunities") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                maybeSingle: jest.fn().mockResolvedValue({ data: { id: 2, provider_id: 9 }, error: null }),
+              }),
+            }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      await expect(updateOpportunityForProvider({ providerId: 1, opportunityId: 2, data: { title: "X" } }))
+        .rejects.toThrow("Not authorized to update this opportunity");
+    });
+
+    test("updateOpportunityForProvider throws on update error", async () => {
+      const fetchChain = {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            maybeSingle: jest.fn().mockResolvedValue({ data: { id: 2, provider_id: 1 }, error: null }),
+          }),
+        }),
+      };
+      const updateChain = {
+        update: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({ data: null, error: { message: "Update failed" } }),
+            }),
+          }),
+        }),
+      };
+
+      mockFrom.mockImplementationOnce(() => fetchChain).mockImplementationOnce(() => updateChain);
+
+      await expect(updateOpportunityForProvider({ providerId: 1, opportunityId: 2, data: { title: "X" } }))
+        .rejects.toThrow("Update failed");
+    });
+
+    test("getOpportunityForProvider throws when not found or forbidden", async () => {
+      mockFrom.mockImplementationOnce((table) => {
+        if (table === "opportunities") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({ maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }) }),
+            }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+      await expect(getOpportunityForProvider({ providerId: 1, opportunityId: 2 })).rejects.toThrow("Opportunity not found");
+
+      mockFrom.mockImplementationOnce((table) => {
+        if (table === "opportunities") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({ maybeSingle: jest.fn().mockResolvedValue({ data: { id: 2, provider_id: 9 }, error: null }) }),
+            }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+      await expect(getOpportunityForProvider({ providerId: 1, opportunityId: 2 })).rejects.toThrow("Not authorized to view this opportunity");
+    });
+
+    test("getPending, getApproved, updateStatus and deleteOpportunityById cover success and error paths", async () => {
+      mockFrom.mockImplementation((table) => {
+        if (table === "opportunities") {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                order: jest.fn().mockResolvedValue({ data: [{ id: 1 }], error: null }),
+              }),
+            }),
+            update: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ error: null }),
+            }),
+            delete: jest.fn().mockReturnValue({
+              eq: jest.fn().mockResolvedValue({ error: null }),
+            }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      await expect(getPending()).resolves.toEqual([{ id: 1 }]);
+      await expect(getApproved()).resolves.toEqual([{ id: 1 }]);
+      await expect(updateStatus(5, "approved")).resolves.toBeUndefined();
+      await expect(deleteOpportunityById(9)).resolves.toBeUndefined();
+
+      mockFrom.mockImplementation((table) => {
+        if (table === "opportunities") {
+          return {
+            update: jest.fn().mockReturnValue({
+              eq: jest.fn(() => {
+                throw new Error("Update failed");
+              }),
+            }),
+            delete: jest.fn().mockReturnValue({
+              eq: jest.fn(() => {
+                throw new Error("Delete failed");
+              }),
+            }),
+          };
+        }
+        return { select: jest.fn().mockResolvedValue({ data: null, error: null }) };
+      });
+
+      await expect(updateStatus(6, "approved")).rejects.toThrow("Update failed");
+      await expect(deleteOpportunityById(10)).rejects.toThrow("Delete failed");
     });
   });
 });

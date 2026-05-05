@@ -4,7 +4,14 @@ import {
   getDistinctNqfLevels,
   getFilteredOpportunitiesAndQualifications,
   createOpportunity,
+  updateOpportunityForProvider,
+  getOpportunityForProvider,
+  getPending,
+  getApproved,
+  updateStatus,
+  deleteOpportunityById,
 } from '../services/opportunityService.js';
+import { notifyAllApplicantsNewOpportunity } from '../services/reminderService.js';
 
 export async function fetchLocations(req, res, next) {
   try {
@@ -53,6 +60,7 @@ export async function fetchOpportunities(req, res, next) {
   }
 }
 
+// ✅ ONLY ONE publishOpportunity function (with notification)
 export async function publishOpportunity(req, res) {
   try {
     const userId = req.user?.id;
@@ -67,6 +75,10 @@ export async function publishOpportunity(req, res) {
       data,
       status: "pending",
     });
+
+    if (result) {
+      await notifyAllApplicantsNewOpportunity(result.id, data.title);
+    }
 
     res.status(201).json({ success: true, data: result });
   } catch (err) {
@@ -94,3 +106,123 @@ export async function saveDraft(req, res) {
     res.status(500).json({ error: err.message });
   }
 }
+
+export async function updateOpportunity(req, res) {
+  try {
+    const providerId = req.user?.profileId;
+    if (!providerId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const { id } = req.params;
+    const data = req.body;
+
+    const result = await updateOpportunityForProvider({
+      providerId,
+      opportunityId: id,
+      data,
+    });
+
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    if (err.message === "Opportunity not found") {
+      return res.status(404).json({ error: err.message });
+    }
+
+    if (err.message === "Not authorized to update this opportunity") {
+      return res.status(403).json({ error: err.message });
+    }
+
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export async function getOpportunity(req, res) {
+  try {
+    const providerId = req.user?.profileId;
+    if (!providerId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const { id } = req.params;
+    const result = await getOpportunityForProvider({
+      providerId,
+      opportunityId: id,
+    });
+
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    if (err.message === "Opportunity not found") {
+      return res.status(404).json({ error: err.message });
+    }
+
+    if (err.message === "Not authorized to view this opportunity") {
+      return res.status(403).json({ error: err.message });
+    }
+
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export const getPendingOpportunities = async (req, res) => {
+  try {
+    const data = await getPending();
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getApprovedOpportunities = async (req, res) => {
+  try {
+    const data = await getApproved();
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const approveOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await updateStatus(id, "approved");
+
+    res.status(200).json({
+      success: true,
+      data: { id, status: "approved", message: "Approved" },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const rejectOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await updateStatus(id, "rejected");
+
+    res.status(200).json({
+      success: true,
+      data: { id, status: "rejected", message: "Rejected" },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteOpportunity = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await deleteOpportunityById(id);
+
+    res.status(200).json({
+      success: true,
+      data: { id, message: "Deleted" },
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

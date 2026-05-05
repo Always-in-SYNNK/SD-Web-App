@@ -2,6 +2,8 @@ import { jest } from "@jest/globals";
 
 //mock
 const mockFrom = jest.fn();
+const mockCreateNotification = jest.fn();
+const mockNotifyApplicationStatusChange = jest.fn();
 
 jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
   supabase: {
@@ -9,13 +11,18 @@ jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
   },
 }));
 
+jest.unstable_mockModule("../src/services/notificationService.js", () => ({
+  createNotification: mockCreateNotification,
+  notifyApplicationStatusChange: mockNotifyApplicationStatusChange,
+}));
+
 //import AFTER mock
-const { 
+const {
   applyToOpportunity,
   getApplicationsForUser,
   deleteApplicationForUser,
   acceptOffer
- } = await import("../src/services/myApplicationService.js");
+} = await import("../src/services/myApplicationService.js");
 
 
 describe("myApplicationService", () => {
@@ -27,6 +34,8 @@ describe("myApplicationService", () => {
 
   beforeEach(() => {
     mockFrom.mockReset();
+    mockCreateNotification.mockReset();
+    mockNotifyApplicationStatusChange.mockReset();
   });
 
   test("should create application with status 'received'", async () => {
@@ -54,41 +63,60 @@ describe("myApplicationService", () => {
       }),
     });
 
-    // 3. applications (duplicate check)
+    // 3. duplicate check - use maybeSingle
     mockFrom.mockReturnValueOnce({
       select: () => ({
         eq: () => ({
           eq: () => ({
-            single: async () => ({
-              data: null,
-              error: null,
-            }),
+            maybeSingle: async () => ({ data: null, error: null }), // No existing application
           }),
         }),
       }),
     });
 
-    // 4. applications (insert)
+    // 4. insert application - with .single()
     mockFrom.mockReturnValueOnce({
       insert: () => ({
-        select: async () => ({
-          data: [
-            {
+        select: () => ({
+          single: async () => ({
+            data: {
+              id: "app-123",
               applicant_id: "applicant-1",
               opportunity_id: opportunityId,
-              status: "applied",
+              status: "received",
             },
-          ],
-          error: null,
+            error: null,
+          }),
         }),
       }),
     });
 
+    // 5. get opportunity title
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({
+            data: { title: "Software Developer Role" },
+            error: null,
+          }),
+        }),
+      }),
+    });
+
+    mockCreateNotification.mockResolvedValue({ id: "noti-1" });
+
     const result = await applyToOpportunity({ userId, opportunityId });
 
     expect(result).toBeDefined();
+    expect(result.status).toBe("received");
+    expect(mockCreateNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        applicantId: "applicant-1",
+        applicationId: "app-123",
+        opportunityId,
+      })
+    );
   });
-
   // applytoOpportunities ===================================
   test("should return applications for user", async () => {
     // profiles
@@ -245,7 +273,7 @@ describe("myApplicationService", () => {
         eq: () => ({
           eq: () => ({
             single: async () => ({
-              data: { id: applicationId, status: "offered" },
+              data: { id: applicationId, status: "offered", opportunity_id: opportunityId },
             }),
           }),
         }),
@@ -265,9 +293,17 @@ describe("myApplicationService", () => {
       }),
     });
 
+    mockNotifyApplicationStatusChange.mockResolvedValue({ id: "noti-2" });
+
     const result = await acceptOffer({ userId, applicationId });
 
     expect(result.status).toBe("accepted");
+    expect(mockNotifyApplicationStatusChange).toHaveBeenCalledWith(
+      applicantId,
+      applicationId,
+      opportunityId,
+      "accepted"
+    );
   });
 
   test("should reject if not offered", async () => {
