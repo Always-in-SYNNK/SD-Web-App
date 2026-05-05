@@ -1,15 +1,17 @@
 // frontend/src/pages/AnalyticsPage.jsx
 //
-// ─── FRONTEND HOOKS (search for these comments before running) ────────────────
+// ─── What changed from the previous version ──────────────────────────────────
 //
-// 1. SIDEBAR: Same pattern as AdminAccessApplications.jsx — import the correct
-//    sidebar based on the user's role (provider vs applicant).
+// 1. Stat cards now use totals from the backend response (json.totals)
+//    instead of calculating them on the frontend. The backend returns:
+//    { totalApplications, activeOpportunities, averagePerOpportunity }
 //
-// 2. ADMINTOBAR: Reuse the same AdminTopbar you already use on other pages.
+// 2. Added an Export CSV button that calls GET /api/analytics/export
+//    and triggers a browser file download.
 //
-// 3. USEAUTH: Already in your context — same import as your other pages.
-//
-// 4. SERVICE: Import from the new analyticsService you created.
+// 3. MOCK_DATA is kept as a visual fallback only — used when the API
+//    call fails (e.g. backend not running locally). Remove it once
+//    you are confident the backend is stable.
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -25,25 +27,67 @@ import { useAuth }                      from "../context/useAuth";
 
 import ApplicationVolumeChart    from "../components/analytics/ApplicationVolumeChart";
 import OpportunityBreakdownTable from "../components/analytics/OpportunityBreakdownTable";
-
-// ── FRONTEND HOOK: import from the new service you created ────────────────────
-import { getApplicationVolume } from "../services/analyticsService";
-// ─────────────────────────────────────────────────────────────────────────────
+import { getApplicationVolume, exportAnalytics } from "../services/analyticsService";
 
 // ── MOCK DATA ─────────────────────────────────────────────────────────────────
-// Used as the initial fallback while the API isn't connected yet.
-// Once getApplicationVolume() returns real data this is never shown.
-const MOCK_DATA = [
-  { opportunityTitle: "Architecture Internship",        count: 68, status: "approved" },
-  { opportunityTitle: "Urban Design Grad Programme",    count: 54, status: "approved" },
-  { opportunityTitle: "Heritage Restoration Placement", count: 41, status: "approved" },
-  { opportunityTitle: "Structural Engineering Bursary", count: 37, status: "pending"  },
-  { opportunityTitle: "Landscape Design Learnership",   count: 28, status: "approved" },
-  { opportunityTitle: "CAD Technician Traineeship",     count: 19, status: "draft"    },
-];
+// Visual fallback only — shown when the API call fails.
+// The backend now provides statusBreakdown and location, so the mock
+// mirrors that shape so the UI looks correct in both states.
+const MOCK_DATA = {
+  data: [
+    {
+      opportunityTitle: "Architecture Internship",
+      count: 68, status: "approved",
+      location: "Johannesburg, ZA",
+      opportunityId: "mock-1",
+      statusBreakdown: { pending: 20, shortlisted: 30, accepted: 10, rejected: 8 },
+    },
+    {
+      opportunityTitle: "Urban Design Grad Programme",
+      count: 54, status: "approved",
+      location: "Cape Town, ZA",
+      opportunityId: "mock-2",
+      statusBreakdown: { pending: 15, shortlisted: 22, accepted: 12, rejected: 5 },
+    },
+    {
+      opportunityTitle: "Heritage Restoration Placement",
+      count: 41, status: "approved",
+      location: "Pretoria, ZA",
+      opportunityId: "mock-3",
+      statusBreakdown: { pending: 10, shortlisted: 18, accepted: 8, rejected: 5 },
+    },
+    {
+      opportunityTitle: "Structural Engineering Bursary",
+      count: 37, status: "pending",
+      location: "Durban, ZA",
+      opportunityId: "mock-4",
+      statusBreakdown: { pending: 37, shortlisted: 0, accepted: 0, rejected: 0 },
+    },
+    {
+      opportunityTitle: "Landscape Design Learnership",
+      count: 28, status: "approved",
+      location: "Johannesburg, ZA",
+      opportunityId: "mock-5",
+      statusBreakdown: { pending: 8, shortlisted: 12, accepted: 5, rejected: 3 },
+    },
+    {
+      opportunityTitle: "CAD Technician Traineeship",
+      count: 19, status: "draft",
+      location: "Cape Town, ZA",
+      opportunityId: "mock-6",
+      statusBreakdown: { pending: 19, shortlisted: 0, accepted: 0, rejected: 0 },
+    },
+  ],
+  // Mock totals mirror the shape the backend sends in json.totals
+  totals: {
+    totalApplications:      247,
+    activeOpportunities:    4,
+    averagePerOpportunity:  41,
+  },
+};
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── Metric stat card (same style as AdminAccessApplications) ─────────────────
+// ── Stat card — same style as AdminAccessApplications.jsx ────────────────────
 function StatCard({ label, value, color }) {
   return (
     <article className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -56,28 +100,31 @@ function StatCard({ label, value, color }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
   const location = useLocation();
-  const {user} = useAuth();
-  const source           = location.state?.source || "applicant";
+  const { user } = useAuth();
+  const source           = location.state?.source || "provider"; // analytics is provider-facing
   const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
 
-  const [data,    setData]    = useState(MOCK_DATA); // starts with mock, replaced by real data
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState(null);
+  const [data,       setData]       = useState(MOCK_DATA.data);
+  const [totals,     setTotals]     = useState(MOCK_DATA.totals);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [exporting,  setExporting]  = useState(false);
 
-  // ── Fetch analytics data ──────────────────────────────────────────────────
+  // ── Fetch from backend ────────────────────────────────────────────────────
+  // getApplicationVolume() returns { data, totals } — both come from the backend.
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      // ── FRONTEND HOOK: this calls your real backend once it's running ──────
-      // While the backend isn't ready, getApplicationVolume() will also return
-      // MOCK_DATA from analyticsService.js — so the page still renders.
       const result = await getApplicationVolume();
-      setData(result);
+      setData(result.data);
+      setTotals(result.totals); // backend-calculated totals, not derived here
     } catch (err) {
       console.error("[AnalyticsPage]", err.message);
-      setError("Could not load analytics. Showing mock data.");
-      setData(MOCK_DATA); // graceful fallback
+      setError("Could not load live analytics. Showing example data.");
+      // Keep MOCK_DATA visible so the page doesn't go blank
+      setData(MOCK_DATA.data);
+      setTotals(MOCK_DATA.totals);
     } finally {
       setLoading(false);
     }
@@ -85,10 +132,18 @@ export default function AnalyticsPage() {
 
   useEffect(() => { void fetchData(); }, [fetchData]);
 
-  // ── Derived metrics ───────────────────────────────────────────────────────
-  const total   = data.reduce((s, d) => s + d.count, 0);
-  const oppCount = data.length;
-  const avg     = oppCount > 0 ? Math.round(total / oppCount) : 0;
+  // ── Export handler ────────────────────────────────────────────────────────
+  // Calls GET /api/analytics/export and triggers a CSV download.
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      await exportAnalytics();
+    } catch (err) {
+      console.error("[AnalyticsPage] Export failed:", err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // ── Loading state ─────────────────────────────────────────────────────────
   if (loading) {
@@ -105,7 +160,7 @@ export default function AnalyticsPage() {
 
       <main className="ml-64 min-h-screen w-full min-w-0">
 
-        {/* ── Topbar (reused from other pages) ── */}
+        {/* ── Topbar ── */}
         <AdminTopbar title="Analytics" source={source} />
 
         <div className="p-12">
@@ -115,15 +170,28 @@ export default function AnalyticsPage() {
             <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
               System Control Room
             </span>
-            <h2 className="text-3xl font-extrabold mt-2 tracking-tight">
-              Analytics &amp; Governance
-            </h2>
-            <p className="text-gray-500 mt-2">
-              Application volume per opportunity across all providers.
-            </p>
+            <div className="flex items-end justify-between mt-2">
+              <div>
+                <h2 className="text-3xl font-extrabold tracking-tight">
+                  Analytics &amp; Governance
+                </h2>
+                <p className="text-gray-500 mt-2">
+                  Application volume per opportunity across all your listings.
+                </p>
+              </div>
+
+              {/* Export button — calls GET /api/analytics/export */}
+              <button
+                onClick={handleExport}
+                disabled={exporting || data.length === 0}
+                className="flex items-center gap-2 px-5 py-2.5 bg-[#035b9d] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#024a83] disabled:opacity-50 transition"
+              >
+                {exporting ? "Exporting…" : "Export CSV"}
+              </button>
+            </div>
           </div>
 
-          {/* ── Error banner (only shown if fetch failed) ── */}
+          {/* ── Error banner ── */}
           {error && (
             <div className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
               {error}
@@ -131,30 +199,33 @@ export default function AnalyticsPage() {
           )}
 
           {/* ── Stat cards ── */}
+          {/* Values come from totals object returned by the backend */}
           <section className="grid grid-cols-3 gap-4 mb-8">
             <StatCard
               label="Total Applications"
-              value={total}
+              value={totals.totalApplications}
               color="text-gray-800"
             />
             <StatCard
               label="Active Opportunities"
-              value={oppCount}
+              value={totals.activeOpportunities}
               color="text-[#035b9d]"
             />
             <StatCard
               label="Avg. Applications / Opportunity"
-              value={avg}
+              value={totals.averagePerOpportunity}
               color="text-green-600"
             />
           </section>
 
           {/* ── Chart ── */}
+          {/* data array includes statusBreakdown per opportunity for tooltip */}
           <section className="mb-6">
             <ApplicationVolumeChart data={data} />
           </section>
 
           {/* ── Breakdown table ── */}
+          {/* Renders statusBreakdown columns + location from backend data */}
           <section>
             <OpportunityBreakdownTable data={data} />
           </section>

@@ -1,110 +1,69 @@
 // frontend/src/services/analyticsService.js
 //
-// ─── FRONTEND HOOK ───────────────────────────────────────────────────────────
-// Check your other service files in frontend/src/services/ to see how you
-// make API calls. You likely use axios with a base URL from import.meta.env.VITE_API_URL
-// Replace the fetch below with your existing axios instance if you have one.
-// Updated to work with our backend implementation
-// ─────────────────────────────────────────────────────────────────────────────
+// Connects to the real backend analytics endpoints.
+// The backend uses providerAuthMiddleware — the user must be logged in as a provider.
+//
+// Base URL comes from your existing VITE_API_URL env variable —
+// same pattern used across all other service files in this project.
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-/**
- * Get authentication headers for API requests
- */
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-};
+// ─── Shared fetch helper ──────────────────────────────────────────────────────
+// Mirrors the pattern in your other service files (credentials: "include"
+// sends the session cookie that providerAuthMiddleware validates).
+async function apiFetch(path) {
+  const res  = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  const json = await res.json();
 
-/**
- * Fetch application volume data from backend
- * Returns array of { opportunityTitle, count, status }
- */
+  if (!res.ok || !json.success) {
+    throw new Error(json.error || `Request failed: ${res.status}`);
+  }
 
-  // ── FRONTEND HOOK: swap for axios if that's what your project uses ─────────
-  // Example with axios:
-  //   const { data } = await axiosInstance.get("/analytics/applications");
-  //   return data.data;
+  return json;
+}
 
+// ─── GET /api/analytics/applications ─────────────────────────────────────────
+// Backend returns:
+//   success — true/false
+//   data    — [{ opportunityTitle, count, status, location,
+//                opportunityId, statusBreakdown }]
+//   totals  — { totalApplications, activeOpportunities, averagePerOpportunity }
+//
+// Totals now come from the backend — we no longer calculate them on the frontend.
 export async function getApplicationVolume() {
-  try {
-    const response = await fetch(`${API_URL}/api/analytics/applications`, {
-      method: "GET",
-      credentials: "include",
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch analytics`);
-    }
-
-    const result = await response.json();
-    
-    // Backend returns { success, data, totals }
-    // Frontend expects just the data array
-    if (result.success && Array.isArray(result.data)) {
-      return result.data;
-    }
-    
-    // Fallback to empty array if structure is unexpected
-    console.warn("[AnalyticsService] Unexpected response structure:", result);
-    return [];
-    
-  } catch (error) {
-    console.error("[AnalyticsService] Error fetching application volume:", error);
-    throw error;
-  }
+  const json = await apiFetch("/api/analytics/applications");
+  return {
+    data:   json.data,    // array → fed into chart + table
+    totals: json.totals,  // object → fed into stat cards
+  };
 }
 
-/**
- * Fetch trend data for line charts
- */
+// ─── GET /api/analytics/trends ───────────────────────────────────────────────
+// Returns array of { month, year, applications } for the last 6 months.
+// Not used on the main page yet — wired up and ready for a future trend chart.
 export async function getApplicationTrends() {
-  try {
-    const response = await fetch(`${API_URL}/api/analytics/trends`, {
-      method: "GET",
-      credentials: "include",
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: Failed to fetch trends`);
-    }
-
-    const result = await response.json();
-    return result.success ? result.data : [];
-    
-  } catch (error) {
-    console.error("[AnalyticsService] Error fetching trends:", error);
-    return [];
-  }
+  const json = await apiFetch("/api/analytics/trends");
+  return json.data;
 }
 
-/**
- * Export analytics data
- */
-export async function exportAnalyticsData() {
-  try {
-    const response = await fetch(`${API_URL}/api/analytics/export`, {
-      method: "GET",
-      credentials: "include",
-      headers: getAuthHeaders(),
-    });
+// ─── GET /api/analytics/export ───────────────────────────────────────────────
+// Fetches CSV-ready data from the backend and triggers a browser file download.
+export async function exportAnalytics() {
+  const json = await apiFetch("/api/analytics/export");
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: Failed to export data`);
-    }
+  if (!json.data || json.data.length === 0) return;
 
-    const result = await response.json();
-    return result.success ? { data: result.data, metadata: result.metadata } : null;
-    
-  } catch (error) {
-    console.error("[AnalyticsService] Error exporting data:", error);
-    return null;
-  }
+  const headers = Object.keys(json.data[0]);
+  const rows    = json.data.map((row) =>
+    headers.map((h) => `"${String(row[h] ?? "").replace(/"/g, '""')}"`).join(",")
+  );
+
+  const csv  = [headers.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = `analytics-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
