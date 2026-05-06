@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { AuthProvider } from '../context/AuthContext';
 import Opportunities from '../pages/Opportunities';
+
+vi.mock('../context/authContextValue', () => {
+  const { createContext } = require('react');
+  const AuthContext = createContext({ token: 'mock-token', user: { email: 'test@test.com' } });
+  return { default: AuthContext };
+});
 
 vi.mock('../lib/api', () => ({
   getLocations: vi.fn().mockResolvedValue({ data: ['Cape Town', 'Johannesburg'] }),
@@ -17,11 +22,7 @@ vi.mock('../components/notifications/notificationDropdown', () => ({ Notificatio
 
 describe('Opportunities', () => {
   it('should render the page', () => {
-    render(
-      <AuthProvider>
-        <Opportunities />
-      </AuthProvider>
-    );
+    render(<Opportunities />);
     expect(screen.getByText('Accredited Opportunities')).toBeDefined();
   });
 });
