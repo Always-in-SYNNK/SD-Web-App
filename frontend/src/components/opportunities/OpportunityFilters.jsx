@@ -18,6 +18,7 @@ export function OpportunityFilters({
     "Northern Cape",
     "North West",
     "Western Cape",
+    "Remote/Other",
   ];
 
   const NQF_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

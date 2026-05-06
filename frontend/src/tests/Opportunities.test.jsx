@@ -1,23 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import Opportunities from '../pages/Opportunities';
+import Qualifications from '../pages/Qualifications';
 
-// Remove unused 'beforeEach' import
-
-vi.mock('../lib/api', () => ({
-  getLocations: vi.fn().mockResolvedValue({ data: ['Cape Town', 'Johannesburg'] }),
-  getFields: vi.fn().mockResolvedValue({ data: ['IT', 'Finance'] }),
-  getNqfLevels: vi.fn().mockResolvedValue({ data: ['4', '5', '6'] }),
-  getOpportunities: vi.fn().mockResolvedValue({ data: [], pagination: {}, summary: {} })
+vi.mock('../context/useAuth', async () => ({
+  useAuth: vi.fn(() => ({ token: 'mock-token', user: { email: 'test@test.com' } }))
 }));
 
+vi.mock('../lib/supabaseClient', () => ({
+  supabase: {
+    rpc: vi.fn().mockResolvedValue({ data: [], error: null })
+  }
+}));
+
+vi.mock('../components/opportunities/QualificationCard', () => ({ QualificationCard: () => <article>Qualification</article> }));
 vi.mock('../components/dashboard/Sidebar', () => ({ Sidebar: () => <aside>Sidebar</aside> }));
 vi.mock('../components/opportunities/OpportunityFilters', () => ({ OpportunityFilters: () => <aside>Filters</aside> }));
-vi.mock('../components/opportunities/OpportunityList', () => ({ OpportunityList: () => <section>OpportunityList</section> }));
+vi.mock('../components/notifications/notificationDropdown', () => ({ NotificationDropdown: () => <div>Notifications</div> }));
 
-describe('Opportunities', () => {
-  it('should render the page', () => {
-    render(<Opportunities />);
-    expect(screen.getByText('Accredited Opportunities')).toBeDefined();
+describe('Qualifications', () => {
+  it('should render qualifications page', () => {
+    render(<Qualifications />);
+    expect(screen.getByText('Accredited Qualifications')).toBeDefined();
   });
 });
