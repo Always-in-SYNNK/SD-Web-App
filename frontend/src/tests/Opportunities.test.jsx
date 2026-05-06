@@ -1,24 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+
+const mockUseAuth = vi.fn(() => ({ token: 'mock-token', user: { email: 'test@test.com' } }));
+
+vi.mock('../context/useAuth', () => ({
+  useAuth: () => mockUseAuth()
+}));
+
 import Opportunities from '../pages/Opportunities';
 
-vi.mock('../context/useAuth', async () => ({
-  useAuth: vi.fn(() => ({ token: 'mock-token', user: { email: 'test@test.com' } }))
-}));
-
-vi.mock('../lib/api', () => ({
-  getLocations: vi.fn().mockResolvedValue({ data: ['Cape Town', 'Johannesburg'] }),
-  getFields: vi.fn().mockResolvedValue({ data: ['IT', 'Finance'] }),
-  getNqfLevels: vi.fn().mockResolvedValue({ data: ['4', '5', '6'] }),
-  getOpportunities: vi.fn().mockResolvedValue({ data: [], pagination: {}, summary: {} })
-}));
-
-vi.mock('../components/dashboard/Sidebar', () => ({ Sidebar: () => <aside>Sidebar</aside> }));
-vi.mock('../components/opportunities/OpportunityFilters', () => ({ OpportunityFilters: () => <aside>Filters</aside> }));
-vi.mock('../components/opportunities/OpportunityList', () => ({ OpportunityList: () => <section>OpportunityList</section> }));
-vi.mock('../components/notifications/notificationDropdown', () => ({ NotificationDropdown: () => <div>Notifications</div> }));
-
 describe('Opportunities', () => {
+  beforeEach(() => {
+    mockUseAuth.mockReturnValue({ token: 'mock-token', user: { email: 'test@test.com' } });
+  });
+
   it('should render the page', () => {
     render(<Opportunities />);
     expect(screen.getByText('Accredited Opportunities')).toBeDefined();
