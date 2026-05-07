@@ -8,8 +8,45 @@ import providerAuthMiddleware from "../middleware/providerAuthMiddleware.js";
 
 const router = Router();
 
-// Apply authentication middleware to all analytics routes
-router.use(providerAuthMiddleware);
+console.log('🔧 ANALYTICS ROUTES BEING LOADED...');
+
+// ============================================
+// PUBLIC ROUTES (No authentication required)
+// ============================================
+
+/**
+ * @route   GET /api/analytics/test
+ * @desc    Test endpoint to verify routes are working
+ * @access  Public
+ */
+router.get("/test", (req, res) => {
+  console.log("✅ TEST ROUTE WAS HIT!");
+  console.log("📋 Authorization header:", req.headers.authorization);
+  res.json({ 
+    success: true, 
+    message: "Test route works!",
+    authHeader: req.headers.authorization || "No auth header sent",
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * @route   GET /api/analytics/ping
+ * @desc    Simple ping endpoint to check if API is responding
+ * @access  Public
+ */
+router.get("/ping", (req, res) => {
+  console.log("🏓 PING ROUTE HIT!");
+  res.json({ 
+    success: true, 
+    message: "pong",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ============================================
+// PROTECTED ROUTES (Authentication required)
+// ============================================
 
 /**
  * @route   GET /api/analytics/applications
@@ -17,7 +54,7 @@ router.use(providerAuthMiddleware);
  * @access  Private (Provider only)
  * @returns Array of objects with opportunityTitle, count, status
  */
-router.get("/applications", getApplicationAnalytics);
+router.get("/applications", providerAuthMiddleware, getApplicationAnalytics);
 
 /**
  * @route   GET /api/analytics/trends
@@ -25,7 +62,7 @@ router.get("/applications", getApplicationAnalytics);
  * @access  Private (Provider only)
  * @returns Array of monthly application counts
  */
-router.get("/trends", getTrendAnalytics);
+router.get("/trends", providerAuthMiddleware, getTrendAnalytics);
 
 /**
  * @route   GET /api/analytics/export
@@ -33,6 +70,13 @@ router.get("/trends", getTrendAnalytics);
  * @access  Private (Provider only)
  * @returns Array of exportable data with metadata
  */
-router.get("/export", exportAnalytics);
+router.get("/export", providerAuthMiddleware, exportAnalytics);
+
+console.log('✅ Analytics routes registered:');
+console.log('   - GET /api/analytics/test (public)');
+console.log('   - GET /api/analytics/ping (public)');
+console.log('   - GET /api/analytics/applications (protected)');
+console.log('   - GET /api/analytics/trends (protected)');
+console.log('   - GET /api/analytics/export (protected)');
 
 export default router;
