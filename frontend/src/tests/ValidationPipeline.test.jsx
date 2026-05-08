@@ -42,11 +42,11 @@ describe('ValidationPipeline', () => {
       expect(screen.getByText('Validation Pipeline')).toBeDefined();
     });
 
-    expect(screen.getByText('No opportunities found.')).toBeDefined();
+    expect(screen.getByText('No opportunities found')).toBeDefined();
   });
 
   it('should display loading state initially', () => {
-    render(<ValidationPipeline />);
-    expect(screen.getByText('Loading...')).toBeDefined();
+    const { container } = render(<ValidationPipeline />);
+    expect(container.querySelector('.animate-spin')).toBeTruthy();
   });
 });

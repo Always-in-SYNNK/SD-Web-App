@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "dotenv": "^17.4.2",
+    "node-cron": "^4.2.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0"

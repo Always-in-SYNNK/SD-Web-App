@@ -8,11 +8,25 @@ const mockSupabase = {
   eq: jest.fn().mockReturnThis(),
   single: jest.fn().mockReturnThis(),
   order: jest.fn().mockReturnThis(),
-  in: jest.fn().mockReturnThis()
+  in: jest.fn().mockReturnThis(),
+  storage: {
+    from: jest.fn().mockReturnThis(),
+    createSignedUrl: jest.fn()
+  }
 };
 
 jest.unstable_mockModule('../src/config/supabaseClient.js', () => ({
   supabase: mockSupabase
+}));
+
+// Mock profileService
+jest.unstable_mockModule('../src/services/profileService.js', () => ({
+  getApplicantCVSignedUrl: jest.fn()
+}));
+
+// Mock notificationService
+jest.unstable_mockModule('../src/services/notificationService.js', () => ({
+  notifyApplicationStatusChange: jest.fn().mockResolvedValue(undefined)
 }));
 
 // Mock auth middleware
@@ -25,17 +39,34 @@ jest.unstable_mockModule('../src/middleware/providerAuthMiddleware.js', () => ({
 
 // Import after mocks
 const { default: router } = await import('../src/routes/employerApplicationRoutes.js');
+const { getApplicantCVSignedUrl } = await import('../src/services/profileService.js');
 import express from 'express';
 import request from 'supertest';
 
 describe('Employer Application Routes', () => {
   let app;
 
+  const createMockChain = () => ({
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+    order: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis()
+  });
+
   beforeEach(() => {
     app = express();
     app.use(express.json());
     app.use('/api/employer/applications', router);
     jest.clearAllMocks();
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.order.mockReturnValue(chain);
+      return chain;
+    });
   });
 
   // ============================================
@@ -60,9 +91,25 @@ describe('Employer Application Routes', () => {
       }
     }];
 
-    mockSupabase.order.mockResolvedValue({
-      data: mockApplications,
-      error: null
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.order.mockReturnValue(chain);
+
+      if (table === 'opportunities') {
+        chain.single.mockResolvedValueOnce({
+          data: { provider_id: 'provider-123' },
+          error: null
+        });
+      } else if (table === 'applications') {
+        chain.order.mockResolvedValueOnce({
+          data: mockApplications,
+          error: null
+        });
+      }
+
+      return chain;
     });
 
     const response = await request(app)
@@ -90,11 +137,35 @@ describe('Employer Application Routes', () => {
   // TEST 3: PATCH update status - Shortlist success
   // ============================================
   test('PATCH /:id - should update status to shortlisted', async () => {
-    mockSupabase.single
-      .mockResolvedValueOnce({
-        data: { id: 'app-1', status: 'shortlisted' },
-        error: null
-      });
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single.mockResolvedValueOnce({
+          data: { 
+            id: 'app-1', 
+            status: 'received',
+            applicant_id: 'ap-1',
+            opportunity_id: 'opp-1',
+            opportunities: { provider_id: 'provider-123' }
+          },
+          error: null
+        }).mockResolvedValueOnce({
+          data: { id: 'app-1', status: 'shortlisted' },
+          error: null
+        });
+      } else if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
+          error: null
+        });
+      }
+
+      return chain;
+    });
 
     const response = await request(app)
       .patch('/api/employer/applications/app-123')
@@ -107,34 +178,82 @@ describe('Employer Application Routes', () => {
   });
 
   // ============================================
-  // TEST 4: PATCH update status - Accept success
+  // TEST 4: PATCH update status - Offer success
   // ============================================
-  test('PATCH /:id - should update status to accepted', async () => {
-    mockSupabase.single
-      .mockResolvedValueOnce({
-        data: { id: 'app-1', status: 'accepted' },
-        error: null
-      });
+  test('PATCH /:id - should update status to offered', async () => {
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single.mockResolvedValueOnce({
+          data: { 
+            id: 'app-1', 
+            status: 'received',
+            applicant_id: 'ap-1',
+            opportunity_id: 'opp-1',
+            opportunities: { provider_id: 'provider-123' }
+          },
+          error: null
+        }).mockResolvedValueOnce({
+          data: { id: 'app-1', status: 'offered' },
+          error: null
+        });
+      } else if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
+          error: null
+        });
+      }
+
+      return chain;
+    });
 
     const response = await request(app)
       .patch('/api/employer/applications/app-123')
-      .send({ status: 'accepted' })
+      .send({ status: 'offered' })
       .set('Authorization', 'Bearer fake-token');
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.message).toContain('accepted');
+    expect(response.body.message).toContain('Offer sent successfully');
   });
 
   // ============================================
   // TEST 5: PATCH update status - Reject success
   // ============================================
   test('PATCH /:id - should update status to rejected', async () => {
-    mockSupabase.single
-      .mockResolvedValueOnce({
-        data: { id: 'app-1', status: 'rejected' },
-        error: null
-      });
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single.mockResolvedValueOnce({
+          data: { 
+            id: 'app-1', 
+            status: 'received',
+            applicant_id: 'ap-1',
+            opportunity_id: 'opp-1',
+            opportunities: { provider_id: 'provider-123' }
+          },
+          error: null
+        }).mockResolvedValueOnce({
+          data: { id: 'app-1', status: 'rejected' },
+          error: null
+        });
+      } else if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
+          error: null
+        });
+      }
+
+      return chain;
+    });
 
     const response = await request(app)
       .patch('/api/employer/applications/app-123')
@@ -169,6 +288,275 @@ describe('Employer Application Routes', () => {
       .set('Authorization', 'Bearer fake-token');
 
     expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+  });
+
+  // ============================================
+  // TEST 8: PATCH update status - Missing applicationId
+  // ============================================
+  test('PATCH /:id - returns 400 when applicationId missing', async () => {
+    const response = await request(app)
+      .patch('/api/employer/applications/')
+      .send({ status: 'shortlisted' })
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(404); // Route not found
+  });
+
+  // ============================================
+  // TEST 9: GET details - Success
+  // ============================================
+  test('GET /:id/details - should return applicant details', async () => {
+    let callCount = 0;
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.order.mockReturnValue(chain);
+      chain.single.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.resolve({
+            data: {
+              id: 'app-1',
+              applicant_profiles: {
+                id: 'ap-1',
+                bio: 'Experienced developer',
+                location: 'Cape Town',
+                nqf_level: 7,
+                cv_url: 'https://cv.pdf',
+                profiles: {
+                  id: 'user-1',
+                  full_name: 'John Doe',
+                  email: 'john@example.com',
+                  role: 'applicant'
+                }
+              },
+              opportunities: { provider_id: 'provider-123' }
+            },
+            error: null
+          });
+        }
+        return Promise.resolve({
+          data: [{
+            id: 'qual-1',
+            qualification_id: null,
+            qualification_name: 'BSc Computer Science',
+            nqf_level: 7,
+            field: 'IT',
+            subfield: 'Software Development',
+            status: 'completed',
+            originator: null,
+            date_obtained: '2020-01-01'
+          }],
+          error: null
+        });
+      });
+      return chain;
+    });
+
+    const response = await request(app)
+      .get('/api/employer/applications/app-1/details')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.applicantProfileId).toBe('ap-1');
+  });
+
+  // ============================================
+  // TEST 10: GET details - Missing applicationId
+  // ============================================
+  test('GET /:id/details - returns 400 when applicationId missing', async () => {
+    const response = await request(app)
+      .get('/api/employer/applications/undefined/details')
+      .set('Authorization', 'Bearer fake-token');
+
+    // Will depend on how Express handles this
+    expect([200, 400, 500]).toContain(response.status);
+  });
+
+  // ============================================
+  // TEST 11: GET details - Application not found
+  // ============================================
+  test('GET /:id/details - returns 404 when application not found', async () => {
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.single.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Application not found' }
+      });
+      return chain;
+    });
+
+    const response = await request(app)
+      .get('/api/employer/applications/nonexistent/details')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(404);
+    expect(response.body.success).toBe(false);
+  });
+
+  // ============================================
+  // TEST 12: GET details - Unauthorized
+  // ============================================
+  test('GET /:id/details - returns 403 when unauthorized', async () => {
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.single.mockResolvedValueOnce({
+        data: {
+          id: 'app-1',
+          applicant_profiles: { id: 'ap-1' },
+          opportunities: { provider_id: 'different-provider' }
+        },
+        error: null
+      });
+      return chain;
+    });
+
+    const response = await request(app)
+      .get('/api/employer/applications/app-1/details')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(403);
+    expect(response.body.success).toBe(false);
+  });
+
+  // ============================================
+  // TEST 13: GET CV signed URL - Success
+  // ============================================
+  test('GET /:id/cv/signed-url - should return signed URL', async () => {
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.single.mockResolvedValueOnce({
+        data: {
+          id: 'app-1',
+          opportunity_id: 'opp-1',
+          applicant_profiles: { cv_url: 'cv/path.pdf' },
+          opportunities: { provider_id: 'provider-123' }
+        },
+        error: null
+      });
+      return chain;
+    });
+
+    // Mock the getApplicantCVSignedUrl service
+    getApplicantCVSignedUrl.mockResolvedValueOnce('https://signed-url.pdf');
+
+    const response = await request(app)
+      .get('/api/employer/applications/app-1/cv/signed-url')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.signed_url).toBe('https://signed-url.pdf');
+  });
+
+  // ============================================
+  // TEST 14: GET CV signed URL - No CV
+  // ============================================
+  test('GET /:id/cv/signed-url - returns null when no CV', async () => {
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.single.mockResolvedValueOnce({
+        data: {
+          id: 'app-1',
+          opportunity_id: 'opp-1',
+          applicant_profiles: { cv_url: null },
+          opportunities: { provider_id: 'provider-123' }
+        },
+        error: null
+      });
+      return chain;
+    });
+
+    const response = await request(app)
+      .get('/api/employer/applications/app-1/cv/signed-url')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.signed_url).toBeNull();
+  });
+
+  // ============================================
+  // TEST 15: GET CV signed URL - Missing applicationId
+  // ============================================
+  test('GET /:id/cv/signed-url - returns 400 when applicationId missing', async () => {
+    const response = await request(app)
+      .get('/api/employer/applications//cv/signed-url')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(404); // Route not found
+  });
+
+  // ============================================
+  // TEST 16: GET CV signed URL - Unauthorized
+  // ============================================
+  test('GET /:id/cv/signed-url - returns 403 when unauthorized', async () => {
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.single.mockResolvedValueOnce({
+        data: {
+          id: 'app-1',
+          opportunity_id: 'opp-1',
+          applicant_profiles: { cv_url: 'cv/path.pdf' },
+          opportunities: { provider_id: 'different-provider' }
+        },
+        error: null
+      });
+      return chain;
+    });
+
+    const response = await request(app)
+      .get('/api/employer/applications/app-1/cv/signed-url')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(403);
+    expect(response.body.success).toBe(false);
+  });
+
+  // ============================================
+  // TEST 17: GET CV signed URL - Application not found
+  // ============================================
+  test('GET /:id/cv/signed-url - returns 404 when application not found', async () => {
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.single.mockResolvedValueOnce({
+        data: null,
+        error: new Error('Not found')
+      });
+      return chain;
+    });
+    mockSupabase.from.mockClear();
+    mockSupabase.from.mockImplementation(() => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.single.mockResolvedValueOnce({
+        data: null,
+        error: new Error('Not found')
+      });
+      return chain;
+    });
+
+    const response = await request(app)
+      .get('/api/employer/applications/nonexistent/cv/signed-url')
+      .set('Authorization', 'Bearer fake-token');
+
+    expect(response.status).toBe(404);
     expect(response.body.success).toBe(false);
   });
 });

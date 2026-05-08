@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { supabase } from '../config/supabaseClient.js';
 import providerAuthMiddleware from '../middleware/providerAuthMiddleware.js';
+import {
+  fetchApplicantCvSignedUrl,
+  fetchApplicantDetails,
+} from '../controllers/employerApplicationController.js';
 import { notifyApplicationStatusChange } from "../services/notificationService.js";
 
 
@@ -8,6 +12,9 @@ const router = Router();
 
 // All routes require provider authentication
 router.use(providerAuthMiddleware);
+
+// GET /api/employer/applications/:applicationId/details
+router.get('/:applicationId/details', fetchApplicantDetails);
 
 // GET /api/employer/applications/opportunity/:opportunityId
 router.get('/opportunity/:opportunityId', async (req, res) => {
@@ -27,6 +34,7 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
         created_at,
         applicant_profiles!inner (
           id,
+          surname,
           bio,
           location,
           nqf_level,
@@ -50,7 +58,9 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
       appliedAt: app.created_at,
       applicant: {
         id: app.applicant_profiles.profile_id,
+        applicantProfileId: app.applicant_profiles.id,
         name: app.applicant_profiles.profiles.full_name,
+        surname: app.applicant_profiles.surname,
         email: app.applicant_profiles.profiles.email,
         bio: app.applicant_profiles.bio,
         location: app.applicant_profiles.location,
@@ -67,6 +77,9 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
   }
 });
 
+// GET /api/employer/applications/:applicationId/cv/signed-url
+router.get('/:applicationId/cv/signed-url', fetchApplicantCvSignedUrl);
+
 // PATCH /api/employer/applications/:applicationId
 router.patch('/:applicationId', async (req, res) => {
   try {
@@ -77,8 +90,8 @@ router.patch('/:applicationId', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Application ID required' });
     }
 
-    // Allow ALL valid statuses from your database
-    const validStatuses = ['received', 'shortlisted', 'rejected', 'offered', 'accepted'];
+    // Employer actions should only move an application to shortlist, reject, or offer.
+    const validStatuses = ['shortlisted', 'rejected', 'offered'];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({ 
         success: false, 
@@ -87,6 +100,7 @@ router.patch('/:applicationId', async (req, res) => {
     }
 
     console.log(`📝 Updating application ${applicationId} to status: ${status}`);
+
 
      // Get the OLD status before updating (for notification)
     const { data: oldApplication, error: fetchError } = await supabase
@@ -137,9 +151,8 @@ router.patch('/:applicationId', async (req, res) => {
     }
 
     const message = status === 'shortlisted' ? 'Candidate shortlisted successfully' :
-                    status === 'accepted' ? 'Candidate accepted successfully' :
-                    status === 'offered' ? 'Offer sent successfully' :
-                    'Candidate rejected successfully';
+            status === 'offered' ? 'Offer sent successfully' :
+            'Candidate rejected successfully';
 
     res.json({ success: true, message, data });
 

@@ -7,7 +7,7 @@ const getSessionConfig = () => ({
   withCredentials: true,
 });
 
-const getAdminAuthConfig = () => {
+const getAuthConfig = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
@@ -83,7 +83,7 @@ export async function saveDraft(data) {
 /* ADMIN */
 export const getPendingOpportunities = async () => {
   try {
-    const res = await axios.get(`${API}/pending`, getAdminAuthConfig());
+    const res = await axios.get(`${API}/pending`, getAuthConfig());
 
     const payload = res?.data;
     const pending = Array.isArray(payload) ? payload : payload?.data ?? [];
@@ -102,7 +102,7 @@ export const getPendingOpportunities = async () => {
 
 export const getApprovedOpportunities = async () => {
   try {
-    const res = await axios.get(`${API}/approved`, getAdminAuthConfig());
+    const res = await axios.get(`${API}/approved`, getAuthConfig());
 
     const payload = res?.data;
     const approved = Array.isArray(payload) ? payload : payload?.data ?? [];
@@ -115,7 +115,7 @@ export const getApprovedOpportunities = async () => {
 
 export const approveOpportunity = async (id) => {
   try {
-    const res = await axios.patch(`${API}/${id}/approve`, null, getAdminAuthConfig());
+    const res = await axios.patch(`${API}/${id}/approve`, null, getAuthConfig());
     const payload = res?.data;
 
     return {
@@ -132,7 +132,7 @@ export const approveOpportunity = async (id) => {
 
 export const rejectOpportunity = async (id) => {
   try {
-    const res = await axios.patch(`${API}/${id}/reject`, null, getAdminAuthConfig());
+    const res = await axios.patch(`${API}/${id}/reject`, null, getAuthConfig());
     const payload = res?.data;
 
     return {
@@ -149,7 +149,7 @@ export const rejectOpportunity = async (id) => {
 
 export const deleteOpportunity = async (id) => {
   try {
-    const res = await axios.delete(`${API}/${id}`, getAdminAuthConfig());
+    const res = await axios.delete(`${API}/${id}`, getAuthConfig());
     const payload = res?.data;
 
     return {
@@ -159,6 +159,63 @@ export const deleteOpportunity = async (id) => {
   } catch (err) {
     return {
       data: null,
+      error: toError(err),
+    };
+  }
+};
+
+/* SKILLS */
+export const getOpportunitySkills = async (opportunityId) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/api/skills/opportunity/${opportunityId}`,
+      getSessionConfig()
+    );
+    const skills = res?.data?.opportunitySkills ?? [];
+    return {
+      data: skills.map((s) => ({ id: s.id ?? s.skills_id, name: s.name ?? s.skill_name })),
+      error: null,
+    };
+  } catch (err) {
+    return {
+      data: [],
+      error: toError(err),
+    };
+  }
+};
+
+export const saveOpportunitySkills = async (opportunityId, skillIds) => {
+  try {
+    const res = await axios.put(
+      `${API_URL}/api/skills/opportunity/${opportunityId}`,
+      { skillIds },
+      getAuthConfig()
+    );
+    return {
+      data: res?.data?.skills ?? null,
+      error: null,
+    };
+  } catch (err) {
+    return {
+      data: null,
+      error: toError(err),
+    };
+  }
+};
+
+export const getSkillsByField = async (field) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/api/skills/field/${encodeURIComponent(field)}`,
+      getSessionConfig()
+    );
+    return {
+      data: res?.data?.data ?? [],
+      error: null,
+    };
+  } catch (err) {
+    return {
+      data: [],
       error: toError(err),
     };
   }
