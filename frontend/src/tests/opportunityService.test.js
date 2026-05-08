@@ -130,4 +130,5 @@ describe("opportunityService", () => {
 
     expect(Array.isArray(res.data)).toBe(true);
     expect(res.error).toBeNull();
-  });});
+  });
+});

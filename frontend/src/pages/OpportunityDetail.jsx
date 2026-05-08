@@ -19,7 +19,7 @@ export default function OpportunityDetail() {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/skills/opportunity/${id}`);
         const data = await res.json();
-        console.log("OPPORTUNITY SKILLS:", data); 
+        //console.log("OPPORTUNITY SKILLS:", data); 
         if (data.success) setSkills(data.opportunitySkills || []);
       } catch (err) {
         console.error("Failed to fetch opportunity skills:", err);

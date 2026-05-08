@@ -41,7 +41,7 @@ export function SkillsSection() {
             { headers: { Authorization: `Bearer ${token}` } }
           );
           const skillsData = await skillsRes.json();
-          console.log("SKILL ITEM:", skillsData.applicantSkills?.[0]);
+          //console.log("SKILL ITEM:", skillsData.applicantSkills?.[0]);
           if (skillsData.success && skillsData.applicantSkills) {
             const shaped = skillsData.applicantSkills.map((s) => ({
               id: s.skills_id ?? s.id,
@@ -55,7 +55,7 @@ export function SkillsSection() {
       }
     };
     if (token) fetchExistingSkills();
-  }, [token]);
+  }, [API, token]);
 
   // Fetch available skills when field changes
   useEffect(() => {
@@ -78,7 +78,7 @@ export function SkillsSection() {
       }
     };
     fetchSkills();
-  }, [selectedField]);
+  }, [API, selectedField]);
 
   const addSkill = (skill) => {
     if (!selectedSkills.find((s) => s.id === skill.id)) {

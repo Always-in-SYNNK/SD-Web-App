@@ -36,7 +36,7 @@ const LOCATION = [
   "North West",
   "Northern Cape",
   "Western Cape",
-  "Remote",
+  "Remote/Other",
 ];
 
 const EMPTY_FORM = {

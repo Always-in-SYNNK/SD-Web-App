@@ -29,7 +29,7 @@ export default function ViewStudentProfile() {
           headers: { Authorization: `Bearer ${token}` },
         });
         const skillsData = await skillsRes.json();
-        console.log("SKILLS:", skillsData);
+        //console.log("SKILLS:", skillsData);
         if (skillsData.success) setSkills(skillsData.applicantSkills || []);
       }
     } catch (err) {
@@ -39,7 +39,7 @@ export default function ViewStudentProfile() {
     }
   };
   if (token) fetchProfile();
-}, [token]);
+}, [API, token]);
 
   useEffect(() => {
     const fetchSignedUrl = async () => {
@@ -54,7 +54,7 @@ export default function ViewStudentProfile() {
       }
     };
     if (token) fetchSignedUrl();
-  }, [token]);
+  }, [API, token]);
 
   const initials = profile?.full_name
     ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
