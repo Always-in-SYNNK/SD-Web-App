@@ -1,5 +1,6 @@
 // src/pages/ValidationPipeline.jsx
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabaseClient";
 import Sidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
@@ -13,22 +14,8 @@ const ValidationPipeline = () => {
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
-  const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/provider/me`, {
-        credentials: "include",
-      });
-      const data = await response.json();
-      if (!data.authenticated) return null;
-      return data.user;
-    } catch (err) {
-      console.error("Auth check failed:", err);
-      return null;
-    }
-  }, []);
+  const { user } = useAuth();
 
   const fetchOpportunities = useCallback(async (currentUser) => {
     if (!currentUser) return;
@@ -82,13 +69,17 @@ const ValidationPipeline = () => {
 
   useEffect(() => {
     const initialize = async () => {
-      const currentUser = await checkAuth();
-      setUser(currentUser);
-      await fetchOpportunities(currentUser);
+      if (!user) {
+        setAuthChecked(true);
+        return;
+      }
+
+      await fetchOpportunities(user);
       setAuthChecked(true);
     };
+
     initialize();
-  }, [checkAuth, fetchOpportunities]);
+  }, [user, fetchOpportunities]);
 
   const counts = {
     all: jobs.length,
