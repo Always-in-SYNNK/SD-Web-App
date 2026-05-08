@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getApplicationsForOpportunity, updateApplicationStatus } from '../services/employerApplicationService';
+import {
+  getApplicationsForOpportunity,
+  updateApplicationStatus,
+  getApplicationDetails,
+  getApplicationCvSignedUrl,
+} from '../services/employerApplicationService';
 
 describe('Employer Application Service', () => {
   beforeEach(() => {
@@ -35,8 +40,20 @@ describe('Employer Application Service', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should throw error when no token exists', async () => {
-    await expect(getApplicationsForOpportunity('opp-123')).rejects.toThrow('No token found');
+  it('should omit authorization header when no token exists', async () => {
+    mockFetchResponse({ success: true, data: [] });
+
+    await getApplicationsForOpportunity('opp-123');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:3000/api/employer/applications/opportunity/opp-123',
+      expect.objectContaining({
+        credentials: 'include',
+        headers: expect.not.objectContaining({
+          Authorization: expect.any(String),
+        }),
+      })
+    );
   });
 
   it('should shortlist application successfully', async () => {
@@ -86,5 +103,40 @@ describe('Employer Application Service', () => {
         })
       })
     );
+  });
+
+  it('should fetch application details with credentials include', async () => {
+    localStorage.setItem('token', 'fake-token');
+    mockFetchResponse({ success: true, applicantSkills: [], qualifications: [] });
+
+    const result = await getApplicationDetails('app-123');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:3000/api/employer/applications/app-123/details',
+      expect.objectContaining({
+        credentials: 'include',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer fake-token'
+        })
+      })
+    );
+    expect(result.success).toBe(true);
+  });
+
+  it('should fetch signed CV url without bearer token when none exists', async () => {
+    mockFetchResponse({ success: true, signed_url: 'https://signed-url.pdf' });
+
+    const result = await getApplicationCvSignedUrl('app-123');
+
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:3000/api/employer/applications/app-123/cv/signed-url',
+      expect.objectContaining({
+        credentials: 'include',
+        headers: expect.not.objectContaining({
+          Authorization: expect.any(String),
+        }),
+      })
+    );
+    expect(result.signed_url).toBe('https://signed-url.pdf');
   });
 });

@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import {
+    getApplicationDetails,
+    getApplicationCvSignedUrl,
+} from '../../services/employerApplicationService';
 
 const STATUS_CONFIG = {
     received: { color: 'bg-yellow-100 text-yellow-800', icon: '⏳', label: 'Pending Review' },
@@ -16,8 +20,6 @@ const SectionBlock = ({ title, children }) => (
 );
 
 const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, isProcessing = false, token }) => {
-
-    const API = import.meta.env.VITE_API_URL;
 
     const [isExpanded, setIsExpanded] = useState(false); 
     const [skills, setSkills]               = useState([]);
@@ -40,14 +42,7 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
         const fetchDetails = async () => {
             setDetailsLoading(true);
             try {
-                const headers = { Authorization: `Bearer ${token}` };
-
-                const detailsRes = await fetch(
-                    `${API}/api/employer/applications/${application.applicationId}/details`,
-                    { headers }
-                );
-
-                const detailsData = await detailsRes.json();
+                const detailsData = await getApplicationDetails(application.applicationId, token);
 
                 if (detailsData.success) {
                     setSkills(detailsData.applicantSkills || detailsData.data || detailsData.skills || []);
@@ -70,21 +65,14 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
         };
 
         fetchDetails();
-    }, [isExpanded, detailsFetched, applicant.applicantProfileId, token, API]);
+    }, [isExpanded, detailsFetched, applicant.applicantProfileId, application.applicationId, token]);
 
     useEffect(() => {
         const fetchSignedCvUrl = async () => {
-            if (!token || !application.applicationId) return;
+            if (!application.applicationId) return;
 
             try {
-                const res = await fetch(
-                    `${API}/api/employer/applications/${application.applicationId}/cv/signed-url`,
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
-
-                const data = await res.json();
+                const data = await getApplicationCvSignedUrl(application.applicationId, token);
 
                 if (data.signed_url) {
                     setCvUrl(data.signed_url);
@@ -97,7 +85,7 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
         if (isExpanded) {
             fetchSignedCvUrl();
         }
-    }, [API, application.applicationId, isExpanded, token]);
+    }, [application.applicationId, isExpanded, token]);
 
     return (
         <article className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">

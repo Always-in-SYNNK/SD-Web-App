@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import EmployerApplicationCard from '../components/employer/EmployerApplicationCard';
+import * as employerApplicationService from '../services/employerApplicationService';
+
+vi.mock('../services/employerApplicationService', () => ({
+  getApplicationDetails: vi.fn(),
+  getApplicationCvSignedUrl: vi.fn(),
+}));
 
 describe('EmployerApplicationCard', () => {
   const mockOnShortlist = vi.fn();
@@ -23,6 +29,15 @@ describe('EmployerApplicationCard', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    employerApplicationService.getApplicationDetails.mockResolvedValue({
+      success: true,
+      applicantSkills: [],
+      qualifications: [],
+    });
+    employerApplicationService.getApplicationCvSignedUrl.mockResolvedValue({
+      success: true,
+      signed_url: null,
+    });
   });
 
   it('should display applicant name', () => {
@@ -358,13 +373,15 @@ describe('EmployerApplicationCard', () => {
   });
 
   it('should fetch and display cv uploads section', async () => {
-    globalThis.fetch = vi.fn()
-      .mockResolvedValueOnce({
-        json: async () => ({ success: true, skills: [], qualifications: [] })
-      })
-      .mockResolvedValueOnce({
-        json: async () => ({ signed_url: 'https://signed-url.com/cv.pdf' })
-      });
+    employerApplicationService.getApplicationDetails.mockResolvedValueOnce({
+      success: true,
+      applicantSkills: [],
+      qualifications: [],
+    });
+    employerApplicationService.getApplicationCvSignedUrl.mockResolvedValueOnce({
+      success: true,
+      signed_url: 'https://signed-url.com/cv.pdf',
+    });
 
     const appWithProfileId = {
       ...mockApplication,
@@ -411,10 +428,14 @@ describe('EmployerApplicationCard', () => {
   });
 
   it('should display CV upload section', async () => {
-    globalThis.fetch = vi.fn().mockResolvedValueOnce({
-      json: async () => ({ success: true, skills: [], qualifications: [] })
-    }).mockResolvedValueOnce({
-      json: async () => ({ signed_url: 'https://signed-url.com/cv.pdf' })
+    employerApplicationService.getApplicationDetails.mockResolvedValueOnce({
+      success: true,
+      applicantSkills: [],
+      qualifications: [],
+    });
+    employerApplicationService.getApplicationCvSignedUrl.mockResolvedValueOnce({
+      success: true,
+      signed_url: 'https://signed-url.com/cv.pdf',
     });
 
     const appWithProfileId = {
@@ -438,7 +459,7 @@ describe('EmployerApplicationCard', () => {
   });
 
   it('handle fetch error gracefully', async () => {
-    globalThis.fetch = vi.fn().mockRejectedValueOnce(new Error('Network error'));
+    employerApplicationService.getApplicationDetails.mockRejectedValueOnce(new Error('Network error'));
 
     const appWithProfileId = {
       ...mockApplication,

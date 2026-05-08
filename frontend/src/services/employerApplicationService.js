@@ -1,17 +1,39 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-const getAuthConfig = () => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  if (!token) {
-    throw new Error('No token found');
+const getStoredToken = () => {
+  if (typeof window === 'undefined') {
+    return null;
   }
+
+  return localStorage.getItem('token');
+};
+
+const getAuthConfig = (tokenOverride = null) => {
+  const token = tokenOverride ?? getStoredToken();
+
   return {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   };
+};
+
+const handleResponse = async (response) => {
+  let data;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || data.message || 'Request failed');
+  }
+
+  return data;
 };
 
 export async function getApplicationsForOpportunity(opportunityId) {
@@ -22,11 +44,8 @@ export async function getApplicationsForOpportunity(opportunityId) {
       ...getAuthConfig(),
     }
   );
-  
-  const data = await response.json();
-  
-  if (!response.ok) throw new Error(data.error || 'Failed to fetch applications');
-  return data;
+
+  return handleResponse(response);
 }
 
 export async function updateApplicationStatus(applicationId, status) {
@@ -38,8 +57,30 @@ export async function updateApplicationStatus(applicationId, status) {
       body: JSON.stringify({ status })
     }
   );
-  
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Failed to update status');
-  return data;
+
+  return handleResponse(response);
+}
+
+export async function getApplicationDetails(applicationId, token = null) {
+  const response = await fetch(
+    `${API_URL}/api/employer/applications/${applicationId}/details`,
+    {
+      method: 'GET',
+      ...getAuthConfig(token),
+    }
+  );
+
+  return handleResponse(response);
+}
+
+export async function getApplicationCvSignedUrl(applicationId, token = null) {
+  const response = await fetch(
+    `${API_URL}/api/employer/applications/${applicationId}/cv/signed-url`,
+    {
+      method: 'GET',
+      ...getAuthConfig(token),
+    }
+  );
+
+  return handleResponse(response);
 }

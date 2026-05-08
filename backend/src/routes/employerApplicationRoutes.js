@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { supabase } from '../config/supabaseClient.js';
 import providerAuthMiddleware from '../middleware/providerAuthMiddleware.js';
-import { getApplicantCVSignedUrl } from '../services/profileService.js';
-import { getApplicantDetailsForApplication } from '../services/employerApplicationService.js';
+import {
+  fetchApplicantCvSignedUrl,
+  fetchApplicantDetails,
+} from '../controllers/employerApplicationController.js';
 import { notifyApplicationStatusChange } from "../services/notificationService.js";
 
 
@@ -12,28 +14,7 @@ const router = Router();
 router.use(providerAuthMiddleware);
 
 // GET /api/employer/applications/:applicationId/details
-router.get('/:applicationId/details', async (req, res) => {
-  try {
-    const { applicationId } = req.params;
-    const providerProfileId = req.user?.profileId;
-
-    if (!applicationId) {
-      return res.status(400).json({ success: false, error: 'Application ID required' });
-    }
-
-    const details = await getApplicantDetailsForApplication(applicationId, providerProfileId);
-
-    res.json({ success: true, ...details });
-  } catch (error) {
-    let status = 500;
-    if (error.message?.startsWith('Unauthorized')) {
-      status = 403;
-    } else if (error.message?.includes('not found')) {
-      status = 404;
-    }
-    res.status(status).json({ success: false, error: error.message });
-  }
-});
+router.get('/:applicationId/details', fetchApplicantDetails);
 
 // GET /api/employer/applications/opportunity/:opportunityId
 router.get('/opportunity/:opportunityId', async (req, res) => {
@@ -97,50 +78,7 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
 });
 
 // GET /api/employer/applications/:applicationId/cv/signed-url
-router.get('/:applicationId/cv/signed-url', async (req, res) => {
-  try {
-    const { applicationId } = req.params;
-
-    if (!applicationId) {
-      return res.status(400).json({ success: false, error: 'Application ID required' });
-    }
-
-    const { data: application, error: appError } = await supabase
-      .from('applications')
-      .select(`
-        id,
-        opportunity_id,
-        applicant_profiles!inner (
-          cv_url
-        ),
-        opportunities!inner (
-          provider_id
-        )
-      `)
-      .eq('id', applicationId)
-      .single();
-
-    if (appError || !application) {
-      return res.status(404).json({ success: false, error: 'Application not found' });
-    }
-
-    if (application.opportunities.provider_id !== req.user?.profileId) {
-      return res.status(403).json({ success: false, error: 'Unauthorized: You do not own this opportunity' });
-    }
-
-    const cvPath = application.applicant_profiles?.cv_url;
-
-    if (!cvPath) {
-      return res.json({ success: true, signed_url: null });
-    }
-
-    const signedUrl = await getApplicantCVSignedUrl(cvPath);
-    res.json({ success: true, signed_url: signedUrl });
-  } catch (error) {
-    console.error('Error fetching signed CV URL:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+router.get('/:applicationId/cv/signed-url', fetchApplicantCvSignedUrl);
 
 // PATCH /api/employer/applications/:applicationId
 router.patch('/:applicationId', async (req, res) => {

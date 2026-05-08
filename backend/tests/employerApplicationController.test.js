@@ -3,19 +3,43 @@ import { jest } from '@jest/globals';
 const mockService = {
   getApplicationsByOpportunity: jest.fn(),
   updateApplicationStatus: jest.fn(),
+  getApplicantDetailsForApplication: jest.fn(),
 };
 
 jest.unstable_mockModule('../src/services/employerApplicationService.js', () => mockService);
 
+const mockProfileService = {
+  getApplicantCVSignedUrl: jest.fn(),
+};
+
+jest.unstable_mockModule('../src/services/profileService.js', () => mockProfileService);
+
+const mockSupabase = {
+  from: jest.fn().mockReturnThis(),
+  select: jest.fn().mockReturnThis(),
+  eq: jest.fn().mockReturnThis(),
+  single: jest.fn(),
+};
+
+jest.unstable_mockModule('../src/config/supabaseClient.js', () => ({
+  supabase: mockSupabase,
+}));
+
 const {
   fetchApplicationsByOpportunity,
   patchApplicationStatus,
+  fetchApplicantDetails,
+  fetchApplicantCvSignedUrl,
 } = await import('../src/controllers/employerApplicationController.js');
 
 const {
   getApplicationsByOpportunity,
   updateApplicationStatus,
+  getApplicantDetailsForApplication,
 } = await import('../src/services/employerApplicationService.js');
+
+const { getApplicantCVSignedUrl } = await import('../src/services/profileService.js');
+const { supabase } = await import('../src/config/supabaseClient.js');
 
 // 🔧 Mock response helper
 const mockRes = () => {

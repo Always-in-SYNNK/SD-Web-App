@@ -24,6 +24,11 @@ jest.unstable_mockModule('../src/services/profileService.js', () => ({
   getApplicantCVSignedUrl: jest.fn()
 }));
 
+// Mock notificationService
+jest.unstable_mockModule('../src/services/notificationService.js', () => ({
+  notifyApplicationStatusChange: jest.fn().mockResolvedValue(undefined)
+}));
+
 // Mock auth middleware
 jest.unstable_mockModule('../src/middleware/providerAuthMiddleware.js', () => ({
   default: (req, res, next) => {
@@ -143,12 +148,18 @@ describe('Employer Application Routes', () => {
           data: { 
             id: 'app-1', 
             status: 'received',
+            applicant_id: 'ap-1',
             opportunity_id: 'opp-1',
             opportunities: { provider_id: 'provider-123' }
           },
           error: null
         }).mockResolvedValueOnce({
           data: { id: 'app-1', status: 'shortlisted' },
+          error: null
+        });
+      } else if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
           error: null
         });
       }
@@ -181,12 +192,18 @@ describe('Employer Application Routes', () => {
           data: { 
             id: 'app-1', 
             status: 'received',
+            applicant_id: 'ap-1',
             opportunity_id: 'opp-1',
             opportunities: { provider_id: 'provider-123' }
           },
           error: null
         }).mockResolvedValueOnce({
           data: { id: 'app-1', status: 'offered' },
+          error: null
+        });
+      } else if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
           error: null
         });
       }
@@ -219,12 +236,18 @@ describe('Employer Application Routes', () => {
           data: { 
             id: 'app-1', 
             status: 'received',
+            applicant_id: 'ap-1',
             opportunity_id: 'opp-1',
             opportunities: { provider_id: 'provider-123' }
           },
           error: null
         }).mockResolvedValueOnce({
           data: { id: 'app-1', status: 'rejected' },
+          error: null
+        });
+      } else if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
           error: null
         });
       }
