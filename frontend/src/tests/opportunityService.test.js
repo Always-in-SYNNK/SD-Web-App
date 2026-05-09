@@ -10,12 +10,23 @@ describe("opportunityService", () => {
   });
 
   it("publishOpportunity success", async () => {
+      localStorage.setItem("token", "fake-token");
     axios.post.mockResolvedValue({ data: { data: { id: 1 } } });
 
     const res = await service.publishOpportunity({ title: "Test" });
 
     expect(res.data).toEqual({ id: 1 });
     expect(res.error).toBeNull();
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining("/publish"),
+        { title: "Test" },
+        expect.objectContaining({
+          withCredentials: true,
+          headers: expect.objectContaining({
+            Authorization: "Bearer fake-token",
+          }),
+        })
+      );
   });
 
   it("publishOpportunity handles error", async () => {
@@ -36,22 +47,41 @@ describe("opportunityService", () => {
   });
 
   it("saveDraft success", async () => {
+      localStorage.setItem("token", "fake-token");
     axios.post.mockResolvedValue({ data: { data: { id: 2 } } });
 
     const res = await service.saveDraft({});
 
     expect(res.data).toEqual({ id: 2 });
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining("/draft"),
+        {},
+        expect.objectContaining({
+          withCredentials: true,
+          headers: expect.objectContaining({
+            Authorization: "Bearer fake-token",
+          }),
+        })
+      );
   });
 
   it("getSkillsByField success", async () => {
+      localStorage.setItem("token", "fake-token");
     axios.get.mockResolvedValue({ data: { data: [{ id: 1 }] } });
 
     const res = await service.getSkillsByField("IT");
 
     expect(res.data.length).toBe(1);
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.stringContaining("/api/skills/field/IT"),
+        expect.objectContaining({
+          withCredentials: true,
+        })
+      );
   });
 
   it("getOpportunitySkills maps data correctly", async () => {
+      localStorage.setItem("token", "fake-token");
     axios.get.mockResolvedValue({
       data: {
         opportunitySkills: [{ skills_id: 1, skill_name: "React" }],
@@ -61,6 +91,15 @@ describe("opportunityService", () => {
     const res = await service.getOpportunitySkills(1);
 
     expect(res.data).toEqual([{ id: 1, name: "React" }]);
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.stringContaining("/api/skills/opportunity/1"),
+        expect.objectContaining({
+          withCredentials: true,
+          headers: expect.objectContaining({
+            Authorization: "Bearer fake-token",
+          }),
+        })
+      );
   });
 
   it("deleteOpportunity success", async () => {

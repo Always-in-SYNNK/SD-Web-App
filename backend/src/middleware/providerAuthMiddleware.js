@@ -35,84 +35,68 @@ async function getProviderProfileByTokenId(supabase, tokenUserId) {
 async function providerAuthMiddleware(req, res, next) {
     console.log('[ProviderAuth] Checking authentication...');
     console.log('[ProviderAuth] Path:', req.path);
-    
+
     // ============================================
     // PRIORITY 1: Check JWT token FIRST (for API calls from frontend)
+    // If it is missing/invalid/expired, fall through to session auth so a
+    // stale localStorage token does not block a valid browser session.
     // ============================================
     const authHeader = req.headers.authorization;
+    let jwtUser = null;
 
     console.log('[ProviderAuth] ===== JWT DEBUG =====');
     console.log('[ProviderAuth] Authorization header exists:', !!authHeader);
     console.log('[ProviderAuth] Authorization header:', authHeader ? authHeader.substring(0, 50) + '...' : 'none');
 
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-        console.log('[ProviderAuth] 🔑 JWT token found, using token auth');
-        
-        const token = authHeader.split(" ")[1];
-        console.log('[ProviderAuth] Token received:', token.substring(0, 50) + '...');
-        console.log('[ProviderAuth] Token length:', token.length);
-        console.log('[ProviderAuth] JWT_SECRET exists:', !!process.env.JWT_SECRET);
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        console.log('[ProviderAuth] 🔑 JWT token found, attempting token auth');
 
         try {
+            const token = authHeader.split(' ')[1];
+            console.log('[ProviderAuth] Token received:', token.substring(0, 50) + '...');
+            console.log('[ProviderAuth] Token length:', token.length);
+            console.log('[ProviderAuth] JWT_SECRET exists:', !!process.env.JWT_SECRET);
+
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             console.log('[ProviderAuth] ✅ Token verified successfully');
             console.log('[ProviderAuth] Decoded token:', JSON.stringify(decoded, null, 2));
-            
-            // Check if user has provider role
+
             if (decoded.role !== 'provider') {
                 console.log('[ProviderAuth] Role mismatch. Expected provider, got:', decoded.role);
-                return res.status(403).json({ error: "Access denied. Employers only." });
+            } else {
+                const { supabase } = await import('../config/supabaseClient.js');
+                const profile = await getProviderProfileByTokenId(supabase, decoded.id);
+
+                if (!profile) {
+                    console.log('[ProviderAuth] ❌ Profile not found for token user');
+                } else {
+                    const { data: providerProfile, error: providerError } = await supabase
+                        .from('provider_profiles')
+                        .select('id')
+                        .eq('profile_id', profile.id)
+                        .single();
+
+                    if (providerError || !providerProfile) {
+                        console.log('[ProviderAuth] ❌ Provider profile not found:', providerError);
+                    } else {
+                        console.log('[ProviderAuth] ✅ Provider profile found:', providerProfile.id);
+                        console.log('[ProviderAuth] ✅ Authentication successful for user:', decoded.email);
+
+                        req.user = {
+                            ...decoded,
+                            profileId: providerProfile.id,
+                        };
+
+                        return next();
+                    }
+                }
             }
-
-            console.log('[ProviderAuth] ✅ Role check passed');
-
-            const { supabase } = await import("../config/supabaseClient.js");
-
-            const profile = await getProviderProfileByTokenId(supabase, decoded.id);
-
-            if (profileError || !profile) {
-                console.log('[ProviderAuth] ❌ Profile not found:', profileError);
-                return res.status(401).json({ error: "Profile not found" });
-            }
-
-            console.log('[ProviderAuth] ✅ Profile found:', profile.id);
-
-            const { data: providerProfile, error: providerError } = await supabase
-                .from('provider_profiles')
-                .select('id')
-                .eq('profile_id', profile.id)
-                .single();
-
-            if (providerError || !providerProfile) {
-                console.log('[ProviderAuth] ❌ Provider profile not found:', providerError);
-                return res.status(403).json({ error: "Provider profile not found" });
-            }
-
-            console.log('[ProviderAuth] ✅ Provider profile found:', providerProfile.id);
-            console.log('[ProviderAuth] ✅ Authentication successful for user:', decoded.email);
-
-            req.user = {
-                ...decoded,
-                profileId: providerProfile.id,
-            };
-
-            return next();
-            
         } catch (error) {
             console.error('[ProviderAuth] ❌ JWT Verification Error:', error.message);
             console.error('[ProviderAuth] Error type:', error.name);
-            
-            if (error.name === 'JsonWebTokenError') {
-                return res.status(401).json({ error: "Invalid token format. Please log in again." });
-            }
-            if (error.name === 'TokenExpiredError') {
-                return res.status(401).json({ error: "Token expired. Please log in again." });
-            }
-            
-            return res.status(401).json({ error: "Invalid or expired token. Please log in again." });
         }
     }
-    
+
     // ============================================
     // PRIORITY 2: Session-based auth (from Google OAuth for browser)
     // ============================================
