@@ -25,6 +25,7 @@ import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
 import Notifications from "./pages/Notifications";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import AdminAnalytics from "./pages/AdminAnalytics";
 
 export default function App() {
   const clientId =
@@ -112,6 +113,9 @@ export default function App() {
                 <AdminAccessApplications />
               </ProtectedRoute>
             } />
+            {
+              <Route path="/admin/analytics" element={ <AdminAnalytics /> } />  
+            }
 
             {/* Employer routes - removed protected routing for now */}
 
