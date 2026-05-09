@@ -11,9 +11,7 @@ export async function getSkillsByField(fieldName) {
 
 export async function getApplicantSkills(applicantId) {
     // Fix: Pass parameter as object, not directly
-    const { data, error } = await supabase.rpc("get_applicant_skills_json", { 
-        applicant_id_param: applicantId 
-    });
+    const { data, error } = await supabase.rpc("get_applicant_skills_json", {applicant_id_param: applicantId});
     if (error) throw new Error(error.message);
     
     return data;

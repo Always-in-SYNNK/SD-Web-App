@@ -332,7 +332,8 @@ export async function matchingOpportunity(userId) {
   const { data: applicantProfile, applicantError } = await supabase
     .from("applicant_profiles")
     .select("location, nqf_level")
-    .eq("id", profile.id);
+    .eq("profile_id", profile.id)
+    .single();
   if (applicantError) throw applicantError;
 
   const applicantLocation = applicantProfile.location;
@@ -353,7 +354,7 @@ export async function matchingOpportunity(userId) {
     .from("opportunities")
     .select(`*, opportunity_skills(skills_id)`)
     .eq("status", "approved")
-    .in("fields", fields)
+    .in("field", fields)
     .in("nqf_level", [null, ...Array.from({ length: applicantNqf }, (_, i) => i + 1)])
     .or(`location.eq.${applicantLocation},location.eq.Remote`);
 
@@ -363,7 +364,7 @@ export async function matchingOpportunity(userId) {
   //6. Filter opportunities that have at least one matching skill
   const matched = opportunities.filter(opp => {
     const oppSkillIds = opp.opportunity_skills?.map(os => os.skills_id) || [];
-    return oppSkillIds.some(id => applicantSkillsIds.includes(id));
+    return oppSkillIds.some(id => applicantSkillIds.includes(id));
   });
 
   // 7. Calculate a score for each opportunity (more matches = higher score)
