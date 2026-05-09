@@ -25,6 +25,7 @@ import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
 import Notifications from "./pages/Notifications";
 import QualificationDetail from "./pages/QualificationDetail";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 export default function App() {
   const clientId =
@@ -89,11 +90,6 @@ export default function App() {
                 <MyApplications />
               </ProtectedRoute>
             } />
-            <Route path="/analytics" element={
-              <ProtectedRoute requiredRole="applicant">
-                <StudentDashboard />
-              </ProtectedRoute>
-            } />
             <Route path="/verification" element={
               <ProtectedRoute requiredRole="applicant">
                 <StudentDashboard />
@@ -152,10 +148,18 @@ export default function App() {
                 <ProviderRegistration />
               </ProtectedRoute>
             } />
-          </Routes>
 
+              <Route path="/analytics" element={<AnalyticsPage />} />
+            
+          </Routes>
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
 }
+
+/*<Route path="/analytics" element={
+  <ProtectedRoute requiredRole={["provider", "admin"]}>
+    <AnalyticsPage />
+  </ProtectedRoute>
+} />*/
