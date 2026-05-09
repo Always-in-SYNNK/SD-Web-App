@@ -241,3 +241,31 @@ function createEmptyAnalyticsResponse() {
         }
     };
 }
+
+/*
+* PLACEMENTS BY SECTOR
+*/
+export const getPlacementRatesBySector = async () => {
+  const { data, error } = await supabase.rpc(
+    "get_placement_rates_by_sector"
+  );
+
+  if (error) throw error;
+
+  return data;
+};
+
+export const getProviderPlacementRatesBySector = async (providerProfileId) => {
+    if (!providerProfileId || typeof providerProfileId !== "string") {
+        throw new Error("Valid provider profile ID is required");
+    }
+
+  const { data, error } = await supabase.rpc(
+    "get_provider_placement_rates_by_sector",
+        { provider_uuid: providerProfileId }
+  );
+
+  if (error) throw error;
+
+  return data;
+};

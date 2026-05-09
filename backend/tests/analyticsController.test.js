@@ -1,8 +1,30 @@
-import { getApplicationAnalytics, getTrendAnalytics, exportAnalytics } from "../src/controllers/analyticsController.js";
-import { getApplicationsPerOpportunity, getApplicationTrends, exportAnalyticsData } from "../src/services/analyticsService.js";
+import { jest } from "@jest/globals";
 
-// Mock the service functions
-jest.mock("../src/services/analyticsService.js");
+const mockAnalyticsService = {
+    getApplicationsPerOpportunity: jest.fn(),
+    getApplicationTrends: jest.fn(),
+    exportAnalyticsData: jest.fn(),
+    getPlacementRatesBySector: jest.fn(),
+    getProviderPlacementRatesBySector: jest.fn(),
+};
+
+jest.unstable_mockModule("../src/services/analyticsService.js", () => mockAnalyticsService);
+
+const {
+    getApplicationAnalytics,
+    getTrendAnalytics,
+    exportAnalytics,
+    getPlacementRates,
+    getProviderPlacementRates,
+} = await import("../src/controllers/analyticsController.js");
+
+const {
+    getApplicationsPerOpportunity,
+    getApplicationTrends,
+    exportAnalyticsData,
+    getPlacementRatesBySector,
+    getProviderPlacementRatesBySector,
+} = mockAnalyticsService;
 
 describe("Analytics Controller", () => {
     let mockRequest;
@@ -58,15 +80,27 @@ describe("Analytics Controller", () => {
             });
         });
 
-        test("should return 401 when profileId is missing", async () => {
+        test("should fall back to user id when profileId is missing", async () => {
+            const mockServiceResponse = {
+                data: [],
+                totals: {
+                    totalApplications: 0,
+                    activeOpportunities: 0,
+                    averagePerOpportunity: 0,
+                },
+            };
+            getApplicationsPerOpportunity.mockResolvedValue(mockServiceResponse);
+
             mockRequest.user = { id: "user-123", role: "provider" };
 
             await getApplicationAnalytics(mockRequest, mockResponse);
 
-            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(getApplicationsPerOpportunity).toHaveBeenCalledWith("user-123");
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
             expect(mockResponse.json).toHaveBeenCalledWith({
-                success: false,
-                error: expect.stringContaining("Authentication required"),
+                success: true,
+                data: [],
+                totals: mockServiceResponse.totals,
             });
         });
 
@@ -169,6 +203,54 @@ describe("Analytics Controller", () => {
             await exportAnalytics(mockRequest, mockResponse);
 
             expect(mockResponse.status).toHaveBeenCalledWith(401);
+        });
+    });
+
+    describe("getPlacementRates", () => {
+        test("should return shared placement data successfully", async () => {
+            const mockPlacementData = [
+                { sector: "Technology", total_applications: 20, accepted_applications: 5, placement_rate: 25 },
+            ];
+            getPlacementRatesBySector.mockResolvedValue(mockPlacementData);
+
+            await getPlacementRates(mockRequest, mockResponse);
+
+            expect(getPlacementRatesBySector).toHaveBeenCalledWith();
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: mockPlacementData,
+            });
+        });
+    });
+
+    describe("getProviderPlacementRates", () => {
+        test("should pass the authenticated provider id to the provider placement service", async () => {
+            const mockPlacementData = [
+                { sector: "Health", total_applications: 12, accepted_applications: 3, placement_rate: 25 },
+            ];
+            getProviderPlacementRatesBySector.mockResolvedValue(mockPlacementData);
+
+            await getProviderPlacementRates(mockRequest, mockResponse);
+
+            expect(getProviderPlacementRatesBySector).toHaveBeenCalledWith("test-provider-123");
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: mockPlacementData,
+            });
+        });
+
+        test("should return 401 when user is not authenticated", async () => {
+            mockRequest.user = null;
+
+            await getProviderPlacementRates(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(401);
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: expect.stringContaining("Authentication required"),
+            });
         });
     });
 });

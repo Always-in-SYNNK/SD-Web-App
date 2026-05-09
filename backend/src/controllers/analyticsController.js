@@ -1,7 +1,9 @@
 import { 
     getApplicationsPerOpportunity, 
     getApplicationTrends,
-    exportAnalyticsData 
+    exportAnalyticsData,
+    getPlacementRatesBySector,
+    getProviderPlacementRatesBySector
 } from "../services/analyticsService.js";
 
 /**
@@ -103,6 +105,59 @@ export async function exportAnalytics(req, res) {
 
     } catch (error) {
         console.error("[AnalyticsController] Error in exportAnalytics:", error);
+        return res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+}
+
+/**
+ * GET /api/analytics/placements
+ * Returns placement rates by sector
+ */
+export async function getPlacementRates(req, res) {
+    try {
+        const placementData = await getPlacementRatesBySector();
+
+        return res.status(200).json({
+            success: true,
+            data: placementData
+        });
+
+    } catch (error) {
+        console.error("[AnalyticsController] Error in getPlacementRates:", error);
+        return res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+}
+
+/**
+ * GET /api/analytics/provider-placements
+ * Returns placement rates by sector for the authenticated provider
+ */
+export async function getProviderPlacementRates(req, res) {
+    try {
+        const providerProfileId = req.user?.profileId || req.user?.id;
+
+        if (!providerProfileId) {
+            return res.status(401).json({ 
+                success: false, 
+                error: "Authentication required" 
+            });
+        }
+
+        const placementData = await getProviderPlacementRatesBySector(providerProfileId);
+
+        return res.status(200).json({
+            success: true,
+            data: placementData
+        });
+
+    } catch (error) {
+        console.error("[AnalyticsController] Error in getProviderPlacementRates:", error);
         return res.status(500).json({ 
             success: false, 
             error: error.message 

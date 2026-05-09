@@ -1,16 +1,23 @@
-import { 
+import { jest } from "@jest/globals";
+
+const mockSupabase = {
+    from: jest.fn(),
+    rpc: jest.fn(),
+};
+
+jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
+    supabase: mockSupabase,
+}));
+
+const {
     getApplicationsPerOpportunity,
     getApplicationTrends,
-    exportAnalyticsData 
-} from "../src/services/analyticsService.js";
-import { supabase } from "../src/config/supabaseClient.js";
+    exportAnalyticsData,
+    getPlacementRatesBySector,
+    getProviderPlacementRatesBySector,
+} = await import("../src/services/analyticsService.js");
 
-// Mock supabase client
-jest.mock("../src/config/supabaseClient.js", () => ({
-    supabase: {
-        from: jest.fn(),
-    },
-}));
+const { supabase } = await import("../src/config/supabaseClient.js");
 
 describe("Analytics Service", () => {
     const mockProviderId = "test-provider-123";
@@ -48,10 +55,8 @@ describe("Analytics Service", () => {
             const mockEq = jest.fn();
             const mockIn = jest.fn();
             
-            mockSelect.mockReturnValue({ eq: mockEq });
+            mockSelect.mockReturnValue({ eq: mockEq, in: mockIn });
             mockEq.mockResolvedValueOnce(mockOpportunities);
-            
-            mockSelect.mockReturnValue({ in: mockIn });
             mockIn.mockResolvedValueOnce(mockApplications);
             
             supabase.from.mockReturnValue({ select: mockSelect });
@@ -108,9 +113,8 @@ describe("Analytics Service", () => {
             const mockEq = jest.fn();
             const mockIn = jest.fn();
             
-            mockSelect.mockReturnValue({ eq: mockEq });
+            mockSelect.mockReturnValue({ eq: mockEq, in: mockIn });
             mockEq.mockResolvedValueOnce(mockOpportunities);
-            mockSelect.mockReturnValue({ in: mockIn });
             mockIn.mockResolvedValueOnce(mockApplications);
             supabase.from.mockReturnValue({ select: mockSelect });
 
@@ -141,9 +145,8 @@ describe("Analytics Service", () => {
             const mockEq = jest.fn();
             const mockIn = jest.fn();
             
-            mockSelect.mockReturnValue({ eq: mockEq });
+            mockSelect.mockReturnValue({ eq: mockEq, in: mockIn });
             mockEq.mockResolvedValueOnce(mockOpportunities);
-            mockSelect.mockReturnValue({ in: mockIn });
             mockIn.mockResolvedValueOnce(mockApplications);
             supabase.from.mockReturnValue({ select: mockSelect });
 
@@ -198,9 +201,8 @@ describe("Analytics Service", () => {
             const mockEq = jest.fn();
             const mockIn = jest.fn();
             
-            mockSelect.mockReturnValue({ eq: mockEq });
+            mockSelect.mockReturnValue({ eq: mockEq, in: mockIn });
             mockEq.mockResolvedValueOnce(mockOpportunities);
-            mockSelect.mockReturnValue({ in: mockIn });
             mockIn.mockResolvedValueOnce(mockApplications);
             supabase.from.mockReturnValue({ select: mockSelect });
 
@@ -234,9 +236,8 @@ describe("Analytics Service", () => {
             const mockEq = jest.fn();
             const mockIn = jest.fn();
             
-            mockSelect.mockReturnValue({ eq: mockEq });
+            mockSelect.mockReturnValue({ eq: mockEq, in: mockIn });
             mockEq.mockResolvedValueOnce(mockOpportunities);
-            mockSelect.mockReturnValue({ in: mockIn });
             mockIn.mockResolvedValueOnce(mockApplications);
             supabase.from.mockReturnValue({ select: mockSelect });
 
@@ -285,9 +286,8 @@ describe("Analytics Service", () => {
             const mockEq = jest.fn();
             const mockIn = jest.fn();
             
-            mockSelect.mockReturnValue({ eq: mockEq });
+            mockSelect.mockReturnValue({ eq: mockEq, in: mockIn });
             mockEq.mockResolvedValueOnce(mockOpportunities);
-            mockSelect.mockReturnValue({ in: mockIn });
             mockIn.mockResolvedValueOnce(mockApplications);
             supabase.from.mockReturnValue({ select: mockSelect });
 
@@ -300,6 +300,66 @@ describe("Analytics Service", () => {
             expect(result.data[0]["Total Applications"]).toBe(2);
             expect(result.metadata.totalOpportunities).toBe(1);
             expect(result.metadata.totalApplications).toBe(2);
+        });
+    });
+
+    describe("getPlacementRatesBySector", () => {
+        test("should return placement rates from the shared RPC", async () => {
+            const mockPlacementData = [
+                {
+                    sector: "Technology",
+                    total_applications: 20,
+                    accepted_applications: 5,
+                    placement_rate: 25,
+                },
+            ];
+
+            supabase.rpc.mockResolvedValueOnce({ data: mockPlacementData, error: null });
+
+            const result = await getPlacementRatesBySector();
+
+            expect(supabase.rpc).toHaveBeenCalledWith("get_placement_rates_by_sector");
+            expect(result).toEqual(mockPlacementData);
+        });
+
+        test("should throw when the shared RPC fails", async () => {
+            supabase.rpc.mockResolvedValueOnce({ data: null, error: new Error("RPC failed") });
+
+            await expect(getPlacementRatesBySector()).rejects.toThrow("RPC failed");
+        });
+    });
+
+    describe("getProviderPlacementRatesBySector", () => {
+        test("should pass the provider id to the provider RPC", async () => {
+            const mockPlacementData = [
+                {
+                    sector: "Health",
+                    total_applications: 12,
+                    accepted_applications: 3,
+                    placement_rate: 25,
+                },
+            ];
+
+            supabase.rpc.mockResolvedValueOnce({ data: mockPlacementData, error: null });
+
+            const result = await getProviderPlacementRatesBySector(mockProviderId);
+
+            expect(supabase.rpc).toHaveBeenCalledWith("get_provider_placement_rates_by_sector", {
+                provider_uuid: mockProviderId,
+            });
+            expect(result).toEqual(mockPlacementData);
+        });
+
+        test("should reject invalid provider ids", async () => {
+            await expect(getProviderPlacementRatesBySector(null)).rejects.toThrow("Valid provider profile ID is required");
+            await expect(getProviderPlacementRatesBySector("")).rejects.toThrow("Valid provider profile ID is required");
+            await expect(getProviderPlacementRatesBySector(123)).rejects.toThrow("Valid provider profile ID is required");
+        });
+
+        test("should throw when the provider RPC fails", async () => {
+            supabase.rpc.mockResolvedValueOnce({ data: null, error: new Error("RPC failed") });
+
+            await expect(getProviderPlacementRatesBySector(mockProviderId)).rejects.toThrow("RPC failed");
         });
     });
 });

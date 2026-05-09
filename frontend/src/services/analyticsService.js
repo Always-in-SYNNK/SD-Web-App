@@ -46,6 +46,77 @@ export async function getApplicationTrends() {
   return json.data;
 }
 
+
+// ─── GET /api/analytics/placements ──────────────────────────────────────────
+// Global placement analytics (admin view)
+//
+// Returns:
+//     [{sector, totalApplications, acceptedApplications, placementRate}]
+//
+// Used for:
+// - placement rate bar chart
+// - accepted placements pie chart
+//
+export async function getPlacementRates() {
+  const json = await apiFetch("/api/analytics/placements");
+
+  const data = json.data;
+
+  return {
+    raw: data,
+
+    // bar chart needs { sector, placementRate }
+    chartData: data.map((item) => ({
+      sector: item.sector,
+      placementRate: Number(item.placement_rate), //convert strings to numbers for charts
+    })),
+
+    // pie chart needs { sector, acceptedApplications }
+    pieData: data.map((item) => ({
+      sector: item.sector,
+      acceptedApplications: Number(
+        item.accepted_applications
+      ),
+    })),
+
+    totals: {
+      totalApplications: data.reduce(
+        (sum, item) =>
+          sum + Number(item.total_applications),
+        0
+      ),
+
+      totalAccepted: data.reduce(
+        (sum, item) =>
+          sum + Number(item.accepted_applications),
+        0
+      ),
+    },
+  };
+}
+
+
+// ─── GET /api/analytics/provider-placements ─────────────────────────────────
+// Provider-specific placement analytics
+//
+// Returns ONLY analytics for the logged-in provider's opportunities.
+//
+// Returns:
+//     [{sector, totalApplications, acceptedApplications, placementRate}]
+//
+// Used for:
+// - provider analytics dashboard
+// - provider-specific charts
+//
+export async function getProviderPlacementRates() {
+  const json = await apiFetch(
+    "/api/analytics/provider-placements"
+  );
+
+  return json.data;
+}
+
+
 // ─── GET /api/analytics/export ───────────────────────────────────────────────
 // Fetches CSV-ready data from the backend and triggers a browser file download.
 export async function exportAnalytics() {

@@ -2,7 +2,8 @@ import { Router } from "express";
 import { 
     getApplicationAnalytics, 
     getTrendAnalytics,
-    exportAnalytics 
+    exportAnalytics,
+    getProviderPlacementRates
 } from "../controllers/analyticsController.js";
 import providerAuthMiddleware from "../middleware/providerAuthMiddleware.js";
 
@@ -72,11 +73,20 @@ router.get("/trends", providerAuthMiddleware, getTrendAnalytics);
  */
 router.get("/export", providerAuthMiddleware, exportAnalytics);
 
+/**
+ * @route   GET /api/analytics/provider-placements
+ * @desc    Get placement rates by sector for authenticated provider
+ * @access  Private (Provider only)
+ * @returns Array of sectors with placement rates for the provider's opportunities
+ */
+router.get("/provider-placements", providerAuthMiddleware, getProviderPlacementRates);
+
 console.log('✅ Analytics routes registered:');
 console.log('   - GET /api/analytics/test (public)');
 console.log('   - GET /api/analytics/ping (public)');
 console.log('   - GET /api/analytics/applications (protected)');
 console.log('   - GET /api/analytics/trends (protected)');
 console.log('   - GET /api/analytics/export (protected)');
+console.log('   - GET /api/analytics/provider-placements (protected)');
 
 export default router;
