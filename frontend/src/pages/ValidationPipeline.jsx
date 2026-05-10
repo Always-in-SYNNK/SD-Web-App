@@ -1,36 +1,21 @@
 // src/pages/ValidationPipeline.jsx
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabaseClient";
 import Sidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
-import StatsCard from "../components/dashboard/StatsCard";
 import JobCard from "../components/dashboard/JobCard";
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+const FILTER_TABS = ["all", "pending", "approved", "rejected"];
 
 const ValidationPipeline = () => {
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
-  const [user, setUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/auth/provider/me`, {
-        credentials: "include",
-      });
-      const data = await response.json();
-
-      if (!data.authenticated) {
-        return null;
-      }
-      return data.user;
-    } catch (err) {
-      console.error("Auth check failed:", err);
-      return null;
-    }
-  }, []);
+  const { user } = useAuth();
 
   const fetchOpportunities = useCallback(async (currentUser) => {
     if (!currentUser) return;
@@ -51,6 +36,9 @@ const ValidationPipeline = () => {
         location,
         status,
         created_at,
+        duration,
+        stipend,
+        closing_date,
         provider_profiles (
           organisation_name
         )
@@ -81,118 +69,177 @@ const ValidationPipeline = () => {
 
   useEffect(() => {
     const initialize = async () => {
-      const currentUser = await checkAuth();
-      setUser(currentUser);
-      await fetchOpportunities(currentUser);
+      if (!user) {
+        setAuthChecked(true);
+        return;
+      }
+
+      await fetchOpportunities(user);
       setAuthChecked(true);
     };
-    
+
     initialize();
-  }, [checkAuth, fetchOpportunities]);
+  }, [user, fetchOpportunities]);
 
   const counts = {
     all: jobs.length,
-    approved: jobs.filter((job) => job.status === "approved").length,
-    pending: jobs.filter((job) => job.status === "pending").length,
-    rejected: jobs.filter((job) => job.status === "rejected").length,
+    approved: jobs.filter((j) => j.status === "approved").length,
+    pending: jobs.filter((j) => j.status === "pending").length,
+    rejected: jobs.filter((j) => j.status === "rejected").length,
   };
 
-  const filteredJobs = filter === "all" ? jobs : jobs.filter((job) => job.status === filter);
+  const filteredJobs =
+    filter === "all" ? jobs : jobs.filter((j) => j.status === filter);
 
   if (!authChecked) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading...</p>
+        <div className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin" />
       </main>
     );
   }
 
   return (
-  <div className="flex min-h-screen bg-gray-50">
-    <Sidebar />
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar />
 
-    <div className="ml-64 flex flex-col min-h-screen w-full min-w-0">
-      <Topbar user={user} onLogout={handleLogout} />
+      <div className="ml-64 flex flex-col min-h-screen w-full min-w-0">
+        <Topbar user={user} onLogout={handleLogout} />
 
-      <section className="p-8">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Validation Pipeline</h1>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-800 transition-colors bg-white rounded-lg border border-red-200 hover:bg-red-50"
-          >
-            Sign Out
-          </button>
-        </header>
+        <section className="p-8">
+          {/* Header */}
+          <header className="flex justify-between items-start mb-8">
+            <div>
+              <h1 className="font-headline text-4xl font-bold tracking-tight text-[#1b1c1c] mb-2">
+                Validation Pipeline
+              </h1>
+              <p className="text-sm text-[#707881] mt-1">
+                Track the status of your submitted opportunities
+              </p>
+            </div>
+          </header>
 
-        <section className="grid grid-cols-3 gap-4 mt-6">
-          <StatsCard
-            title="Approved"
-            value={counts.approved}
-            icon="verified"
-          />
-          <StatsCard
-            title="Pending Approval"
-            value={counts.pending}
-            icon="hourglass_empty"
-          />
-          <StatsCard
-            title="Rejected"
-            value={counts.rejected}
-            icon="cancel"
-          />
-        </section>
+          {/* Stats Cards */}
+          <section className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-[#035b9d]">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
+                  Total
+                </p>
+                <span className="material-symbols-outlined text-[#035b9d] text-xl">
+                  work
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-[#0d1b2a] mt-1">
+                {counts.all}
+              </p>
+            </article>
 
-        <section className="flex gap-3 mt-8">
-          {["all", "pending", "approved", "rejected"].map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => setFilter(status)}
-              className={`px-4 py-1 rounded-full border capitalize ${
-                filter === status
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-gray-600"
-              }`}
-            >
-              {status}
-              {status !== "all" && (
-                <small className="ml-1 text-xs opacity-70">
-                  ({counts[status]})
-                </small>
-              )}
-            </button>
-          ))}
-        </section>
+            <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-green-500">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
+                  Approved
+                </p>
+                <span className="material-symbols-outlined text-green-600 text-xl">
+                  verified
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-green-600 mt-1">
+                {counts.approved}
+              </p>
+            </article>
 
-        <section className="mt-6 space-y-4">
-          {error && (
-            <p className="text-red-500 bg-red-50 p-3 rounded">{error}</p>
-          )}
+            <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-yellow-400">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
+                  Pending
+                </p>
+                <span className="material-symbols-outlined text-yellow-500 text-xl">
+                  hourglass_empty
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-yellow-600 mt-1">
+                {counts.pending}
+              </p>
+            </article>
 
-          {!error && filteredJobs.length === 0 && (
-            <p className="text-gray-400 text-sm">
-              No opportunities found
-              {filter !== "all" ? ` with status "${filter}"` : ""}.
-            </p>
-          )}
+            
 
-          {!error &&
-            filteredJobs.map((job) => (
-             <JobCard
-              key={job.id}
-              id={job.id}
-              title={job.title}
-              location={job.location}
-              status={job.status}
-            />
+            <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-red-600">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
+                  Rejected
+                </p>
+                <span className="material-symbols-outlined text-red-500 text-xl">
+                  cancel
+                </span>
+              </div>
+              <p className="text-2xl font-bold text-red-700 mt-1">
+                {counts.rejected}
+              </p>
+            </article>
+          </section>
+
+          {/* Filter Tabs */}
+          <nav className="flex gap-2 border-b border-gray-200 pb-3 mb-6">
+            {FILTER_TABS.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setFilter(tab)}
+                className={`px-5 py-2 rounded-full text-sm font-medium capitalize transition-all ${
+                  filter === tab
+                    ? "bg-[#035b9d] text-white shadow-md"
+                    : "text-[#404850] hover:bg-gray-100"
+                }`}
+              >
+                {tab} ({counts[tab === "all" ? "all" : tab]})
+              </button>
             ))}
+          </nav>
+
+          {/* Job List */}
+          <section className="space-y-4">
+            {error && (
+              <p className="text-red-500 bg-red-50 p-3 rounded-lg border border-red-100">
+                {error}
+              </p>
+            )}
+
+            {!error && filteredJobs.length === 0 && (
+              <section className="text-center py-16 bg-white rounded-xl border border-gray-100">
+                <span className="material-symbols-outlined text-4xl text-gray-300">
+                  inbox
+                </span>
+                <p className="text-[#707881] mt-3 font-medium">
+                  No opportunities found
+                </p>
+                <p className="text-sm text-[#707881] mt-1">
+                  {filter !== "all"
+                    ? `You have no ${filter} opportunities`
+                    : "Submit your first opportunity to get started"}
+                </p>
+              </section>
+            )}
+
+            {!error &&
+              filteredJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  id={job.id}
+                  title={job.title}
+                  location={job.location}
+                  duration={job.duration}
+                  stipend={job.stipend}
+                  closing_date={job.closing_date}
+                  status={job.status}
+                />
+              ))}
+          </section>
         </section>
-      </section>
+      </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default ValidationPipeline;

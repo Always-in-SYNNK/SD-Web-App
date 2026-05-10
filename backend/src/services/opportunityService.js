@@ -241,8 +241,10 @@ export async function updateOpportunityForProvider({ providerId, opportunityId, 
     throw new Error("Not authorized to update this opportunity");
   }
 
-  //We need to account for updates to the skills required for opportunities, needs to be included in the payload
-  await setOpportunitySkills(opportunityId, data.skillIds || []);
+  // Only touch opportunity skills when the caller explicitly sends skillIds.
+  if (Object.prototype.hasOwnProperty.call(data, "skillIds")) {
+    await setOpportunitySkills(opportunityId, Array.isArray(data.skillIds) ? data.skillIds : []);
+  }
 
   const payload = {
     title: data.title,

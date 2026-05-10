@@ -10,12 +10,28 @@ export async function getSkillsByField(fieldName) {
 }
 
 export async function getApplicantSkills(applicantId) {
-    // Fix: Pass parameter as object, not directly
-    const { data, error } = await supabase.rpc("get_applicant_skills_json", {applicant_id_param: applicantId});
+    const { data, error } = await supabase
+        .from("applicant_skills")
+        .select(`
+            id,
+            applicant_id,
+            skills_id,
+            skills:skills_id (
+                id,
+                name,
+                field
+            )
+        `)
+        .eq("applicant_id", applicantId);
+
     if (error) throw new Error(error.message);
-    
-    return data;
-    // data return example: [{ id, name, field }, ...]
+
+    return (data || []).map((row) => ({
+        id: row.skills?.id ?? row.skills_id,
+        skills_id: row.skills_id,
+        name: row.skills?.name ?? row.skills?.skill_name ?? null,
+        field: row.skills?.field ?? null,
+    }));
 }
 
 export async function getOpportunitySkills(opportunityId) {
