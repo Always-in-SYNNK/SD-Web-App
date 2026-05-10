@@ -16,6 +16,7 @@ const mockService = {
   getApproved: jest.fn(),
   updateStatus: jest.fn(),
   deleteOpportunityById: jest.fn(),
+  matchingOpportunity: jest.fn(),
 };
 
 jest.unstable_mockModule("../src/services/opportunityService.js", () => mockService);
@@ -35,6 +36,7 @@ const {
   approveOpportunity,
   rejectOpportunity,
   deleteOpportunity,
+  getMatchingOpportunities,
 } = await import("../src/controllers/opportunityController.js")
 
 function createMockRes() {
