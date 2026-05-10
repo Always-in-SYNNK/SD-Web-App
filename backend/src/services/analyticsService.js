@@ -199,14 +199,20 @@ export async function getApplicationTrends(providerProfileId) {
 
 /**
  * Export analytics data as CSV-ready format
+ * Includes both opportunity-level and sector-level placement analytics
  * @param {string} providerProfileId - The provider's profile ID
  * @returns {Promise<Object>} Exportable data
  */
 export async function exportAnalyticsData(providerProfileId) {
-    const analyticsData = await getApplicationsPerOpportunity(providerProfileId);
+    // Fetch both opportunity and placement data in parallel
+    const [analyticsData, placementData] = await Promise.all([
+        getApplicationsPerOpportunity(providerProfileId),
+        getProviderPlacementRatesBySector(providerProfileId)
+    ]);
     
-    // Format data for CSV export
-    const exportData = analyticsData.data.map(opp => ({
+    // Format opportunity data for CSV export
+    const opportunityExport = analyticsData.data.map(opp => ({
+        'Section': 'Opportunities',
         'Opportunity Title': opp.opportunityTitle,
         'Total Applications': opp.count,
         'Status': opp.status,
@@ -214,15 +220,53 @@ export async function exportAnalyticsData(providerProfileId) {
         'Pending': opp.statusBreakdown?.pending || 0,
         'Shortlisted': opp.statusBreakdown?.shortlisted || 0,
         'Accepted': opp.statusBreakdown?.accepted || 0,
-        'Rejected': opp.statusBreakdown?.rejected || 0
+        'Rejected': opp.statusBreakdown?.rejected || 0,
+        'Sector': '',
+        'Placement Rate (%)': ''
     }));
+
+    // Format sector placement data for CSV export
+    const sectorExport = (placementData || []).map(sector => ({
+        'Section': 'Sector Analytics',
+        'Opportunity Title': '',
+        'Total Applications': sector.total_applications ?? sector.totalApplications ?? 0,
+        'Status': '',
+        'Location': '',
+        'Pending': '',
+        'Shortlisted': '',
+        'Accepted': sector.accepted_applications ?? sector.acceptedApplications ?? 0,
+        'Rejected': '',
+        'Sector': sector.sector || 'Unknown',
+        'Placement Rate (%)': (sector.placement_rate ?? sector.placementRate ?? 0).toFixed(2)
+    }));
+
+    // Combine both sections with a blank row separator
+    const exportData = [
+        ...opportunityExport,
+        // Blank row separator
+        {
+            'Section': '',
+            'Opportunity Title': '',
+            'Total Applications': '',
+            'Status': '',
+            'Location': '',
+            'Pending': '',
+            'Shortlisted': '',
+            'Accepted': '',
+            'Rejected': '',
+            'Sector': '',
+            'Placement Rate (%)': ''
+        },
+        ...sectorExport
+    ];
 
     return {
         data: exportData,
         metadata: {
             generatedAt: new Date().toISOString(),
             totalOpportunities: analyticsData.data.length,
-            totalApplications: analyticsData.totals.totalApplications
+            totalApplications: analyticsData.totals.totalApplications,
+            totalSectors: placementData?.length || 0
         }
     };
 }

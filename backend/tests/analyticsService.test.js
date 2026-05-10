@@ -266,40 +266,101 @@ describe("Analytics Service", () => {
     });
 
     describe("exportAnalyticsData", () => {
-        test("should return formatted export data", async () => {
+        test("should return formatted export data with sector analytics", async () => {
             const mockOpportunities = {
                 data: [
-                    { id: "opp-1", title: "Test Role", location: "Remote", status: "approved", created_at: "2024-01-01", closing_date: "2024-12-31" },
+                    {
+                        id: "opp-1",
+                        title: "Test Role",
+                        location: "Remote",
+                        status: "approved",
+                        created_at: "2024-01-01",
+                        closing_date: "2024-12-31",
+                    },
                 ],
                 error: null,
             };
 
             const mockApplications = {
                 data: [
-                    { id: "app-1", status: "pending", opportunity_id: "opp-1", created_at: "2024-01-15" },
-                    { id: "app-2", status: "accepted", opportunity_id: "opp-1", created_at: "2024-01-16" },
+                    {
+                        id: "app-1",
+                        status: "pending",
+                        opportunity_id: "opp-1",
+                        created_at: "2024-01-15",
+                    },
+                    {
+                        id: "app-2",
+                        status: "accepted",
+                        opportunity_id: "opp-1",
+                        created_at: "2024-01-16",
+                    },
                 ],
                 error: null,
             };
 
+            // NEW: Mock sector analytics RPC response
+            const mockSectorAnalytics = [
+                {
+                    sector: "Technology",
+                    total_applications: 2,
+                    accepted_applications: 1,
+                    placement_rate: 50,
+                },
+            ];
+
             const mockSelect = jest.fn();
             const mockEq = jest.fn();
             const mockIn = jest.fn();
-            
-            mockSelect.mockReturnValue({ eq: mockEq, in: mockIn });
+
+            mockSelect.mockReturnValue({
+                eq: mockEq,
+                in: mockIn,
+            });
+
             mockEq.mockResolvedValueOnce(mockOpportunities);
+
             mockIn.mockResolvedValueOnce(mockApplications);
-            supabase.from.mockReturnValue({ select: mockSelect });
+
+            supabase.from.mockReturnValue({
+                select: mockSelect,
+            });
+
+            // NEW: Mock RPC call
+            supabase.rpc.mockResolvedValueOnce({
+                data: mockSectorAnalytics,
+                error: null,
+            });
 
             const result = await exportAnalyticsData(mockProviderId);
 
             expect(result).toHaveProperty("data");
             expect(result).toHaveProperty("metadata");
-            expect(result.data).toHaveLength(1);
+
+            // Opportunity row
             expect(result.data[0]["Opportunity Title"]).toBe("Test Role");
             expect(result.data[0]["Total Applications"]).toBe(2);
+
+            // Blank separator row
+            expect(result.data[1]["Section"]).toBe("");
+
+            // Sector analytics row
+            expect(result.data[2]["Section"]).toBe("Sector Analytics");
+            expect(result.data[2]["Sector"]).toBe("Technology");
+            expect(result.data[2]["Placement Rate (%)"]).toBe("50.00");
+
+            // Metadata
             expect(result.metadata.totalOpportunities).toBe(1);
             expect(result.metadata.totalApplications).toBe(2);
+            expect(result.metadata.totalSectors).toBe(1);
+
+            // Ensure RPC was called correctly
+            expect(supabase.rpc).toHaveBeenCalledWith(
+                "get_provider_placement_rates_by_sector",
+                {
+                    provider_uuid: mockProviderId,
+                }
+            );
         });
     });
 

@@ -27,7 +27,8 @@ import { useAuth }                      from "../context/useAuth";
 
 import ApplicationVolumeChart    from "../components/analytics/ApplicationVolumeChart";
 import OpportunityBreakdownTable from "../components/analytics/OpportunityBreakdownTable";
-import { getApplicationVolume, exportAnalytics } from "../services/analyticsService";
+import SectorBarChart            from "../components/analytics/SectorBarChart";
+import { getApplicationVolume, exportAnalytics, getProviderPlacementRates } from "../services/analyticsService";
 
 // ── MOCK DATA ─────────────────────────────────────────────────────────────────
 // Visual fallback only — shown when the API call fails.
@@ -87,6 +88,38 @@ const MOCK_DATA = {
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── Skeleton components ──────────────────────────────────────────────────────
+
+function StatCardSkeleton() {
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse">
+      <div className="h-3 w-28 bg-gray-200 rounded mb-3" />
+      <div className="h-8 w-16 bg-gray-200 rounded" />
+    </div>
+  );
+}
+
+function ChartSkeleton({ height = 300 }) {
+  return (
+    <div
+      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse"
+      style={{ height: height + 68 /* card padding */ }}
+    >
+      <div className="h-4 w-40 bg-gray-200 rounded mb-2" />
+      <div className="h-3 w-56 bg-gray-100 rounded mb-6" />
+      <div className="flex items-end gap-3 h-48 px-2">
+        {[65, 90, 50, 78, 42, 85, 60, 35, 72, 55, 40, 68].map((h, i) => (
+          <div
+            key={i}
+            className="flex-1 bg-gray-100 rounded-t"
+            style={{ height: `${h}%` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Stat card — same style as AdminAccessApplications.jsx ────────────────────
 function StatCard({ label, value, color }) {
   return (
@@ -106,6 +139,7 @@ export default function AnalyticsPage() {
 
   const [data,       setData]       = useState(MOCK_DATA.data);
   const [totals,     setTotals]     = useState(MOCK_DATA.totals);
+  const [sectorData, setSectorData] = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState(null);
   const [exporting,  setExporting]  = useState(false);
@@ -116,9 +150,28 @@ export default function AnalyticsPage() {
     try {
       setLoading(true);
       setError(null);
-      const result = await getApplicationVolume();
-      setData(result.data);
-      setTotals(result.totals); // backend-calculated totals, not derived here
+
+      const [placementResult, appResult] = await Promise.allSettled([
+              getProviderPlacementRates(),
+              getApplicationVolume(),
+            ]);
+
+      console.log("[placement]", placementResult);
+      console.log("[apps]", appResult);            
+
+      if (placementResult.status === "fulfilled") {
+        setSectorData(placementResult.value);
+      } else {
+        console.error("[AdminAnalytics] placements:", placementResult.reason?.message);
+        setError("Could not load sector data. The charts below may be empty.");
+      }
+
+      if (appResult.status === "fulfilled") {
+        setData(appResult.value.data);
+        setTotals(appResult.value.totals);
+      } else {
+        console.error("[AnalyticsPage] applications:", appResult.reason?.message);
+      }
     } catch (err) {
       console.error("[AnalyticsPage]", err.message);
       setError("Could not load live analytics. Showing example data.");
@@ -144,15 +197,6 @@ export default function AnalyticsPage() {
       setExporting(false);
     }
   };
-
-  // ── Loading state ─────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#faf9f8] flex items-center justify-center">
-        <p className="text-gray-400">Loading analytics…</p>
-      </main>
-    );
-  }
 
   return (
     <div className="flex min-h-screen bg-[#faf9f8]">
@@ -201,27 +245,46 @@ export default function AnalyticsPage() {
           {/* ── Stat cards ── */}
           {/* Values come from totals object returned by the backend */}
           <section className="grid grid-cols-3 gap-4 mb-8">
-            <StatCard
-              label="Total Applications"
-              value={totals.totalApplications}
-              color="text-gray-800"
-            />
-            <StatCard
-              label="Active Opportunities"
-              value={totals.activeOpportunities}
-              color="text-[#035b9d]"
-            />
-            <StatCard
-              label="Avg. Applications / Opportunity"
-              value={totals.averagePerOpportunity}
-              color="text-green-600"
-            />
+              {loading || !totals ? (
+                <>
+                  <StatCardSkeleton />
+                  <StatCardSkeleton />
+                  <StatCardSkeleton />
+                </>
+              ) : (
+                <>
+                  <StatCard label="Total Applications"
+                    value={totals.totalApplications}
+                    color="text-gray-800"
+                  />
+                  <StatCard
+                    label="Active Opportunities"
+                    value={totals.activeOpportunities}
+                    color="text-[#035b9d]"
+                  />
+                  <StatCard
+                    label="Avg. Applications / Opportunity"
+                    value={totals.averagePerOpportunity}
+                    color="text-green-600"
+                  />
+                </>
+              )}
           </section>
 
           {/* ── Chart ── */}
           {/* data array includes statusBreakdown per opportunity for tooltip */}
-          <section className="mb-6">
-            <ApplicationVolumeChart data={data} />
+          <section className="flex flex-col gap-6 mb-6">
+            {loading ? (
+              <>
+                <ChartSkeleton height={300} />
+                <ChartSkeleton height={300} />
+              </>
+            ) : (
+              <>
+                <ApplicationVolumeChart data={data} />
+                <SectorBarChart data={sectorData || []} />
+              </>    
+            )}
           </section>
 
           {/* ── Breakdown table ── */}
