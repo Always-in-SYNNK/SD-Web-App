@@ -5,15 +5,52 @@
 //
 // Base URL comes from your existing VITE_API_URL env variable —
 // same pattern used across all other service files in this project.
+// IMPORTANT: Uses RELATIVE paths (/api/...) so Vite proxy handles the request.
+// No CORS issues because browser thinks it's calling same origin (localhost:5173).
 
-const API_URL = import.meta.env.VITE_API_URL;
+
+//const API_URL = import.meta.env.VITE_API_URL; this is what was causing the CORS error because the orgin was different. The URL call for the 3000 port not 5173.
 
 // ─── Shared fetch helper ──────────────────────────────────────────────────────
 // Mirrors the pattern in your other service files (credentials: "include"
 // sends the session cookie that providerAuthMiddleware validates).
+// Get token from localStorage (where your login stores it)
+// Change from relative path to absolute URL
+const API_BASE_URL = 'http://localhost:3000';
+
+const getAuthToken = () => {
+  // token is stored as "token" - use that
+  const token = localStorage.getItem("token");
+  console.log("🔑 Getting token from localStorage:", token ? "Token found (length: " + token.length + ")" : "No token found");
+  return token;
+};
 async function apiFetch(path) {
-  const res  = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  const token = getAuthToken();
+
+  console.log("📡 Fetching:", path);
+  console.log("🔑 Token being sent:", token ? "Yes ✅" : "No ❌");
+
+   const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  // Add Authorization header with Bearer token
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+
+  const res = await fetch(path, { 
+    credentials: "include",
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+
+  console.log("📡 Response status:", res.status);
+
   const json = await res.json();
+  console.log("📡 Response:", json);
 
   if (!res.ok || !json.success) {
     throw new Error(json.error || `Request failed: ${res.status}`);
@@ -28,8 +65,7 @@ async function apiFetch(path) {
 //   data    — [{ opportunityTitle, count, status, location,
 //                opportunityId, statusBreakdown }]
 //   totals  — { totalApplications, activeOpportunities, averagePerOpportunity }
-//
-// Totals now come from the backend — we no longer calculate them on the frontend.
+
 export async function getApplicationVolume() {
   const json = await apiFetch("/api/analytics/applications");
   return {
@@ -47,23 +83,8 @@ export async function getApplicationTrends() {
 }
 
 // ─── GET /api/analytics/export ───────────────────────────────────────────────
-// Fetches CSV-ready data from the backend and triggers a browser file download.
-export async function exportAnalytics() {
+// Returns CSV-ready data
+export async function getExportData() {
   const json = await apiFetch("/api/analytics/export");
-
-  if (!json.data || json.data.length === 0) return;
-
-  const headers = Object.keys(json.data[0]);
-  const rows    = json.data.map((row) =>
-    headers.map((h) => `"${String(row[h] ?? "").replace(/"/g, '""')}"`).join(",")
-  );
-
-  const csv  = [headers.join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
-  a.href     = url;
-  a.download = `analytics-export-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  return json.data || [];
 }
