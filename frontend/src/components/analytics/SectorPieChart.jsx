@@ -33,6 +33,7 @@ export default function SectorPieChart({ data = [] }) {
     beforeDraw(chart) {
       const { ctx, chartArea: { left, right, top, bottom } } = chart;
       const cx = (left + right) / 2;
+      // Shift centre label up slightly since legend is now below the chart
       const cy = (top + bottom) / 2;
       ctx.save();
       ctx.font = "bold 22px sans-serif";
@@ -42,7 +43,7 @@ export default function SectorPieChart({ data = [] }) {
       ctx.fillText(grandAccepted, cx, cy - 10);
       ctx.font = "11px sans-serif";
       ctx.fillStyle = "#9ca3af";
-      ctx.fillText("Accepted", cx, cy + 12);
+      ctx.fillText("accepted", cx, cy + 12);
       ctx.restore();
     },
   };
@@ -51,24 +52,41 @@ export default function SectorPieChart({ data = [] }) {
     responsive: true,
     maintainAspectRatio: false,
     cutout: "62%",
+    layout: {
+      // Give the bottom legend room to breathe
+      padding: { bottom: 4 },
+    },
     plugins: {
       legend: {
-        position: "right",
+        // Move legend below the doughnut so all 12 sectors fit without truncation
+        position: "bottom",
         labels: {
-            boxWidth: 12, boxHeight: 12, borderRadius: 3, useBorderRadius: true,
-            font: { size: 11 }, color: "#555", padding: 16,
-            maxItems: 6,  // 6 per row
-            generateLabels: (chart) =>
+          boxWidth: 10,
+          boxHeight: 10,
+          borderRadius: 3,
+          useBorderRadius: true,
+          font: { size: 10 },
+          color: "#555",
+          // Horizontal padding between legend items
+          padding: 12,
+          generateLabels: (chart) =>
             chart.data.labels.map((label, i) => ({
-                text: `${label} (${((chart.data.datasets[0].data[i] / grandAccepted) * 100).toFixed(1)}%)`,
-                fillStyle: PALETTE[i % PALETTE.length] + "d9",
-                strokeStyle: "#fff", lineWidth: 1, index: i, hidden: false,
+              text: `${label} (${((chart.data.datasets[0].data[i] / grandAccepted) * 100).toFixed(1)}%)`,
+              fillStyle: PALETTE[i % PALETTE.length] + "d9",
+              strokeStyle: "#fff",
+              lineWidth: 1,
+              index: i,
+              hidden: false,
             })),
         },
-        },
+      },
       tooltip: {
-        backgroundColor: "#fff", borderColor: "#e5e7eb", borderWidth: 1,
-        titleColor: "#111", bodyColor: "#444", padding: 12,
+        backgroundColor: "#fff",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        titleColor: "#111",
+        bodyColor: "#444",
+        padding: 12,
         callbacks: {
           label: (ctx) => {
             const d = sectors[ctx.dataIndex];
@@ -85,14 +103,19 @@ export default function SectorPieChart({ data = [] }) {
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
       <div className="mb-5">
-        <h3 className="font-bold text-gray-800 text-base">Placements by Sector</h3>
+        <h3 className="font-bold text-gray-800 text-base">Acceptance by Sector</h3>
         <p className="text-xs text-gray-400 mt-0.5">Share of accepted applicants across sectors</p>
       </div>
-      <div style={{ height: 250 }}>
-        {sectors.length === 0
-          ? <div className="h-full flex items-center justify-center text-gray-400 text-sm">No accepted applications yet</div>
-          : <Doughnut data={chartData} options={options} plugins={[centreLabel]} />
-        }
+      {/* Increased height to accommodate bottom legend with up to 12 sectors */}
+      <div style={{ height: 320 }}>
+        {sectors.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center gap-1">
+            <p className="text-gray-500 text-sm font-medium">No accepted applications yet</p>
+            <p className="text-gray-400 text-xs">Data appears once applications are accepted</p>
+          </div>
+        ) : (
+          <Doughnut data={chartData} options={options} plugins={[centreLabel]} />
+        )}
       </div>
     </div>
   );

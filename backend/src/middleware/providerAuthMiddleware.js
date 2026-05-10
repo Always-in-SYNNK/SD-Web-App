@@ -63,6 +63,7 @@ async function providerAuthMiddleware(req, res, next) {
 
             if (decoded.role !== 'provider') {
                 console.log('[ProviderAuth] Role mismatch. Expected provider, got:', decoded.role);
+                return res.status(403).json({ error: "Access denied. Employers only." });
             } else {
                 const { supabase } = await import('../config/supabaseClient.js');
                 const profile = await getProviderProfileByTokenId(supabase, decoded.id);

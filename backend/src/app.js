@@ -27,8 +27,6 @@ import analyticsRoutes from "./routes/analyticsRoutes.js";
 const app = express();
 
 
-
-
 // SIMPLE CORS 
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:5173",
@@ -72,6 +70,7 @@ app.use("/applications", myApplicationRoutes);
 
 // ─── Analytics routes ────────────────────────────────────────────────────────
 app.use("/api/analytics", analyticsRoutes);
+//app.use("/api/industries", industryRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
 import { supabase } from "./config/supabaseClient.js";

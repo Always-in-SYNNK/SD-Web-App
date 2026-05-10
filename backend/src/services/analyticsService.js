@@ -1,3 +1,4 @@
+//backend/src/services/analyticsService.js
 import { supabase } from "../config/supabaseClient.js";
 
 /**
@@ -11,6 +12,7 @@ import { supabase } from "../config/supabaseClient.js";
  * @returns {Promise<Object>} Formatted analytics data matching frontend expectations
  */
 export async function getApplicationsPerOpportunity(providerProfileId) {
+     console.log('🔍 [AnalyticsService] Looking for opportunities with provider_profile_id:', providerProfileId);
     // Input validation
     if (!providerProfileId || typeof providerProfileId !== 'string') {
         throw new Error('Valid provider profile ID is required');
@@ -225,7 +227,7 @@ export async function exportAnalyticsData(providerProfileId) {
         'Placement Rate (%)': ''
     }));
 
-    // Format sector placement data for CSV export
+    // Format sector placement data for CSV export -- I added this before she updated export stuff stuff so I don't know if she's still using this or if this is correct
     const sectorExport = (placementData || []).map(sector => ({
         'Section': 'Sector Analytics',
         'Opportunity Title': '',

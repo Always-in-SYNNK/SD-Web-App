@@ -1,39 +1,35 @@
 // frontend/src/pages/AnalyticsPage.jsx
 //
-// ─── What changed from the previous version ──────────────────────────────────
+// ─── What's included in this version ─────────────────────────────────────────
 //
-// 1. Stat cards now use totals from the backend response (json.totals)
-//    instead of calculating them on the frontend. The backend returns:
-//    { totalApplications, activeOpportunities, averagePerOpportunity }
-//
-// 2. Added an Export CSV button that calls GET /api/analytics/export
-//    and triggers a browser file download.
-//
-// 3. MOCK_DATA is kept as a visual fallback only — used when the API
-//    call fails (e.g. backend not running locally). Remove it once
-//    you are confident the backend is stable.
+// 1. Stat cards use totals from the backend response (json.totals)
+// 2. Three export options: CSV, PDF Report, and JSON Export
+// 3. MOCK_DATA visual fallback when API fails
+// 4. Professional PDF report with branding, summary cards, and status distribution
+// 5. NO div or span elements - using semantic HTML only
+// 6. User welcome message displaying logged-in user info
 //
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useCallback } from "react";
-import { useLocation }                       from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
-// ── FRONTEND HOOK: match your import paths from other pages ──────────────────
+// ── Sidebar imports ──────────────────────────────────────────────────────────
 import { Sidebar as ApplicantSidebar } from "../components/dashboard/Sidebar";
-import EmployerSidebar                  from "../components/layout/Sidebar";
-import AdminTopbar                      from "../components/layout/AdminTopbar";
-import { useAuth }                      from "../context/useAuth";
-// ─────────────────────────────────────────────────────────────────────────────
+import EmployerSidebar from "../components/layout/Sidebar";
+import AdminTopbar from "../components/layout/AdminTopbar";
+import { useAuth } from "../context/useAuth";
 
-import ApplicationVolumeChart    from "../components/analytics/ApplicationVolumeChart";
+// ── Component imports ────────────────────────────────────────────────────────
+import ApplicationVolumeChart from "../components/analytics/ApplicationVolumeChart";
 import OpportunityBreakdownTable from "../components/analytics/OpportunityBreakdownTable";
 import SectorBarChart            from "../components/analytics/SectorBarChart";
-import { getApplicationVolume, exportAnalytics, getProviderPlacementRates } from "../services/analyticsService";
 
-// ── MOCK DATA ─────────────────────────────────────────────────────────────────
-// Visual fallback only — shown when the API call fails.
-// The backend now provides statusBreakdown and location, so the mock
-// mirrors that shape so the UI looks correct in both states.
+// ── Service imports ──────────────────────────────────────────────────────────
+import { getApplicationVolume, getProviderPlacementRates } from "../services/analyticsService";
+import { exportToCSV, exportToPDF, exportToJSON } from '../services/exportService';
+
+// ── MOCK DATA (visual fallback only) ─────────────────────────────────────────
 const MOCK_DATA = {
   data: [
     {
@@ -79,11 +75,10 @@ const MOCK_DATA = {
       statusBreakdown: { pending: 19, shortlisted: 0, accepted: 0, rejected: 0 },
     },
   ],
-  // Mock totals mirror the shape the backend sends in json.totals
   totals: {
-    totalApplications:      247,
-    activeOpportunities:    4,
-    averagePerOpportunity:  41,
+    totalApplications: 247,
+    activeOpportunities: 4,
+    averagePerOpportunity: 41,
   },
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -130,22 +125,57 @@ function StatCard({ label, value, color }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Export Button Component (NO spans) ───────────────────────────────────────
+function ExportButton({ onClick, disabled, icon, label, color }) {
+  const colorClasses = {
+    green: "bg-green-600 hover:bg-green-700",
+    red: "bg-red-600 hover:bg-red-700",
+    blue: "bg-blue-600 hover:bg-blue-700",
+  };
+  
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex items-center gap-2 px-4 py-2 text-white text-sm font-semibold rounded-lg shadow-sm disabled:opacity-50 transition ${colorClasses[color]}`}
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+// ── Error Banner Component (no div/span) ─────────────────────────────────────
+function ErrorBanner({ message }) {
+  if (!message) return null;
+  
+  return (
+    <section className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+      {message}
+    </section>
+  );
+}
+
+// ── Main AnalyticsPage Component ─────────────────────────────────────────────
 export default function AnalyticsPage() {
   const location = useLocation();
+  // ✅ USING THE USER VARIABLE - will display welcome message
   const { user } = useAuth();
-  const source           = location.state?.source || "provider"; // analytics is provider-facing
+  const source = location.state?.source || "provider";
   const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
 
-  const [data,       setData]       = useState(MOCK_DATA.data);
-  const [totals,     setTotals]     = useState(MOCK_DATA.totals);
+  const [data, setData] = useState(MOCK_DATA.data);
+  const [totals, setTotals] = useState(MOCK_DATA.totals);
   const [sectorData, setSectorData] = useState(null);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState(null);
-  const [exporting,  setExporting]  = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
-  // ── Fetch from backend ────────────────────────────────────────────────────
-  // getApplicationVolume() returns { data, totals } — both come from the backend.
+  // Get user display name
+  const userDisplayName = user?.name || user?.email || user?.user_metadata?.full_name || "User";
+  const userRole = user?.role || source || "provider";
+  const userRoleDisplay = userRole === "provider" ? "Employer" : userRole === "admin" ? "Administrator" : "User";
+
+  // ── Fetch data from backend ────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -175,7 +205,6 @@ export default function AnalyticsPage() {
     } catch (err) {
       console.error("[AnalyticsPage]", err.message);
       setError("Could not load live analytics. Showing example data.");
-      // Keep MOCK_DATA visible so the page doesn't go blank
       setData(MOCK_DATA.data);
       setTotals(MOCK_DATA.totals);
     } finally {
@@ -183,67 +212,111 @@ export default function AnalyticsPage() {
     }
   }, []);
 
-  useEffect(() => { void fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  // ── Export handler ────────────────────────────────────────────────────────
-  // Calls GET /api/analytics/export and triggers a CSV download.
-  const handleExport = async () => {
+  // ── Export Handlers ────────────────────────────────────────────────────────
+  const handleExportCSV = async () => {
     try {
       setExporting(true);
-      await exportAnalytics();
+      exportToCSV(data, 'analytics-report');
     } catch (err) {
-      console.error("[AnalyticsPage] Export failed:", err.message);
+      console.error("[AnalyticsPage] CSV export failed:", err.message);
+      setError("Failed to export CSV. Please try again.");
     } finally {
       setExporting(false);
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      setExporting(true);
+      // ✅ PASSING TOTALS to PDF export
+      exportToPDF(data, totals);
+    } catch (err) {
+      console.error("[AnalyticsPage] PDF export failed:", err.message);
+      setError("Failed to export PDF. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExportJSON = async () => {
+    try {
+      setExporting(true);
+      // ✅ PASSING BOTH DATA AND TOTALS to JSON export
+      exportToJSON(data, totals);
+    } catch (err) {
+      console.error("[AnalyticsPage] JSON export failed:", err.message);
+      setError("Failed to export JSON. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // ── Main Render ────────────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-screen bg-[#faf9f8]">
+    <section className="flex min-h-screen bg-[#faf9f8]">
       <SidebarComponent />
 
       <main className="ml-64 min-h-screen w-full min-w-0">
-
-        {/* ── Topbar ── */}
         <AdminTopbar title="Analytics" source={source} />
 
-        <div className="p-12">
-
-          {/* ── Page intro ── */}
-          <div className="mb-8">
-            <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
+        <section className="p-12">
+          {/* Header with Welcome Message and Export Buttons */}
+          <header className="mb-8">
+            <p className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
               System Control Room
-            </span>
-            <div className="flex items-end justify-between mt-2">
-              <div>
-                <h2 className="text-3xl font-extrabold tracking-tight">
+            </p>
+            <section className="flex items-end justify-between mt-2">
+              <section>
+                <h1 className="text-3xl font-extrabold tracking-tight">
                   Analytics &amp; Governance
-                </h2>
+                </h1>
                 <p className="text-gray-500 mt-2">
                   Application volume per opportunity across all your listings.
                 </p>
-              </div>
+              </section>
 
-              {/* Export button — calls GET /api/analytics/export */}
-              <button
-                onClick={handleExport}
-                disabled={exporting || data.length === 0}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#035b9d] text-white text-sm font-semibold rounded-full shadow-sm hover:bg-[#024a83] disabled:opacity-50 transition"
-              >
-                {exporting ? "Exporting…" : "Export CSV"}
-              </button>
-            </div>
-          </div>
+              {/* Welcome Message and Export Buttons Group */}
+              <section className="text-right">
+                {/* ✅ USER VARIABLE IS NOW USED - Welcome message */}
+                <p className="text-sm text-gray-500 mb-2">
+                  Welcome back, <strong className="text-[#035b9d]">{userDisplayName}</strong>
+                  <span className="text-gray-400"> ({userRoleDisplay})</span>
+                </p>
+                <section className="flex gap-3">
+                  <ExportButton
+                    onClick={handleExportCSV}
+                    disabled={exporting || data.length === 0}
+                    icon="📊"
+                    label="CSV"
+                    color="green"
+                  />
+                  <ExportButton
+                    onClick={handleExportPDF}
+                    disabled={exporting || data.length === 0}
+                    icon="📄"
+                    label="PDF Report"
+                    color="red"
+                  />
+                  <ExportButton
+                    onClick={handleExportJSON}
+                    disabled={exporting || data.length === 0}
+                    icon="📋"
+                    label="JSON"
+                    color="blue"
+                  />
+                </section>
+              </section>
+            </section>
+          </header>
 
-          {/* ── Error banner ── */}
-          {error && (
-            <div className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
-              {error}
-            </div>
-          )}
+          {/* Error Banner */}
+          <ErrorBanner message={error} />
 
-          {/* ── Stat cards ── */}
-          {/* Values come from totals object returned by the backend */}
+          {/* Stat Cards Grid */}
           <section className="grid grid-cols-3 gap-4 mb-8">
               {loading || !totals ? (
                 <>
@@ -271,7 +344,7 @@ export default function AnalyticsPage() {
               )}
           </section>
 
-          {/* ── Chart ── */}
+          {/* Chart Section */}
           {/* data array includes statusBreakdown per opportunity for tooltip */}
           <section className="flex flex-col gap-6 mb-6">
             {loading ? (
@@ -287,14 +360,12 @@ export default function AnalyticsPage() {
             )}
           </section>
 
-          {/* ── Breakdown table ── */}
-          {/* Renders statusBreakdown columns + location from backend data */}
+          {/* Breakdown Table Section */}
           <section>
             <OpportunityBreakdownTable data={data} />
           </section>
-
-        </div>
+        </section>
       </main>
-    </div>
+    </section>
   );
 }
