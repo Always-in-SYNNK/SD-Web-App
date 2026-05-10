@@ -17,11 +17,20 @@ const ValidationPipeline = () => {
 
   const checkAuth = useCallback(async () => {
     try {
+      // First, try to get user from localStorage
+      const storedUser = localStorage.getItem("provider_user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        console.log('✅ User found in localStorage:', user);
+        return user;
+      }
+      
+      // Fallback to session check
       const response = await fetch(`${API_URL}/api/auth/provider/me`, {
         credentials: "include",
       });
       const data = await response.json();
-
+      
       if (!data.authenticated) {
         return null;
       }
@@ -83,6 +92,12 @@ const ValidationPipeline = () => {
     const initialize = async () => {
       const currentUser = await checkAuth();
       setUser(currentUser);
+      
+      if (!currentUser) {
+        window.location.href = "/prov-login";
+        return;
+      }
+      
       await fetchOpportunities(currentUser);
       setAuthChecked(true);
     };
@@ -108,13 +123,11 @@ const ValidationPipeline = () => {
   }
 
   return (
-  <div className="flex min-h-screen bg-gray-50">
-    <Sidebar />
-
-    <div className="ml-64 flex flex-col min-h-screen w-full min-w-0">
+    <main className="min-h-screen bg-gray-50">
+      <Sidebar />
       <Topbar user={user} onLogout={handleLogout} />
 
-      <section className="p-8">
+      <section className="ml-72 p-8">
         <header className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Validation Pipeline</h1>
           <button
@@ -190,9 +203,8 @@ const ValidationPipeline = () => {
             ))}
         </section>
       </section>
-    </div>
-  </div>
-);
+    </main>
+  );
 };
 
 export default ValidationPipeline;

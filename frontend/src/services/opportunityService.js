@@ -3,10 +3,6 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 const API = `${API_URL}/api/opportunities`;
 
-const getSessionConfig = () => ({
-  withCredentials: true,
-});
-
 const getAdminAuthConfig = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -32,7 +28,7 @@ function toError(err) {
 /* PROVIDER */
 export async function publishOpportunity(data) {
   try {
-    const res = await axios.post(`${API}/publish`, data, getSessionConfig());
+    const res = await axios.post(`${API}/publish`, data, getAdminAuthConfig());
 
     return {
       data: res?.data?.data ?? null,
@@ -48,7 +44,7 @@ export async function publishOpportunity(data) {
 
 export const updateOpportunity = async (id, fields) => {
   try {
-    const res = await axios.patch(`${API}/${id}`, fields, getSessionConfig());
+    const res = await axios.patch(`${API}/${id}`, fields, getAdminAuthConfig());
     return { data: res?.data?.data ?? null, error: null };
   } catch (err) {
     return { data: null, error: toError(err) };
@@ -57,7 +53,7 @@ export const updateOpportunity = async (id, fields) => {
 
 export const getOpportunityById = async (id) => {
   try {
-    const res = await axios.get(`${API}/${id}`, getSessionConfig());
+    const res = await axios.get(`${API}/${id}`, getAdminAuthConfig());
     return { data: res?.data?.data ?? null, error: null };
   } catch (err) {
     return { data: null, error: toError(err) };
@@ -66,7 +62,7 @@ export const getOpportunityById = async (id) => {
 
 export async function saveDraft(data) {
   try {
-    const res = await axios.post(`${API}/draft`, data, getSessionConfig());
+    const res = await axios.post(`${API}/draft`, data, getAdminAuthConfig());
 
     return {
       data: res?.data?.data ?? null,

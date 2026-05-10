@@ -5,7 +5,7 @@ import EmployerApplicationCard from '../components/employer/EmployerApplicationC
 import Sidebar from '../components/layout/Sidebar';
 import Topbar from '../components/layout/Topbar';
 
-const statusTabs = ['all', 'received', 'shortlisted', 'accepted', 'rejected'];
+const statusTabs = ['all', 'received', 'shortlisted', 'offered', 'accepted', 'rejected'];
 
 const EmployerApplications = () => {
     const { opportunityId } = useParams();
@@ -19,31 +19,48 @@ const EmployerApplications = () => {
     const [processingId, setProcessingId] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
 
+    // Debug: Log initial render
+    console.log('🔍 [EmployerApplications] Component mounted');
+    console.log('🔍 [EmployerApplications] opportunityId:', opportunityId);
+    console.log('🔍 [EmployerApplications] providerUser:', providerUser);
+
     // Check if logged in and token exists
     useEffect(() => {
         const token = localStorage.getItem("token");
+        console.log('🔍 [EmployerApplications] Token exists:', !!token);
         if (!token) {
+            console.log('❌ [EmployerApplications] No token found, redirecting to login');
             navigate("/prov-login");
         }
     }, [navigate]);
 
     const fetchApplications = useCallback(async () => {
         const token = localStorage.getItem("token");
+        console.log('🔍 [EmployerApplications] fetchApplications called');
+        console.log('🔍 [EmployerApplications] Token for API:', token ? `${token.substring(0, 30)}...` : 'null');
+        
         if (!token) {
+            console.log('❌ [EmployerApplications] No token, setting error');
             setError("Please login again");
             setLoading(false);
             return;
         }
 
         try {
+            console.log('📡 [EmployerApplications] Fetching applications for opportunity:', opportunityId);
             setLoading(true);
             const response = await getApplicationsForOpportunity(opportunityId);
+            console.log('📡 [EmployerApplications] API Response:', response);
+            
             if (response.success) {
+                console.log('✅ [EmployerApplications] Applications fetched:', response.data?.length || 0);
                 setApplications(response.data);
             } else {
+                console.log('❌ [EmployerApplications] API returned error:', response.error);
                 setError(response.error);
             }
         } catch (err) {
+            console.error('❌ [EmployerApplications] Fetch error:', err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -51,19 +68,24 @@ const EmployerApplications = () => {
     }, [opportunityId]);
 
     useEffect(() => {
+        console.log('🔍 [EmployerApplications] useEffect triggered, opportunityId:', opportunityId);
         if (opportunityId) {
             fetchApplications();
         } else {
+            console.log('❌ [EmployerApplications] No opportunityId');
             setError("No opportunity selected");
             setLoading(false);
         }
     }, [fetchApplications, opportunityId]);
 
     useEffect(() => {
+        console.log('🔍 [EmployerApplications] Filtering applications with status:', statusFilter);
         if (statusFilter === 'all') {
             setFilteredApps(applications);
         } else {
-            setFilteredApps(applications.filter(app => app.status === statusFilter));
+            const filtered = applications.filter(app => app.status === statusFilter);
+            console.log(`🔍 [EmployerApplications] Filtered ${filtered.length} applications with status ${statusFilter}`);
+            setFilteredApps(filtered);
         }
     }, [statusFilter, applications]);
 
@@ -71,37 +93,32 @@ const EmployerApplications = () => {
         total: applications.length,
         received: applications.filter(a => a.status === 'received').length,
         shortlisted: applications.filter(a => a.status === 'shortlisted').length,
+        offered: applications.filter(a => a.status === 'offered').length,
         accepted: applications.filter(a => a.status === 'accepted').length,
         rejected: applications.filter(a => a.status === 'rejected').length
     };
 
+    console.log('🔍 [EmployerApplications] Stats:', stats);
+
+    // Provider actions - follows the correct status flow
     const handleShortlist = async (appId) => {
+        console.log('🔍 [EmployerApplications] handleShortlist called for appId:', appId);
         setProcessingId(appId);
         try {
             const response = await updateApplicationStatus(appId, 'shortlisted');
+            console.log('📡 [EmployerApplications] Update status response:', response);
             if (response.success) {
+                console.log('✅ [EmployerApplications] Application shortlisted successfully');
                 await fetchApplications();
-                setSuccessMessage(response.message);
+                setSuccessMessage('Applicant shortlisted successfully');
                 setTimeout(() => setSuccessMessage(null), 3000);
+            } else {
+                console.log('❌ [EmployerApplications] Update failed:', response.error);
+                setError(response.error);
+                setTimeout(() => setError(null), 3000);
             }
         } catch (err) {
-            setError(err.message);
-            setTimeout(() => setError(null), 3000);
-        } finally {
-            setProcessingId(null);
-        }
-    };
-
-    const handleAccept = async (appId) => {
-        setProcessingId(appId);
-        try {
-            const response = await updateApplicationStatus(appId, 'accepted');
-            if (response.success) {
-                await fetchApplications();
-                setSuccessMessage(response.message);
-                setTimeout(() => setSuccessMessage(null), 3000);
-            }
-        } catch (err) {
+            console.error('❌ [EmployerApplications] handleShortlist error:', err);
             setError(err.message);
             setTimeout(() => setError(null), 3000);
         } finally {
@@ -110,15 +127,73 @@ const EmployerApplications = () => {
     };
 
     const handleReject = async (appId) => {
+        console.log('🔍 [EmployerApplications] handleReject called for appId:', appId);
         setProcessingId(appId);
         try {
             const response = await updateApplicationStatus(appId, 'rejected');
+            console.log('📡 [EmployerApplications] Update status response:', response);
             if (response.success) {
+                console.log('✅ [EmployerApplications] Application rejected');
                 await fetchApplications();
-                setSuccessMessage(response.message);
+                setSuccessMessage('Application rejected');
                 setTimeout(() => setSuccessMessage(null), 3000);
+            } else {
+                console.log('❌ [EmployerApplications] Update failed:', response.error);
+                setError(response.error);
+                setTimeout(() => setError(null), 3000);
             }
         } catch (err) {
+            console.error('❌ [EmployerApplications] handleReject error:', err);
+            setError(err.message);
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleOffer = async (appId) => {
+        console.log('🔍 [EmployerApplications] handleOffer called for appId:', appId);
+        setProcessingId(appId);
+        try {
+            const response = await updateApplicationStatus(appId, 'offered');
+            console.log('📡 [EmployerApplications] Update status response:', response);
+            if (response.success) {
+                console.log('✅ [EmployerApplications] Job offer sent');
+                await fetchApplications();
+                setSuccessMessage('Job offer sent to applicant');
+                setTimeout(() => setSuccessMessage(null), 3000);
+            } else {
+                console.log('❌ [EmployerApplications] Update failed:', response.error);
+                setError(response.error);
+                setTimeout(() => setError(null), 3000);
+            }
+        } catch (err) {
+            console.error('❌ [EmployerApplications] handleOffer error:', err);
+            setError(err.message);
+            setTimeout(() => setError(null), 3000);
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleAccept = async (appId) => {
+        console.log('🔍 [EmployerApplications] handleAccept called for appId:', appId);
+        setProcessingId(appId);
+        try {
+            const response = await updateApplicationStatus(appId, 'accepted');
+            console.log('📡 [EmployerApplications] Update status response:', response);
+            if (response.success) {
+                console.log('✅ [EmployerApplications] Application accepted');
+                await fetchApplications();
+                setSuccessMessage('Application accepted by applicant');
+                setTimeout(() => setSuccessMessage(null), 3000);
+            } else {
+                console.log('❌ [EmployerApplications] Update failed:', response.error);
+                setError(response.error);
+                setTimeout(() => setError(null), 3000);
+            }
+        } catch (err) {
+            console.error('❌ [EmployerApplications] handleAccept error:', err);
             setError(err.message);
             setTimeout(() => setError(null), 3000);
         } finally {
@@ -170,9 +245,25 @@ const EmployerApplications = () => {
                     </section>
                 )}
 
-                {/* Stats Cards */}
-                <section className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
+                {/* Status Flow Legend */}
+                <article className="bg-white rounded-xl p-4 mb-6 border border-gray-200">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Application Status Flow</h3>
+                    <section className="flex flex-wrap items-center gap-2 text-xs">
+                        <p className="px-3 py-1 bg-gray-100 rounded-full">📋 received</p>
+                        <p className="text-gray-400">→</p>
+                        <p className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">⭐ shortlisted</p>
+                        <p className="text-gray-400">→</p>
+                        <p className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">💼 offered</p>
+                        <p className="text-gray-400">→</p>
+                        <p className="px-3 py-1 bg-green-100 text-green-700 rounded-full">✅ accepted</p>
+                        <p className="text-gray-400">or</p>
+                        <p className="px-3 py-1 bg-red-100 text-red-700 rounded-full">❌ rejected</p>
+                    </section>
+                </article>
+
+                {/* Stats Cards - Using semantic HTML */}
+                <section className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-gray-500">
                         <p className="text-xs uppercase text-[#707881]">Total</p>
                         <p className="text-2xl font-bold">{stats.total}</p>
                     </article>
@@ -183,6 +274,10 @@ const EmployerApplications = () => {
                     <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
                         <p className="text-xs uppercase text-[#707881]">Shortlisted</p>
                         <p className="text-2xl font-bold text-blue-600">{stats.shortlisted}</p>
+                    </article>
+                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-purple-500">
+                        <p className="text-xs uppercase text-[#707881]">Offered</p>
+                        <p className="text-2xl font-bold text-purple-600">{stats.offered}</p>
                     </article>
                     <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-green-500">
                         <p className="text-xs uppercase text-[#707881]">Accepted</p>
@@ -213,7 +308,7 @@ const EmployerApplications = () => {
 
                 {loading ? (
                     <section className="flex justify-center py-16">
-                        <div className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin" />
+                        <section className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin" />
                     </section>
                 ) : filteredApps.length === 0 ? (
                     <section className="text-center py-16 bg-white rounded-xl">
@@ -231,6 +326,7 @@ const EmployerApplications = () => {
                                 key={app.applicationId}
                                 application={app}
                                 onShortlist={handleShortlist}
+                                onOffer={handleOffer}
                                 onAccept={handleAccept}
                                 onReject={handleReject}
                                 isProcessing={processingId === app.applicationId}

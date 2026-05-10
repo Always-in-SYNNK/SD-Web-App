@@ -11,6 +11,7 @@ import { supabase } from "../config/supabaseClient.js";
  * @returns {Promise<Object>} Formatted analytics data matching frontend expectations
  */
 export async function getApplicationsPerOpportunity(providerProfileId) {
+     console.log('🔍 [AnalyticsService] Looking for opportunities with provider_profile_id:', providerProfileId);
     // Input validation
     if (!providerProfileId || typeof providerProfileId !== 'string') {
         throw new Error('Valid provider profile ID is required');

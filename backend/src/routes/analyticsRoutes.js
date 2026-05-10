@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { 
     getApplicationAnalytics, 
+    getAdminApplicationAnalytics,
     getTrendAnalytics,
     exportAnalytics 
 } from "../controllers/analyticsController.js";
 import providerAuthMiddleware from "../middleware/providerAuthMiddleware.js";
+import authMiddleware from "../middleware/authMiddleware.js";  // ← ADD THIS
 
 const router = Router();
 
@@ -48,35 +50,20 @@ router.get("/ping", (req, res) => {
 // PROTECTED ROUTES (Authentication required)
 // ============================================
 
-/**
- * @route   GET /api/analytics/applications
- * @desc    Get application volume per opportunity
- * @access  Private (Provider only)
- * @returns Array of objects with opportunityTitle, count, status
- */
+// Provider routes (their own opportunities - all statuses)
 router.get("/applications", providerAuthMiddleware, getApplicationAnalytics);
-
-/**
- * @route   GET /api/analytics/trends
- * @desc    Get monthly application trends
- * @access  Private (Provider only)
- * @returns Array of monthly application counts
- */
 router.get("/trends", providerAuthMiddleware, getTrendAnalytics);
-
-/**
- * @route   GET /api/analytics/export
- * @desc    Export analytics data as CSV-ready format
- * @access  Private (Provider only)
- * @returns Array of exportable data with metadata
- */
 router.get("/export", providerAuthMiddleware, exportAnalytics);
+
+// Admin route (ALL approved opportunities)
+router.get("/admin/applications", authMiddleware, getAdminApplicationAnalytics);
 
 console.log('✅ Analytics routes registered:');
 console.log('   - GET /api/analytics/test (public)');
 console.log('   - GET /api/analytics/ping (public)');
-console.log('   - GET /api/analytics/applications (protected)');
-console.log('   - GET /api/analytics/trends (protected)');
-console.log('   - GET /api/analytics/export (protected)');
+console.log('   - GET /api/analytics/applications (provider)');
+console.log('   - GET /api/analytics/trends (provider)');
+console.log('   - GET /api/analytics/export (provider)');
+console.log('   - GET /api/analytics/admin/applications (admin)');
 
 export default router;

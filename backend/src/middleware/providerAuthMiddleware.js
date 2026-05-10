@@ -51,7 +51,7 @@ async function providerAuthMiddleware(req, res, next) {
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('id')
-                .eq('user_id', decoded.id)
+                .eq('id', decoded.id)
                 .single();
 
             if (profileError || !profile) {

@@ -10,6 +10,7 @@ import {
   getApproved,
   updateStatus,
   deleteOpportunityById,
+  getOpportunityById,
 } from '../services/opportunityService.js';
 import { notifyAllApplicantsNewOpportunity } from '../services/reminderService.js';
 
@@ -60,7 +61,7 @@ export async function fetchOpportunities(req, res, next) {
   }
 }
 
-// ✅ ONLY ONE publishOpportunity function (with notification)
+// ✅ UPDATED: publishOpportunity - NO notifications here
 export async function publishOpportunity(req, res) {
   try {
     const userId = req.user?.id;
@@ -76,9 +77,8 @@ export async function publishOpportunity(req, res) {
       status: "pending",
     });
 
-    if (result) {
-      await notifyAllApplicantsNewOpportunity(result.id, data.title);
-    }
+    // ❌ REMOVED: await notifyAllApplicantsNewOpportunity(result.id, data.title);
+    // Notifications will be sent by admin when opportunity is approved
 
     res.status(201).json({ success: true, data: result });
   } catch (err) {
@@ -182,15 +182,26 @@ export const getApprovedOpportunities = async (req, res) => {
   }
 };
 
+// ✅ UPDATED: approveOpportunity - ADD notifications here
 export const approveOpportunity = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Update status to approved
     await updateStatus(id, "approved");
+
+    // Get opportunity details for notification
+    const opportunity = await getOpportunityById(id);
+    
+    if (opportunity) {
+      // Send notifications to all applicants
+      await notifyAllApplicantsNewOpportunity(id, opportunity.title);
+      console.log(`✅ Notifications sent for approved opportunity: ${opportunity.title}`);
+    }
 
     res.status(200).json({
       success: true,
-      data: { id, status: "approved", message: "Approved" },
+      data: { id, status: "approved", message: "Approved and notifications sent" },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
