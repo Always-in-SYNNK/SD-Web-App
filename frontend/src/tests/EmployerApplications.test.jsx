@@ -4,7 +4,14 @@ import EmployerApplications from "../pages/EmployerApplications";
 import * as service from "../services/employerApplicationService";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
-vi.mock("../services/employerApplicationService");
+vi.mock("../services/employerApplicationService", async () => {
+  const actual = await vi.importActual("../services/employerApplicationService");
+  return {
+    ...actual,
+    getApplicationsForOpportunity: vi.fn(),
+    updateApplicationStatus: vi.fn(),
+  };
+});
 
 vi.mock("../components/layout/Sidebar", () => ({
   default: () => <div>Sidebar</div>,

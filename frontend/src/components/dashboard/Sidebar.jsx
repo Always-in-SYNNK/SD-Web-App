@@ -29,11 +29,22 @@ export function Sidebar() {
   const links = isAdminMode ? adminLinks : normalLinks;
   
 
-  const handleLogout = () => {
-    localStorage.setItem("__logout_redirect", "true");
-    localStorage.removeItem("provider_user");
-    logout();
-    navigate("/", { replace: true });
+  const handleLogout = async () => {
+    try {
+      localStorage.setItem("__logout_redirect", "true");
+      localStorage.removeItem("provider_user"); //provider???
+      await Promise.resolve(logout());
+    } finally {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.disableAutoSelect?.();
+          window.google.accounts.id.cancel?.();
+        } catch {
+          /* ignore */
+        }
+      }
+      navigate("/", { replace: true });
+    }
   };
 
   return (

@@ -79,6 +79,12 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     await supabase.auth.signOut();
+    if (window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.disableAutoSelect?.();
+        window.google.accounts.id.cancel?.();
+      } catch {/* ignore */}
+    }
     navigate("/");
   };
 
@@ -102,6 +108,7 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-2"
           >
+            {/* Name + subtitle — hidden on very small screens */}
             <div className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-gray-700 leading-tight truncate max-w-[160px]">
                 {fullName}
