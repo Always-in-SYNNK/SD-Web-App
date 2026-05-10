@@ -291,10 +291,11 @@ export default function AdminAnalytics() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Each handler now passes sectorData?.chartData as the third argument
   const handleExport = (fn, label) => async () => {
     try {
       setIsExporting(true);
-      fn(tableData, totals);
+      fn(tableData, totals, sectorData?.chartData || []);
     } catch (err) {
       console.error(`${label} export failed:`, err);
       setError(`Failed to export ${label}. Please try again.`);

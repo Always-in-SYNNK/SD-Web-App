@@ -81,7 +81,6 @@ const MOCK_DATA = {
     averagePerOpportunity: 41,
   },
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Skeleton components ──────────────────────────────────────────────────────
 
@@ -98,7 +97,7 @@ function ChartSkeleton({ height = 300 }) {
   return (
     <div
       className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse"
-      style={{ height: height + 68 /* card padding */ }}
+      style={{ height: height + 68 }}
     >
       <div className="h-4 w-40 bg-gray-200 rounded mb-2" />
       <div className="h-3 w-56 bg-gray-100 rounded mb-6" />
@@ -115,7 +114,6 @@ function ChartSkeleton({ height = 300 }) {
   );
 }
 
-// ── Stat card — same style as AdminAccessApplications.jsx ────────────────────
 function StatCard({ label, value, color }) {
   return (
     <article className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -125,14 +123,13 @@ function StatCard({ label, value, color }) {
   );
 }
 
-// ── Export Button Component (NO spans) ───────────────────────────────────────
 function ExportButton({ onClick, disabled, icon, label, color }) {
   const colorClasses = {
     green: "bg-green-600 hover:bg-green-700",
-    red: "bg-red-600 hover:bg-red-700",
-    blue: "bg-blue-600 hover:bg-blue-700",
+    red:   "bg-red-600 hover:bg-red-700",
+    blue:  "bg-blue-600 hover:bg-blue-700",
   };
-  
+
   return (
     <button
       onClick={onClick}
@@ -144,10 +141,8 @@ function ExportButton({ onClick, disabled, icon, label, color }) {
   );
 }
 
-// ── Error Banner Component (no div/span) ─────────────────────────────────────
 function ErrorBanner({ message }) {
   if (!message) return null;
-  
   return (
     <section className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
       {message}
@@ -158,41 +153,40 @@ function ErrorBanner({ message }) {
 // ── Main AnalyticsPage Component ─────────────────────────────────────────────
 export default function AnalyticsPage() {
   const location = useLocation();
-  // ✅ USING THE USER VARIABLE - will display welcome message
   const { user } = useAuth();
   const source = location.state?.source || "provider";
   const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
 
-  const [data, setData] = useState(MOCK_DATA.data);
-  const [totals, setTotals] = useState(MOCK_DATA.totals);
-  const [sectorData, setSectorData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [exporting, setExporting] = useState(false);
+  const [data,       setData]       = useState(MOCK_DATA.data);
+  const [totals,     setTotals]     = useState(MOCK_DATA.totals);
+  const [sectorData, setSectorData] = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [exporting,  setExporting]  = useState(false);
 
-  // Get user display name
-  const userDisplayName = user?.name || user?.email || user?.user_metadata?.full_name || "User";
-  const userRole = user?.role || source || "provider";
-  const userRoleDisplay = userRole === "provider" ? "Employer" : userRole === "admin" ? "Administrator" : "User";
+  const userDisplayName  = user?.name || user?.email || user?.user_metadata?.full_name || "User";
+  const userRole         = user?.role || source || "provider";
+  const userRoleDisplay  = userRole === "provider" ? "Employer" : userRole === "admin" ? "Administrator" : "User";
 
-  // ── Fetch data from backend ────────────────────────────────────────────────
+  // ── Fetch data ─────────────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
       const [placementResult, appResult] = await Promise.allSettled([
-              getProviderPlacementRates(),
-              getApplicationVolume(),
-            ]);
+        getProviderPlacementRates(),
+        getApplicationVolume(),
+      ]);
 
       console.log("[placement]", placementResult);
-      console.log("[apps]", appResult);            
+      console.log("[apps]",      appResult);
 
       if (placementResult.status === "fulfilled") {
-        setSectorData(placementResult.value);
+        // getProviderPlacementRates returns the array directly (see analyticsService.js)
+        setSectorData(placementResult.value || []);
       } else {
-        console.error("[AdminAnalytics] placements:", placementResult.reason?.message);
+        console.error("[AnalyticsPage] placements:", placementResult.reason?.message);
         setError("Could not load sector data. The charts below may be empty.");
       }
 
@@ -212,15 +206,13 @@ export default function AnalyticsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  // ── Export Handlers ────────────────────────────────────────────────────────
+  // ── Export handlers — each passes sectorData as the third argument ─────────
   const handleExportCSV = async () => {
     try {
       setExporting(true);
-      exportToCSV(data, 'analytics-report');
+      exportToCSV(data, 'analytics-report', sectorData);
     } catch (err) {
       console.error("[AnalyticsPage] CSV export failed:", err.message);
       setError("Failed to export CSV. Please try again.");
@@ -232,8 +224,7 @@ export default function AnalyticsPage() {
   const handleExportPDF = async () => {
     try {
       setExporting(true);
-      // ✅ PASSING TOTALS to PDF export
-      exportToPDF(data, totals);
+      exportToPDF(data, totals, sectorData);
     } catch (err) {
       console.error("[AnalyticsPage] PDF export failed:", err.message);
       setError("Failed to export PDF. Please try again.");
@@ -245,8 +236,7 @@ export default function AnalyticsPage() {
   const handleExportJSON = async () => {
     try {
       setExporting(true);
-      // ✅ PASSING BOTH DATA AND TOTALS to JSON export
-      exportToJSON(data, totals);
+      exportToJSON(data, totals, sectorData);
     } catch (err) {
       console.error("[AnalyticsPage] JSON export failed:", err.message);
       setError("Failed to export JSON. Please try again.");
@@ -255,7 +245,7 @@ export default function AnalyticsPage() {
     }
   };
 
-  // ── Main Render ────────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <section className="flex min-h-screen bg-[#faf9f8]">
       <SidebarComponent />
@@ -264,7 +254,7 @@ export default function AnalyticsPage() {
         <AdminTopbar title="Analytics" source={source} />
 
         <section className="p-12">
-          {/* Header with Welcome Message and Export Buttons */}
+          {/* Header */}
           <header className="mb-8">
             <p className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
               System Control Room
@@ -279,9 +269,7 @@ export default function AnalyticsPage() {
                 </p>
               </section>
 
-              {/* Welcome Message and Export Buttons Group */}
               <section className="text-right">
-                {/* ✅ USER VARIABLE IS NOW USED - Welcome message */}
                 <p className="text-sm text-gray-500 mb-2">
                   Welcome back, <strong className="text-[#035b9d]">{userDisplayName}</strong>
                   <span className="text-gray-400"> ({userRoleDisplay})</span>
@@ -313,19 +301,18 @@ export default function AnalyticsPage() {
             </section>
           </header>
 
-          {/* Error Banner */}
           <ErrorBanner message={error} />
 
-          {/* Stat Cards Grid */}
+          {/* Stat Cards */}
           <section className="grid grid-cols-3 gap-4 mb-8">
-              {loading || !totals ? (
-                <>
-                  <StatCardSkeleton />
-                  <StatCardSkeleton />
-                  <StatCardSkeleton />
-                </>
-              ) : (
-                <>
+            {loading || !totals ? (
+              <>
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+                <StatCardSkeleton />
+              </>
+            ) : (
+              <>
                   <StatCard label="Total Applications"
                     value={totals.totalApplications}
                     color="text-gray-800"
@@ -340,12 +327,11 @@ export default function AnalyticsPage() {
                     value={totals.averagePerOpportunity}
                     color="text-green-600"
                   />
-                </>
-              )}
+              </>
+            )}
           </section>
 
-          {/* Chart Section */}
-          {/* data array includes statusBreakdown per opportunity for tooltip */}
+          {/* Charts */}
           <section className="flex flex-col gap-6 mb-6">
             {loading ? (
               <>
@@ -355,12 +341,12 @@ export default function AnalyticsPage() {
             ) : (
               <>
                 <ApplicationVolumeChart data={data} />
-                <SectorBarChart data={sectorData || []} />
-              </>    
+                <SectorBarChart data={sectorData} />
+              </>
             )}
           </section>
 
-          {/* Breakdown Table Section */}
+          {/* Breakdown Table */}
           <section>
             <OpportunityBreakdownTable data={data} />
           </section>

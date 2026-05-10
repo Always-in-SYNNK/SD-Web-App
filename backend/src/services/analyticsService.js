@@ -227,7 +227,7 @@ export async function exportAnalyticsData(providerProfileId) {
         'Placement Rate (%)': ''
     }));
 
-    // Format sector placement data for CSV export -- I added this before she updated export stuff stuff so I don't know if she's still using this or if this is correct
+    // Format sector placement data for CSV export
     const sectorExport = (placementData || []).map(sector => ({
         'Section': 'Sector Analytics',
         'Opportunity Title': '',
