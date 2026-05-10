@@ -119,6 +119,7 @@ export default function App() {
                 <AdminAccessApplications />
               </ProtectedRoute>
             } />
+            <Route path="/admin/analytics" element={<AdminAnalytics />} />
             
 
             {/* Employer routes - removed protected routing for now */}

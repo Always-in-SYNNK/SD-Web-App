@@ -3,6 +3,7 @@ import {
     getApplicationAnalytics, 
     getTrendAnalytics,
     exportAnalytics,
+    getPlacementRates,
     getProviderPlacementRates
 } from "../controllers/analyticsController.js";
 import providerAuthMiddleware from "../middleware/providerAuthMiddleware.js";
@@ -80,6 +81,8 @@ router.get("/export", providerAuthMiddleware, exportAnalytics);
  * @returns Array of sectors with placement rates for the provider's opportunities
  */
 router.get("/provider-placements", providerAuthMiddleware, getProviderPlacementRates);
+
+router.get("/placements", providerAuthMiddleware, getPlacementRates);
 
 console.log('✅ Analytics routes registered:');
 console.log('   - GET /api/analytics/test (public)');
