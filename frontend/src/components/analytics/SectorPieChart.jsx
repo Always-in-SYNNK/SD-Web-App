@@ -3,15 +3,15 @@ import { Doughnut } from "react-chartjs-2";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const PALETTE = ["#035b9d","#1d7a3a","#a06000","#a32d2d","#535AB7","#0F6E56","#b45309","#6d28d9","#0e7490","#be185d"];
+const PALETTE = ["#035b9d","#1d7a3a","#a06000","#a32d2d","#535AB7","#0F6E56","#b45309","#6d28d9","#0e7490","#be185d","#065f46","#92400e"];
 
 export default function SectorPieChart({ data = [] }) {
   const sectors = data
     .map((d) => ({
       sector:   d.sector || "Unknown",
-      total:    Number(d.total_applications ?? 0),
-      accepted: Number(d.accepted_applications ?? 0),
-      rate:     Number(d.placement_rate ?? 0),
+      total:    Number(d.totalApplications ?? 0),
+      accepted: Number(d.acceptedApplications ?? 0),
+      rate:     Number(d.placementRate ?? 0),
     }))
     .filter((d) => d.accepted > 0);
 
@@ -42,7 +42,7 @@ export default function SectorPieChart({ data = [] }) {
       ctx.fillText(grandAccepted, cx, cy - 10);
       ctx.font = "11px sans-serif";
       ctx.fillStyle = "#9ca3af";
-      ctx.fillText("accepted", cx, cy + 12);
+      ctx.fillText("Accepted", cx, cy + 12);
       ctx.restore();
     },
   };
@@ -85,10 +85,10 @@ export default function SectorPieChart({ data = [] }) {
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
       <div className="mb-5">
-        <h3 className="font-bold text-gray-800 text-base">Acceptance by Sector</h3>
+        <h3 className="font-bold text-gray-800 text-base">Placements by Sector</h3>
         <p className="text-xs text-gray-400 mt-0.5">Share of accepted applicants across sectors</p>
       </div>
-      <div style={{ height: 260 }}>
+      <div style={{ height: 250 }}>
         {sectors.length === 0
           ? <div className="h-full flex items-center justify-center text-gray-400 text-sm">No accepted applications yet</div>
           : <Doughnut data={chartData} options={options} plugins={[centreLabel]} />

@@ -12,21 +12,6 @@ import OpportunityBreakdownTable from "../components/analytics/OpportunityBreakd
 
 import { getPlacementRates, getApplicationVolume } from "../services/analyticsService";
 
-const MOCK_SECTORS = [
-  { sector: "Human and Social Studies",                             total_applications: 45,  accepted_applications: 8,  placement_rate: 17.8 },
-  { sector: "Physical, Mathematical, Computer and Life Sciences",   total_applications: 89,  accepted_applications: 21, placement_rate: 23.6 },
-  { sector: "Law, Military Science and Security",                   total_applications: 32,  accepted_applications: 4,  placement_rate: 12.5 },
-  { sector: "Culture and Arts",                                     total_applications: 27,  accepted_applications: 5,  placement_rate: 18.5 },
-  { sector: "Manufacturing, Engineering and Technology",            total_applications: 74,  accepted_applications: 14, placement_rate: 18.9 },
-  { sector: "Services",                                             total_applications: 61,  accepted_applications: 11, placement_rate: 18.0 },
-  { sector: "Health Sciences and Social Services",                  total_applications: 53,  accepted_applications: 9,  placement_rate: 17.0 },
-  { sector: "Business, Commerce and Management Studies",            total_applications: 98,  accepted_applications: 19, placement_rate: 19.4 },
-  { sector: "Physical Planning and Construction",                   total_applications: 41,  accepted_applications: 7,  placement_rate: 17.1 },
-  { sector: "Agriculture and Nature Conservation",                  total_applications: 29,  accepted_applications: 3,  placement_rate: 10.3 },
-  { sector: "Education, Training and Development",                  total_applications: 38,  accepted_applications: 6,  placement_rate: 15.8 },
-  { sector: "Communication Studies and Language",                   total_applications: 22,  accepted_applications: 4,  placement_rate: 18.2 },
-];
-
 const MOCK_TABLE = [
   { opportunityTitle: "Architecture Internship",        count: 68, status: "approved", location: "Johannesburg, ZA", opportunityId: "mock-1", statusBreakdown: { pending: 20, shortlisted: 30, accepted: 10, rejected: 8 } },
   { opportunityTitle: "Urban Design Grad Programme",    count: 54, status: "approved", location: "Cape Town, ZA",    opportunityId: "mock-2", statusBreakdown: { pending: 15, shortlisted: 22, accepted: 12, rejected: 5 } },
@@ -37,6 +22,40 @@ const MOCK_TABLE = [
 
 const MOCK_TOTALS = { totalApplications: 247, activeOpportunities: 4, averagePerOpportunity: 41 };
 
+// ─── Skeleton components ──────────────────────────────────────────────────────
+
+function StatCardSkeleton() {
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse">
+      <div className="h-3 w-28 bg-gray-200 rounded mb-3" />
+      <div className="h-8 w-16 bg-gray-200 rounded" />
+    </div>
+  );
+}
+
+function ChartSkeleton({ height = 300 }) {
+  return (
+    <div
+      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse"
+      style={{ height: height + 68 /* card padding */ }}
+    >
+      <div className="h-4 w-40 bg-gray-200 rounded mb-2" />
+      <div className="h-3 w-56 bg-gray-100 rounded mb-6" />
+      <div className="flex items-end gap-3 h-48 px-2">
+        {[65, 90, 50, 78, 42, 85, 60, 35, 72, 55, 40, 68].map((h, i) => (
+          <div
+            key={i}
+            className="flex-1 bg-gray-100 rounded-t"
+            style={{ height: `${h}%` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Stat card ────────────────────────────────────────────────────────────────
+
 function StatCard({ label, value, color }) {
   return (
     <article className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -46,6 +65,8 @@ function StatCard({ label, value, color }) {
   );
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function AdminAnalytics() {
   const location = useLocation();
   const { user } = useAuth();
@@ -53,7 +74,7 @@ export default function AdminAnalytics() {
   const source           = location.state?.source || "applicant";
   const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
 
-  const [sectorData, setSectorData] = useState(MOCK_SECTORS);
+  const [sectorData, setSectorData] = useState(null);
   const [tableData,  setTableData]  = useState(MOCK_TABLE);
   const [totals,     setTotals]     = useState(MOCK_TOTALS);
   const [loading,    setLoading]    = useState(true);
@@ -69,11 +90,14 @@ export default function AdminAnalytics() {
         getApplicationVolume(),
       ]);
 
+      console.log("[placement]", placementResult);
+      console.log("[apps]", appResult);
+
       if (placementResult.status === "fulfilled") {
-        setSectorData(placementResult.value.raw);
+        setSectorData(placementResult.value);
       } else {
         console.error("[AdminAnalytics] placements:", placementResult.reason?.message);
-        setError("Could not load live data. Showing example data.");
+        setError("Could not load sector data. The charts below may be empty.");
       }
 
       if (appResult.status === "fulfilled") {
@@ -89,14 +113,6 @@ export default function AdminAnalytics() {
 
   useEffect(() => { void fetchData(); }, [fetchData]);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#faf9f8] flex items-center justify-center">
-        <p className="text-gray-400">Loading analytics…</p>
-      </main>
-    );
-  }
-
   return (
     <div className="flex min-h-screen bg-[#faf9f8]">
       <SidebarComponent />
@@ -104,27 +120,65 @@ export default function AdminAnalytics() {
         <AdminTopbar title="Analytics" source={source} />
         <div className="p-12">
 
+          {/* ── Header ── */}
           <div className="mb-8">
-            <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">System Control Room</span>
-            <h2 className="text-3xl font-extrabold mt-2 tracking-tight">Analytics &amp; Governance</h2>
-            <p className="text-gray-500 mt-2">Application volume and acceptance rates per sector.</p>
+            <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
+              System Control Room
+            </span>
+            <h2 className="text-3xl font-extrabold mt-2 tracking-tight">
+              Analytics &amp; Governance
+            </h2>
+            <p className="text-gray-500 mt-2">
+              Application volume and acceptance rates per sector.
+            </p>
           </div>
 
+          {/* ── Error banner ── */}
           {error && (
-            <div className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">{error}</div>
+            <div className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+              {error}
+            </div>
           )}
 
-          <section className="grid grid-cols-3 gap-4 mb-8">
-            <StatCard label="Total Applications"              value={totals.totalApplications}    color="text-gray-800"  />
-            <StatCard label="Active Opportunities"            value={totals.activeOpportunities}   color="text-[#035b9d]" />
-            <StatCard label="Avg. Applications / Opportunity" value={totals.averagePerOpportunity} color="text-green-600" />
+          {/* ── Bar chart: full width ── */}
+          <section className="mb-6">
+            {loading ? (
+              <ChartSkeleton height={300} />
+            ) : (
+              <SectorBarChart data={sectorData?.chartData || []} />
+            )}
           </section>
 
-          <section className="flex flex-col gap-6 mb-6">
-            <SectorBarChart data={sectorData} />
-            <SectorPieChart data={sectorData} />
+          {/* ── Stat cards on left, Pie chart on right ── */}
+          <section className="grid grid-cols-1 xl:grid-cols-[0.9fr_1.6fr] gap-6 mb-6 items-start">
+            {/* Left: stat cards */}
+            <div className="grid grid-cols-1 gap-4 w-full min-w-0">
+              {loading || !totals ? (
+                <>
+                  <StatCardSkeleton />
+                  <StatCardSkeleton />
+                  <StatCardSkeleton />
+                </>
+              ) : (
+                <>
+                  <StatCard label="Total Applications"              value={totals.totalApplications}    color="text-gray-800"  />
+                  <StatCard label="Active Opportunities"            value={totals.activeOpportunities}   color="text-[#035b9d]" />
+                  <StatCard label="Avg. Applications / Opportunity" value={totals.averagePerOpportunity} color="text-green-600" />
+                </>
+              )}
+            </div>
+
+            {/* Right: pie chart */}
+            <div className="w-full min-w-0">
+              {loading ? (
+                <ChartSkeleton height={280} />
+              ) : (
+                <SectorPieChart data={sectorData?.chartData || []} />
+              )}
+            </div>
           </section>
 
+          {/* ── Opportunity breakdown table ── */}
           <section>
             <OpportunityBreakdownTable data={tableData} />
           </section>

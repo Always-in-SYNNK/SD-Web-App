@@ -12,7 +12,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 // Mirrors the pattern in your other service files (credentials: "include"
 // sends the session cookie that providerAuthMiddleware validates).
 async function apiFetch(path) {
-  const res  = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const res  = await fetch(`${API_URL}${path}`, { credentials: "include", headers });
   const json = await res.json();
 
   if (!res.ok || !json.success) {
@@ -60,37 +63,22 @@ export async function getApplicationTrends() {
 export async function getPlacementRates() {
   const json = await apiFetch("/api/analytics/placements");
 
-  const data = json.data;
+  const data = (json.data || []).map((item) => ({
+    sector: item.sector || "Unknown",
+    totalApplications: Number(item.total_applications ?? item.totalApplications ?? 0),
+    acceptedApplications: Number(item.accepted_applications ?? item.acceptedApplications ?? 0),
+    placementRate: Number(item.placement_rate ?? item.placementRate ?? 0),
+  }));
 
   return {
     raw: data,
 
-    // bar chart needs { sector, placementRate }
-    chartData: data.map((item) => ({
-      sector: item.sector,
-      placementRate: Number(item.placement_rate), //convert strings to numbers for charts
-    })),
-
-    // pie chart needs { sector, acceptedApplications }
-    pieData: data.map((item) => ({
-      sector: item.sector,
-      acceptedApplications: Number(
-        item.accepted_applications
-      ),
-    })),
+    // The charts consume the normalized objects directly.
+    chartData: data,
 
     totals: {
-      totalApplications: data.reduce(
-        (sum, item) =>
-          sum + Number(item.total_applications),
-        0
-      ),
-
-      totalAccepted: data.reduce(
-        (sum, item) =>
-          sum + Number(item.accepted_applications),
-        0
-      ),
+      totalApplications: data.reduce((sum, item) => sum + (item.totalApplications || 0), 0),
+      totalAccepted: data.reduce((sum, item) => sum + (item.acceptedApplications || 0), 0),
     },
   };
 }
@@ -113,7 +101,12 @@ export async function getProviderPlacementRates() {
     "/api/analytics/provider-placements"
   );
 
-  return json.data;
+  return (json.data || []).map((item) => ({
+    sector:               item.sector || "Unknown",
+    totalApplications:    Number(item.total_applications ?? item.totalApplications ?? 0),
+    acceptedApplications: Number(item.accepted_applications ?? item.acceptedApplications ?? 0),
+    placementRate:        Number(item.placement_rate ?? item.placementRate ?? 0),
+  }));
 }
 
 

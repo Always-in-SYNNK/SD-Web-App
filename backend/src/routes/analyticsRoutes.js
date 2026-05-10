@@ -7,6 +7,8 @@ import {
     getProviderPlacementRates
 } from "../controllers/analyticsController.js";
 import providerAuthMiddleware from "../middleware/providerAuthMiddleware.js";
+import { requireAuth } from "../middleware/requireAuth.js";
+import { requireAdmin } from "../middleware/requireAdmin.js";
 
 const router = Router();
 
@@ -82,7 +84,13 @@ router.get("/export", providerAuthMiddleware, exportAnalytics);
  */
 router.get("/provider-placements", providerAuthMiddleware, getProviderPlacementRates);
 
-router.get("/placements", providerAuthMiddleware, getPlacementRates);
+/**
+ * @route   GET /api/analytics/placements
+ * @desc    Get global placement rates by sector (admin view)
+ * @access  Private (Admin only)
+ * @returns Array of sectors with placement rates across all opportunities
+ */
+router.get("/placements", requireAuth, requireAdmin, getPlacementRates);
 
 console.log('✅ Analytics routes registered:');
 console.log('   - GET /api/analytics/test (public)');
@@ -91,5 +99,6 @@ console.log('   - GET /api/analytics/applications (protected)');
 console.log('   - GET /api/analytics/trends (protected)');
 console.log('   - GET /api/analytics/export (protected)');
 console.log('   - GET /api/analytics/provider-placements (protected)');
+console.log('   - GET /api/analytics/placements (protected/admin)');
 
 export default router;

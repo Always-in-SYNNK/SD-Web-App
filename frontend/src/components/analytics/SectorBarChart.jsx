@@ -7,12 +7,12 @@ import { Chart } from "react-chartjs-2";
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
 
 export default function SectorBarChart({ data = [] }) {
-  const sorted = [...data].sort((a, b) => Number(b.total_applications) - Number(a.total_applications));
+  const sorted = [...data].sort((a, b) => Number(b.totalApplications ?? 0) - Number(a.totalApplications ?? 0));
 
-  const labels    = sorted.map((d) => d.sector);
-  const totals    = sorted.map((d) => Number(d.total_applications));
-  const accepted  = sorted.map((d) => Number(d.accepted_applications));
-  const rates     = sorted.map((d) => Number(d.placement_rate));
+  const labels   = sorted.map((d) => d.sector || "Unknown");
+  const totals   = sorted.map((d) => Number(d.totalApplications ?? 0));
+  const accepted = sorted.map((d) => Number(d.acceptedApplications ?? 0));
+  const rates    = sorted.map((d) => Number(d.placementRate ?? 0));
 
   const chartData = {
     labels,
@@ -99,7 +99,7 @@ export default function SectorBarChart({ data = [] }) {
       </div>
       <div style={{ height: 300 }}>
         {sorted.length === 0
-          ? <div className="h-full flex items-center justify-center text-gray-400 text-sm">No data available</div>
+          ? <div className="h-full flex items-center justify-center text-gray-400 text-sm">No sector data available</div>
           : <Chart type="bar" data={chartData} options={options} />
         }
       </div>
