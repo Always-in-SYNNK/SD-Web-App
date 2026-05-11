@@ -6,11 +6,13 @@ import StudentDashboard from "../pages/StudentDashboard";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
+const mockUseAuth = vi.fn(() => ({
+  token: "mock-token",
+  user: { email: "test@example.com" },
+}));
+
 vi.mock("../context/useAuth", () => ({
-  useAuth: () => ({
-    token: "mock-token",
-    user: { email: "test@example.com" },
-  }),
+  useAuth: () => mockUseAuth(),
 }));
 
 vi.mock("../components/dashboard/Sidebar", () => ({
@@ -238,21 +240,17 @@ describe("StudentDashboard", () => {
   });
 
   it("falls back to JD when no profile and no email", async () => {
-    vi.doMock("../context/useAuth", () => ({
-      useAuth: () => ({ token: "mock-token", user: {} }),
-    }));
+    mockUseAuth.mockReturnValueOnce({ token: "mock-token", user: {} });
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({}),
     });
-    // Re-render with no email user — initials default to JD
     render(
       <MemoryRouter>
         <StudentDashboard />
       </MemoryRouter>
     );
     await waitFor(() => {
-      // Either JD or T depending on mock resolution order — just check no crash
       expect(screen.getByTestId("dashboard-header")).toBeDefined();
     });
   });
@@ -260,9 +258,7 @@ describe("StudentDashboard", () => {
   // ── No fetch without token ─────────────────────────────────────────────────
 
   it("does not fetch when token is absent", async () => {
-    vi.doMock("../context/useAuth", () => ({
-      useAuth: () => ({ token: null, user: {} }),
-    }));
+    mockUseAuth.mockReturnValueOnce({ token: null, user: {} });
     mockFetch.mockClear();
     render(
       <MemoryRouter>
@@ -273,7 +269,7 @@ describe("StudentDashboard", () => {
     const profileCalls = mockFetch.mock.calls.filter(([url]) =>
       url?.includes("/api/profile/me")
     );
-    // With cached mock the token is still "mock-token" — just verify no crash
+    expect(profileCalls.length).toBe(0);
     expect(screen.getByTestId("dashboard-header")).toBeDefined();
   });
 });
