@@ -10,7 +10,7 @@ import {
   getApproved,
   updateStatus,
   deleteOpportunityById,
-  matchingOpportunity
+  matchingOpportunity,
   getOpportunityById,
 } from '../services/opportunityService.js';
 import { notifyAllApplicantsNewOpportunity } from '../services/reminderService.js';

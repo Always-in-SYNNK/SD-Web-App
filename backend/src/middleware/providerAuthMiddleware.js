@@ -148,49 +148,6 @@ async function providerAuthMiddleware(req, res, next) {
     // ============================================
     // No auth found
     // ============================================
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "No token provided. Please log in." });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Check if user has provider role
-        if (decoded.role !== 'provider') {
-            return res.status(403).json({ error: "Access denied. Employers only." });
-        }
-
-        const { supabase } = await import("../config/supabaseClient.js");
-
-        const profile = await getProviderProfileByTokenId(supabase, decoded.id);
-
-        if (!profile) {
-            return res.status(401).json({ error: "Profile not found" });
-        }
-
-        const { data: providerProfile, error: providerError } = await supabase
-            .from('provider_profiles')
-            .select('id')
-            .eq('profile_id', profile.id)
-            .single();
-
-        if (providerError || !providerProfile) {
-            return res.status(403).json({ error: "Provider profile not found" });
-        }
-
-        req.user = {
-            ...decoded,
-            profileId: providerProfile.id,
-        };
-
-        next();
-    } catch {
-        return res.status(401).json({ error: "Invalid or expired token. Please log in again." });
-    }
     console.log('[ProviderAuth] ❌ No token AND no session');
     return res.status(401).json({ error: "No token provided. Please log in." });
 }

@@ -56,34 +56,12 @@ describe("opportunityService", () => {
   });
 
   it("getSkillsByField success", async () => {
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining("/draft"),
-        {},
-        expect.objectContaining({
-          withCredentials: true,
-          headers: expect.objectContaining({
-            Authorization: "Bearer fake-token",
-          }),
-        })
-      );
-  });
-
-  it("getSkillsByField success", async () => {
       localStorage.setItem("token", "fake-token");
     axios.get.mockResolvedValue({ data: { data: [{ id: 1 }] } });
 
     const res = await service.getSkillsByField("IT");
 
     expect(res.data.length).toBe(1);
-  });
-
-  it("getOpportunitySkills maps data correctly", async () => {
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining("/api/skills/field/IT"),
-        expect.objectContaining({
-          withCredentials: true,
-        })
-      );
   });
 
   it("getOpportunitySkills maps data correctly", async () => {
