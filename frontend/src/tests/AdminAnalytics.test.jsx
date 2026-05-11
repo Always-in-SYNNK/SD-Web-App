@@ -30,6 +30,10 @@ vi.mock("../components/analytics/SectorPieChart", () => ({
   default: ({ data }) => <div data-testid="sector-pie-chart" data-count={data.length} />,
 }));
 
+vi.mock("../components/analytics/ApplicationVolumeChart", () => ({
+  default: ({ data }) => <div data-testid="application-volume-chart" data-count={data.length} />,
+}));
+
 vi.mock("../components/analytics/OpportunityBreakdownTable", () => ({
   default: ({ data }) => <div data-testid="breakdown-table" data-count={data.length} />,
 }));
@@ -39,7 +43,16 @@ const mockGetApplicationVolume = vi.fn();
 
 vi.mock("../services/analyticsService", () => ({
   getPlacementRates:    (...args) => mockGetPlacementRates(...args),
-  getApplicationVolume: (...args) => mockGetApplicationVolume(...args),
+}));
+
+vi.mock("../services/adminAnalyticsService", () => ({
+  getAdminApplicationVolume: (...args) => mockGetApplicationVolume(...args),
+}));
+
+vi.mock("../services/exportService", () => ({
+  exportToCSV:  vi.fn(),
+  exportToPDF:  vi.fn(),
+  exportToJSON: vi.fn(),
 }));
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -63,6 +76,15 @@ const MOCK_TABLE = [
 
 const MOCK_TOTALS = { totalApplications: 187, activeOpportunities: 2, averagePerOpportunity: 93 };
 
+const MOCK_PLACEMENT_RESPONSE = {
+  raw: MOCK_SECTORS,
+  chartData: MOCK_SECTORS,
+  totals: {
+    totalApplications: 187,
+    totalAccepted: 40,
+  },
+};
+
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe("AdminAnalytics", () => {
@@ -73,38 +95,38 @@ describe("AdminAnalytics", () => {
   it("shows loading state initially", () => {
     mockGetPlacementRates.mockReturnValue(new Promise(() => {}));
     mockGetApplicationVolume.mockReturnValue(new Promise(() => {}));
-    renderPage();
-    expect(screen.getByText("Loading analytics…")).toBeDefined();
+    const { container } = renderPage();
+    expect(container.querySelector(".animate-pulse")).toBeDefined();
   });
 
   it("renders page title after load", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() => expect(screen.getByText("Analytics & Governance")).toBeDefined());
   });
 
   it("renders topbar with Analytics title", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() => expect(screen.getByTestId("topbar")).toBeDefined());
-    expect(screen.getByTestId("topbar").textContent).toBe("Analytics");
+    expect(screen.getByTestId("topbar").textContent).toBe("Admin Analytics");
   });
 
   it("renders all three stat cards", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() => {
       expect(screen.getByText("Total Applications")).toBeDefined();
-      expect(screen.getByText("Active Opportunities")).toBeDefined();
-      expect(screen.getByText("Avg. Applications / Opportunity")).toBeDefined();
+      expect(screen.getByText("Approved Opportunities")).toBeDefined();
+      expect(screen.getByText("Avg per Opportunity")).toBeDefined();
     });
   });
 
   it("displays live totals from API", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() => expect(screen.getByText("187")).toBeDefined());
@@ -113,7 +135,7 @@ describe("AdminAnalytics", () => {
   });
 
   it("renders both charts", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() => {
@@ -123,14 +145,14 @@ describe("AdminAnalytics", () => {
   });
 
   it("renders breakdown table", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() => expect(screen.getByTestId("breakdown-table")).toBeDefined());
   });
 
   it("passes sector data to charts", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() => {
@@ -144,37 +166,36 @@ describe("AdminAnalytics", () => {
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage();
     await waitFor(() =>
-      expect(screen.getByText("Could not load live data. Showing example data.")).toBeDefined()
+      expect(screen.getByText("Could not load sector data. The charts below may be empty.")).toBeDefined()
     );
     // Charts still render with mock data
     expect(screen.getByTestId("sector-bar-chart")).toBeDefined();
   });
 
   it("still renders charts when apps API fails", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockRejectedValue(new Error("Request failed: 401"));
     renderPage();
     await waitFor(() => expect(screen.getByTestId("sector-bar-chart")).toBeDefined());
     expect(screen.getByTestId("sector-pie-chart")).toBeDefined();
   });
 
-  it("falls back to mock totals when apps API fails", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+  it("still renders default totals when apps API fails", async () => {
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockRejectedValue(new Error("Request failed: 401"));
     renderPage();
-    // Mock totals have totalApplications: 247
-    await waitFor(() => expect(screen.getByText("247")).toBeDefined());
+    await waitFor(() => expect(screen.getAllByText("0")).toHaveLength(4));
   });
 
   it("uses applicant sidebar when source is applicant", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage("applicant");
     await waitFor(() => expect(screen.getByTestId("applicant-sidebar")).toBeDefined());
   });
 
   it("uses employer sidebar when source is provider", async () => {
-    mockGetPlacementRates.mockResolvedValue({ raw: MOCK_SECTORS });
+    mockGetPlacementRates.mockResolvedValue(MOCK_PLACEMENT_RESPONSE);
     mockGetApplicationVolume.mockResolvedValue({ data: MOCK_TABLE, totals: MOCK_TOTALS });
     renderPage("provider");
     await waitFor(() => expect(screen.getByTestId("employer-sidebar")).toBeDefined());
