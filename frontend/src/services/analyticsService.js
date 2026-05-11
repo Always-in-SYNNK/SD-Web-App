@@ -1,80 +1,45 @@
 // frontend/src/services/analyticsService.js
 //
-// Connects to the real backend analytics endpoints.
-// The backend uses providerAuthMiddleware — the user must be logged in as a provider.
-//
-// Base URL comes from your existing VITE_API_URL env variable —
-// same pattern used across all other service files in this project.
-// IMPORTANT: Uses RELATIVE paths (/api/...) so Vite proxy handles the request.
-// No CORS issues because browser thinks it's calling same origin (localhost:5173).
+// Connects to backend analytics endpoints.
+// URL strategy:
+// - In development: always use relative /api paths so Vite proxy handles CORS
+// - In production: use VITE_API_URL when provided, otherwise relative paths
 
+const API_BASE = (import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL || "")).replace(/\/$/, "");
 
-const API_URL = import.meta.env.VITE_API_URL; //this is what was causing the CORS error because the orgin was different. The URL call for the 3000 port not 5173.
+function getAuthToken() {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("token");
+}
 
-// ─── Shared fetch helper ──────────────────────────────────────────────────────
-// Mirrors the pattern in your other service files (credentials: "include"
-// sends the session cookie that providerAuthMiddleware validates).
-// Get token from localStorage (where your login stores it)
-// Change from relative path to absolute URL
-// frontend/src/services/analyticsService.js
-
-// Use absolute URL to directly call backend
-//const API_BASE_URL = 'http://localhost:3000';
-
-const getAuthToken = () => {
-  const token = localStorage.getItem("token");
-  //console.log("🔑 Getting token from localStorage:", token ? "Token found (length: " + token.length + ")" : "No token found");
-  return token;
-};
-
-async function apiSectorFetch(path) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-  const res  = await fetch(`${API_URL}${path}`, { credentials: "include", headers });
-  const json = await res.json();
-
-  if (!res.ok || !json.success) {
-    throw new Error(json.error || `Request failed: ${res.status}`);
+function resolveUrl(path) {
+  if (!path.startsWith("/")) {
+    throw new Error("API path must start with '/'");
   }
-  return json;
+
+  return API_BASE ? `${API_BASE}${path}` : path;
 }
 
 async function apiFetch(path) {
   const token = getAuthToken();
-  
-  const fullUrl = path; // Use relative path to leverage Vite's proxy and avoid CORS issues
-  //Combine API_BASE_URL and path to create fullUrl
- // const fullUrl = `${API_BASE_URL}${path}`;
-
-  //console.log("📡 Fetching:", fullUrl);
-  //console.log("🔑 Token being sent:", token ? "Yes ✅" : "No ❌");
-
   const headers = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
-  const res = await fetch(fullUrl, { 
+  const res = await fetch(resolveUrl(path), {
     credentials: "include",
-    headers: headers,
+    headers,
   });
 
-  //console.log("📡 Response status:", res.status);
-
-  const contentType = res.headers.get('content-type');
-  if (!contentType || !contentType.includes('application/json')) {
-    //const text = await res.text();
-    //console.error("Expected JSON but got:", text.substring(0, 200));
-    throw new Error(`Invalid response from server. Expected JSON but got ${contentType || 'unknown content type'}`);
+  const contentType = res.headers.get("content-type");
+  if (!contentType || !contentType.includes("application/json")) {
+    throw new Error(
+      `Invalid response from server. Expected JSON but got ${contentType || "unknown content type"}`
+    );
   }
 
   const json = await res.json();
-  //console.log("📡 Response:", json);
-
   if (!res.ok || !json.success) {
     throw new Error(json.error || `Request failed: ${res.status}`);
   }
@@ -99,7 +64,7 @@ export async function getApplicationTrends() {
 // ─── GET /api/analytics/placements ──────────────────────────────────────────
 // Global placement analytics (admin view)
 export async function getPlacementRates() {
-  const json = await apiSectorFetch("/api/analytics/placements");
+  const json = await apiFetch("/api/analytics/placements");
 
   const data = (json.data || []).map((item) => ({
     sector: item.sector || "Unknown",
@@ -123,7 +88,7 @@ export async function getPlacementRates() {
 // ─── GET /api/analytics/provider-placements ─────────────────────────────────
 // Returns ONLY analytics for the logged-in provider's opportunities.
 export async function getProviderPlacementRates() {
-  const json = await apiSectorFetch(
+  const json = await apiFetch(
     "/api/analytics/provider-placements"
   );
 

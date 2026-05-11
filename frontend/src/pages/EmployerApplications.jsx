@@ -200,6 +200,23 @@ const EmployerApplications = () => {
                     </article>
                 </section>
 
+                {/* Status Flow Legend */}
+                <article className="bg-white rounded-xl p-4 mb-6 border border-gray-200">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Application Status Flow</h3>
+                    <section className="flex flex-wrap items-center gap-2 text-xs">
+                        <p className="px-3 py-1 bg-gray-100 rounded-full">📋 received</p>
+                        <p className="text-gray-400">→</p>
+                        <p className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">⭐ shortlisted</p>
+                        <p className="text-gray-400">→</p>
+                        <p className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full">💼 offered</p>
+                        <p className="text-gray-400">→</p>
+                        <p className="px-3 py-1 bg-green-100 text-green-700 rounded-full">✅ accepted</p>
+                        <p className="text-gray-400">or</p>
+                        <p className="px-3 py-1 bg-red-100 text-red-700 rounded-full">❌ rejected</p>
+                    </section>
+                </article>
+
+
                 {/* Filter Tabs */}
                 <nav className="flex gap-2 border-b border-gray-200 pb-3 mb-6">
                     {statusTabs.map(tab => (
