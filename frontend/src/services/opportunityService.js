@@ -3,6 +3,10 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 const API = `${API_URL}/api/opportunities`;
 
+const getSessionConfig = () => ({
+  withCredentials: true,
+});
+
 const getAuthConfig = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;

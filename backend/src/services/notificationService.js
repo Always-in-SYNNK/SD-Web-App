@@ -7,7 +7,7 @@ export async function getNotificationsByUserId(userId) {
         .select("id")
         .eq("user_id", userId)
         .single();
-
+    
     if (profileError) throw profileError;
 
     const { data: applicantProfile, error: applicantError } = await supabase
@@ -17,7 +17,6 @@ export async function getNotificationsByUserId(userId) {
         .single();
 
     if (applicantError) throw applicantError;
-
     const { data: notifications, error } = await supabase
         .from("applicant_notifications")
         .select("id, type, title, message, is_read, created_at, application_id, opportunity_id")

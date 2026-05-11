@@ -57,3 +57,4 @@ export async function getOpportunities(filters = {}) {
 
   return handleResponse(response);
 }
+
