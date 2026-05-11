@@ -28,11 +28,14 @@ jobs:
       - name: Install dependencies
         run: npm ci   # Use ci for faster, reproducible installs
 
+      - name: Install coverage provider
+        run: npm install -D @vitest/coverage-v8
+
       - name: List available scripts (debug)
         run: npm run   # This will show all scripts, helping to confirm "test" exists
 
       - name: Run tests
-        run: npx vitest run   # Directly run vitest without relying on npm script
+        run: npx vitest run --coverage  # Directly run vitest without relying on npm script
         env:
           VITE_API_URL: http://localhost:3000
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
