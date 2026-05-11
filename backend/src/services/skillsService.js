@@ -1,11 +1,11 @@
 import { supabase } from "../config/supabaseClient.js";
 
 export async function getSkillsByField(fieldName) {
-    const { data, error } = await supabase.rpc("get_skills_by_field", { 
-        field_input: fieldName 
+    const { data, error } = await supabase.rpc("get_skills_by_field", {
+        field_input: fieldName
     });
     if (error) throw new Error(error.message);
-    
+
     return data;
 }
 
@@ -26,23 +26,37 @@ export async function getApplicantSkills(applicantId) {
 
     if (error) throw new Error(error.message);
 
-    return (data || []).map((row) => ({
-        id: row.skills?.id ?? row.skills_id,
-        skills_id: row.skills_id,
-        name: row.skills?.name ?? row.skills?.skill_name ?? null,
-        field: row.skills?.field ?? null,
-    }));
+    // console.log("Raw data from Supabase:", JSON.stringify(data, null, 2));
+    // console.log("Is data an array?", Array.isArray(data));
+    // console.log("Data length:", data?.length);
+
+    if (!data || data.length === 0) {
+        console.log("No data found, returning empty array");
+        return [];
+    }
+
+    const mapped = data.map((row) => {
+        return {
+            id: row.skills?.id ?? row.skills_id,
+            skills_id: row.skills_id,
+            name: row.skills?.name ?? null,
+            field: row.skills?.field ?? null,
+        };
+    });
+
+    //console.log("Mapped result:", mapped);
+    return mapped;
 }
 
 export async function getOpportunitySkills(opportunityId) {
     // Fix: 
     // 1. Wrong function name (was get_applicant_skills_json, should be get_opportunity_skills_json)
     // 2. Pass parameter as object, not directly
-    const { data, error } = await supabase.rpc("get_opportunity_skills_json", { 
-        opportunity_id_param: opportunityId 
+    const { data, error } = await supabase.rpc("get_opportunity_skills_json", {
+        opportunity_id_param: opportunityId
     });
     if (error) throw new Error(error.message);
-    
+
     return data;
 }
 

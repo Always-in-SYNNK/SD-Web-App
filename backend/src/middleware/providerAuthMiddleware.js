@@ -6,6 +6,7 @@
 // ============================================
 
 import jwt from "jsonwebtoken";
+console.log('🔧 PROVIDER AUTH MIDDLEWARE FILE LOADED');
 
 async function getProviderProfileByTokenId(supabase, tokenUserId) {
     const { data: byUserId } = await supabase

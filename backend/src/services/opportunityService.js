@@ -1,6 +1,6 @@
 import { supabase } from "../config/supabaseClient.js";
 import { createNotification } from "./notificationService.js";
-import { setOpportunitySkills } from "./skillsService.js";
+import { setOpportunitySkills, getApplicantSkills } from "./skillsService.js";
 
 function buildOpportunitySearchQuery(baseQuery, { search, location, nqfLevel, field }) {
   let query = baseQuery;
@@ -308,6 +308,98 @@ export const deleteOpportunityById = async (id) => {
   if (error) throw error;
 };
 
+export async function matchingOpportunity(userId) {
+  //1. Get profile ID from userID
+  const { data: profile, profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .single();
+  if (profileError) throw profileError;
+
+  //2. Get applicant profile (location, NQF Level)
+  const { data: applicantProfile, applicantError } = await supabase
+    .from("applicant_profiles")
+    .select("id, location, nqf_level")
+    .eq("profile_id", profile.id)
+    .single();
+  if (applicantError) throw applicantError;
+
+  const applicantLocation = applicantProfile.location;
+  const applicantNqf = applicantProfile.nqf_level;
+
+  // 3. Get distinct fields the applicant has skills in (as array of strings)
+  const { data: fields, fieldsError } = await supabase.rpc("get_applicant_skill_fields_array", { applicant_id_param: applicantProfile.id });
+  if (fieldsError) throw fieldsError;
+  // Convert fields to array if it's a string
+  const fieldArray = Array.isArray(fields) ? fields : [fields];
+
+  // 4. Get detailed applicant skills (with IDs and fields)
+  const applicantSkills = await getApplicantSkills(applicantProfile.id);
+  //console.log("User Skills:", applicantSkills);
+
+  // Ensure we have an array
+  if (!applicantSkills || applicantSkills.length === 0) {
+    return [];  // No skills = no matching opportunities
+  }
+
+  const applicantSkillIds = applicantSkills.map(skill => skill.id);
+
+  const nqfLevels = Array.from({ length: applicantNqf }, (_, i) => i + 1);
+
+  // 5. Build opportunity query
+  let query = supabase
+    .from("opportunities")
+    .select(`*, opportunity_skills(skills_id)`)
+    .eq("status", "approved")
+    .in("field", fieldArray)
+    .in("nqf_level", nqfLevels)
+    .or(`location.eq.${applicantLocation},location.eq.Remote`);
+
+  const { data: opportunities, queryError } = await query;
+  if (queryError) throw queryError;
+
+  if (!opportunities || opportunities.length === 0) {
+    console.log("No opportunities found matching criteria");
+    return [];
+  }
+
+  //6. Filter opportunities that have at least one matching skill
+  const matched = opportunities.filter(opp => {
+    const oppSkillIds = opp.opportunity_skills?.map(os => os.skills_id) || [];
+    return oppSkillIds.some(id => applicantSkillIds.includes(id));
+  });
+
+  // 7. Calculate a score for each opportunity (more matches = higher score)
+  const scored = matched.map(opp => {
+    const oppSkillIds = opp.opportunity_skills?.map(os => os.skills_id) || [];
+    const matchedSkills = oppSkillIds.filter(id => applicantSkillIds.includes(id));
+    const skillMatchCount = matchedSkills.length;
+    const totalOppSkills = oppSkillIds.length;
+    const skillScore = totalOppSkills === 0 ? 0 : skillMatchCount / totalOppSkills;
+
+    // Additional score factors (you can adjust weights)
+    let locationScore = 0;
+    if (opp.location === applicantLocation) locationScore = 1;
+    else if (opp.location === "Remote") locationScore = 0.5;
+
+    let nqfScore = 0;
+    if (opp.nqf_level && applicantNqf) {
+      nqfScore = Math.max(0, 1 - (applicantNqf - opp.nqf_level) / 10); // higher if close or equal
+    }
+
+    const totalScore = skillScore * 0.6 + locationScore * 0.2 + nqfScore * 0.2;
+
+    return { ...opp, score: totalScore, skillMatchCount };
+  });
+
+  // 8. Sort by score descending
+  scored.sort((a, b) => b.score - a.score);
+  
+  return scored;
+
+
+}
 // ✅ NEW FUNCTION at the end of the file
 export const getOpportunityById = async (id) => {
   const { data, error } = await supabase

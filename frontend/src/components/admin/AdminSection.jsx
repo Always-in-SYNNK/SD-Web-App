@@ -105,7 +105,7 @@ export default function AdminSection({ isAdmin, source = "applicant" }) {
             <div className="min-w-0">
               <p className="text-sm font-semibold whitespace-nowrap">Admin Portal</p>
               <span className="mt-1 inline-flex text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-current/20 bg-white/60">
-                {appStatus}
+                {cfg.label}
               </span>
             </div>
           </div>

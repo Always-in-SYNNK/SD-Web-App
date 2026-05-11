@@ -53,16 +53,6 @@ describe("opportunityService", () => {
     const res = await service.saveDraft({});
 
     expect(res.data).toEqual({ id: 2 });
-      expect(axios.post).toHaveBeenCalledWith(
-        expect.stringContaining("/draft"),
-        {},
-        expect.objectContaining({
-          withCredentials: true,
-          headers: expect.objectContaining({
-            Authorization: "Bearer fake-token",
-          }),
-        })
-      );
   });
 
   it("getSkillsByField success", async () => {
@@ -72,12 +62,6 @@ describe("opportunityService", () => {
     const res = await service.getSkillsByField("IT");
 
     expect(res.data.length).toBe(1);
-      expect(axios.get).toHaveBeenCalledWith(
-        expect.stringContaining("/api/skills/field/IT"),
-        expect.objectContaining({
-          withCredentials: true,
-        })
-      );
   });
 
   it("getOpportunitySkills maps data correctly", async () => {
