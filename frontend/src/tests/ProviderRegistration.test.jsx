@@ -60,7 +60,7 @@ describe('ProviderRegistration', () => {
       },
     ]);
 
-    global.fetch = vi.fn((url) => {
+    vi.stubGlobal('fetch', vi.fn((url) => {
       // pending registration endpoint
       if (url.includes('pending-registration')) {
         return Promise.resolve({
@@ -89,11 +89,12 @@ describe('ProviderRegistration', () => {
       }
 
       return Promise.reject(new Error('Unknown endpoint'));
-    });
+    }));
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   const renderPage = () =>
@@ -238,7 +239,7 @@ describe('ProviderRegistration', () => {
     await userEvent.click(submitBtn);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining('complete-registration'),
         expect.objectContaining({
           method: 'POST',
@@ -250,7 +251,7 @@ describe('ProviderRegistration', () => {
   });
 
   it('shows API error message when registration fails', async () => {
-    global.fetch = vi.fn((url) => {
+    vi.stubGlobal('fetch', vi.fn((url) => {
       if (url.includes('pending-registration')) {
         return Promise.resolve({
           json: () =>
@@ -272,7 +273,7 @@ describe('ProviderRegistration', () => {
             }),
         });
       }
-    });
+    }));
 
     renderPage();
 
@@ -317,14 +318,14 @@ describe('ProviderRegistration', () => {
   });
 
   it('redirects to login when pending registration fails', async () => {
-    global.fetch = vi.fn(() =>
+    vi.stubGlobal('fetch', vi.fn(() =>
       Promise.resolve({
         json: () =>
           Promise.resolve({
             success: false,
           }),
       })
-    );
+    ));
 
     renderPage();
 
@@ -346,7 +347,7 @@ describe('ProviderRegistration', () => {
   });
 
   it('shows loading state during submit', async () => {
-    global.fetch = vi.fn((url) => {
+    vi.stubGlobal('fetch', vi.fn((url) => {
       if (url.includes('pending-registration')) {
         return Promise.resolve({
           json: () =>
@@ -372,7 +373,7 @@ describe('ProviderRegistration', () => {
           }, 100);
         });
       }
-    });
+    }));
 
     renderPage();
 

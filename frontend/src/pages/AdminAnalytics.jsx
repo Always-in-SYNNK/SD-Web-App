@@ -430,7 +430,11 @@ export default function AdminAnalytics() {
 
           {/* ── 6. Opportunity Breakdown Table — full width ── */}
           <section>
-            <OpportunityBreakdownTable data={tableData} />
+            <OpportunityBreakdownTable 
+              data={tableData}
+              statusKeys={['received', 'shortlisted', 'offered', 'accepted', 'rejected']}
+              showOpportunityStatus={false}
+            />
           </section>
 
         </section>

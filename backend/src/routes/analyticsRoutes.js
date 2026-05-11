@@ -13,8 +13,9 @@ import { requireAuth } from "../middleware/requireAuth.js";
 import { requireAdmin } from "../middleware/requireAdmin.js";
 
 const router = Router();
-
-console.log('🔧 ANALYTICS ROUTES BEING LOADED...');
+//This router logs multiple messages at module load time (and on every hit for /test and /ping). 
+// Unconditional console.log in production server code will add noise and can leak request metadata; 
+// please remove these or gate behind an environment-controlled logger level.
 
 // ============================================
 // PUBLIC ROUTES (No authentication required)
@@ -26,8 +27,7 @@ console.log('🔧 ANALYTICS ROUTES BEING LOADED...');
  * @access  Public
  */
 router.get("/test", (req, res) => {
-  console.log("✅ TEST ROUTE WAS HIT!");
-  console.log("📋 Authorization header:", req.headers.authorization);
+  //console.log("✅ TEST ROUTE WAS HIT!");
   res.json({ 
     success: true, 
     message: "Test route works!",
@@ -42,7 +42,7 @@ router.get("/test", (req, res) => {
  * @access  Public
  */
 router.get("/ping", (req, res) => {
-  console.log("🏓 PING ROUTE HIT!");
+  //console.log("🏓 PING ROUTE HIT!");
   res.json({ 
     success: true, 
     message: "pong",
@@ -62,12 +62,12 @@ router.get("/export", providerAuthMiddleware, exportAnalytics);
 router.get("/provider-placements", providerAuthMiddleware, getProviderPlacementRates);
 
 // Admin route (ALL approved opportunities)
-router.get("/admin/applications", authMiddleware, getAdminApplicationAnalytics);
+router.get("/admin/applications", requireAuth, requireAdmin, getAdminApplicationAnalytics);
 // Admin route (global placement rates by sector)
 router.get("/placements", requireAuth, requireAdmin, getPlacementRates);
 
 
-
+/*
 console.log('✅ Analytics routes registered:');
 console.log('   - GET /api/analytics/test (public)');
 console.log('   - GET /api/analytics/ping (public)');
@@ -77,5 +77,5 @@ console.log('   - GET /api/analytics/export (provider)');
 console.log('   - GET /api/analytics/provider-placements (provider)');
 console.log('   - GET /api/analytics/admin/applications (admin)');
 console.log('   - GET /api/analytics/placements (admin)');
-
+*/
 export default router;

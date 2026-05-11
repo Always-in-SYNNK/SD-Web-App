@@ -23,7 +23,7 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const getAuthToken = () => {
   const token = localStorage.getItem("token");
-  console.log("🔑 Getting token from localStorage:", token ? "Token found (length: " + token.length + ")" : "No token found");
+  //console.log("🔑 Getting token from localStorage:", token ? "Token found (length: " + token.length + ")" : "No token found");
   return token;
 };
 
@@ -46,8 +46,8 @@ async function apiFetch(path) {
   // ✅ FIX: Combine API_BASE_URL and path to create fullUrl
   const fullUrl = `${API_BASE_URL}${path}`;
 
-  console.log("📡 Fetching:", fullUrl);
-  console.log("🔑 Token being sent:", token ? "Yes ✅" : "No ❌");
+  //console.log("📡 Fetching:", fullUrl);
+  //console.log("🔑 Token being sent:", token ? "Yes ✅" : "No ❌");
 
   const headers = {
     'Content-Type': 'application/json',
@@ -62,17 +62,17 @@ async function apiFetch(path) {
     headers: headers,
   });
 
-  console.log("📡 Response status:", res.status);
+  //console.log("📡 Response status:", res.status);
 
   const contentType = res.headers.get('content-type');
   if (!contentType || !contentType.includes('application/json')) {
-    const text = await res.text();
-    console.error("Expected JSON but got:", text.substring(0, 200));
+    //const text = await res.text();
+    //console.error("Expected JSON but got:", text.substring(0, 200));
     throw new Error(`Invalid response from server. Expected JSON but got ${contentType || 'unknown content type'}`);
   }
 
   const json = await res.json();
-  console.log("📡 Response:", json);
+  //console.log("📡 Response:", json);
 
   if (!res.ok || !json.success) {
     throw new Error(json.error || `Request failed: ${res.status}`);

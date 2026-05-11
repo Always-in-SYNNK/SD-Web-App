@@ -76,9 +76,10 @@ export default function ApplicationVolumeChart({ data = [] }) {
             const lines = [`  Total: ${ctx.parsed.y} applications`];
 
             if (opp?.statusBreakdown) {
-              const { pending, shortlisted, accepted, rejected } = opp.statusBreakdown;
+              const { pending, shortlisted, offered, accepted, rejected } = opp.statusBreakdown;
               if (pending    > 0) lines.push(`  Pending:     ${pending}`);
               if (shortlisted > 0) lines.push(`  Shortlisted: ${shortlisted}`);
+              if (offered     > 0) lines.push(`  Offered:     ${offered}`);
               if (accepted   > 0) lines.push(`  Accepted:    ${accepted}`);
               if (rejected   > 0) lines.push(`  Rejected:    ${rejected}`);
             }

@@ -4,9 +4,11 @@
 //   data — array from the backend:
 //          [{ opportunityTitle, count, status, location,
 //             opportunityId, statusBreakdown }]
+//   statusKeys — array of status breakdown keys to display, e.g., 
+//                ['pending', 'shortlisted', 'accepted', 'rejected']
+//                Defaults to provider-side application statuses.
 //
-// Now renders the statusBreakdown columns (pending / shortlisted /
-// accepted / rejected) that the backend provides — no frontend calculation needed.
+// Now renders statusBreakdown columns dynamically based on statusKeys prop.
 
 const PALETTE = [
   "#035b9d", "#1d7a3a", "#a06000", "#a32d2d", "#535AB7", "#0F6E56",
@@ -19,6 +21,17 @@ const STATUS_STYLES = {
   pending:  "bg-yellow-100 text-yellow-700",
   draft:    "bg-orange-100 text-orange-700",
   rejected: "bg-red-100 text-red-700",
+};
+
+// Color mapping for application status breakdown columns
+const STATUS_BREAKDOWN_COLORS = {
+  pending:     { text: "text-yellow-600", header: "text-yellow-600" },
+  shortlisted: { text: "text-blue-600",   header: "text-blue-600" },
+  accepted:    { text: "text-green-600",  header: "text-green-600" },
+  rejected:    { text: "text-red-500",    header: "text-red-500" },
+  // Admin/alternative status mappings
+  received:    { text: "text-gray-600",   header: "text-gray-600" },
+  offered:     { text: "text-purple-600", header: "text-purple-600" },
 };
 
 function StatusBadge({ status }) {
@@ -42,8 +55,12 @@ function MiniCount({ value, color = "text-gray-500" }) {
   );
 }
 
-export default function OpportunityBreakdownTable({ data = [] }) {
-  const maxCount = data[0]?.count || 1;
+export default function OpportunityBreakdownTable({ 
+  data = [],
+  statusKeys = ['pending', 'shortlisted', 'accepted', 'rejected'],
+  showOpportunityStatus = true
+}) {
+  const maxCount = Math.max(...data.map(d => d.count ?? 0)) || 1;
   // Use the total from the first render — recalculated if data changes
   const total = data.reduce((s, d) => s + d.count, 0) || 1;
 
@@ -62,19 +79,24 @@ export default function OpportunityBreakdownTable({ data = [] }) {
                 <th className="pb-3 pr-4 font-semibold">Location</th>
                 <th className="pb-3 pr-4 font-semibold">Applications</th>
                 <th className="pb-3 pr-4 font-semibold">Share</th>
-                {/* statusBreakdown columns — provided directly by backend */}
-                <th className="pb-3 pr-4 font-semibold text-yellow-600">Pending</th>
-                <th className="pb-3 pr-4 font-semibold text-blue-600">Shortlisted</th>
-                <th className="pb-3 pr-4 font-semibold text-green-600">Accepted</th>
-                <th className="pb-3 pr-4 font-semibold text-red-500">Rejected</th>
-                <th className="pb-3 font-semibold">Opp. Status</th>
+                {/* Dynamically render status breakdown headers based on statusKeys */}
+                {statusKeys.map((key) => (
+                  <th 
+                    key={key}
+                    className={`pb-3 pr-4 font-semibold ${
+                      STATUS_BREAKDOWN_COLORS[key]?.header || "text-gray-600"
+                    }`}
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </th>
+                ))}
+                {showOpportunityStatus && <th className="pb-3 font-semibold">Opp. Status</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {data.map((row, i) => {
                 const share    = ((row.count / total) * 100).toFixed(1);
                 const barWidth = Math.round((row.count / maxCount) * 100);
-                // statusBreakdown is provided by backend — no calculation needed
                 const sb = row.statusBreakdown || {};
 
                 return (
@@ -85,7 +107,7 @@ export default function OpportunityBreakdownTable({ data = [] }) {
                       {row.opportunityTitle}
                     </td>
 
-                    {/* Location — available from backend */}
+                    {/* Location */}
                     <td className="py-4 pr-4 text-gray-400 text-xs">
                       {row.location || "—"}
                     </td>
@@ -111,24 +133,21 @@ export default function OpportunityBreakdownTable({ data = [] }) {
                     {/* Share */}
                     <td className="py-4 pr-4 text-gray-400 text-xs">{share}%</td>
 
-                    {/* Status breakdown — straight from backend, no calculation */}
-                    <td className="py-4 pr-4">
-                      <MiniCount value={sb.pending}     color="text-yellow-600" />
-                    </td>
-                    <td className="py-4 pr-4">
-                      <MiniCount value={sb.shortlisted} color="text-blue-600" />
-                    </td>
-                    <td className="py-4 pr-4">
-                      <MiniCount value={sb.accepted}    color="text-green-600" />
-                    </td>
-                    <td className="py-4 pr-4">
-                      <MiniCount value={sb.rejected}    color="text-red-500" />
-                    </td>
+                    {/* Dynamically render status breakdown cells based on statusKeys */}
+                    {statusKeys.map((key) => (
+                      <td key={key} className="py-4 pr-4">
+                        <MiniCount 
+                          value={sb[key]} 
+                          color={STATUS_BREAKDOWN_COLORS[key]?.text || "text-gray-500"}
+                        />
+                      </td>
+                    ))}
 
-                    {/* Opportunity status badge */}
-                    <td className="py-4">
-                      <StatusBadge status={row.status} />
-                    </td>
+                    {showOpportunityStatus && (
+                      <td className="py-4">
+                        <StatusBadge status={row.status} />
+                      </td>
+                    )}
                   </tr>
                 );
               })}

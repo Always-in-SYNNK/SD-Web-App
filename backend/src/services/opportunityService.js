@@ -317,8 +317,11 @@ export const getOpportunityById = async (id) => {
     .single();
     
   if (error) {
-    console.error("Error fetching opportunity by ID:", error);
-    return null;
+    // Return null only for "not found" case; throw on real DB errors
+    if (error.message && error.message.includes('No rows found')) {
+      return null;
+    }
+    throw new Error(`Failed to fetch opportunity: ${error.message}`);
   }
   
   return data;

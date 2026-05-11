@@ -172,6 +172,7 @@ export async function getApplicationTrends(providerProfileId) {
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         monthlyData.set(monthKey, {
             month: date.toLocaleString('default', { month: 'short' }),
+            monthNum: date.getMonth() + 1,
             year: date.getFullYear(),
             applications: 0
         });
@@ -193,7 +194,7 @@ export async function getApplicationTrends(providerProfileId) {
     const trends = Array.from(monthlyData.values())
         .sort((a, b) => {
             if (a.year !== b.year) return a.year - b.year;
-            return a.month.localeCompare(b.month);
+            return a.monthNum - b.monthNum;
         });
 
     return { trends };
@@ -277,7 +278,7 @@ export async function exportAnalyticsData(providerProfileId) {
  * Create empty analytics response for providers with no opportunities
  * @returns {Object} Empty analytics structure
  */
-function createEmptyAnalyticsResponse() {
+function createEmptyAnalyticsResponse() { // This function is currently unused
     return {
         data: [],
         totals: {

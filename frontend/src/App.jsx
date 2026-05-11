@@ -155,8 +155,11 @@ export default function App() {
                 <ProviderRegistration />
               </ProtectedRoute>
             } />
-
-              <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/analytics" element={
+              <ProtectedRoute requiredRole="provider">
+                <AnalyticsPage />
+              </ProtectedRoute>
+            } />
             
           </Routes>
         </BrowserRouter>

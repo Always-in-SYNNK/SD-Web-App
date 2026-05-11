@@ -53,13 +53,9 @@ async function providerAuthMiddleware(req, res, next) {
 
         try {
             const token = authHeader.split(' ')[1];
-            console.log('[ProviderAuth] Token received:', token.substring(0, 50) + '...');
-            console.log('[ProviderAuth] Token length:', token.length);
-            console.log('[ProviderAuth] JWT_SECRET exists:', !!process.env.JWT_SECRET);
 
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             console.log('[ProviderAuth] ✅ Token verified successfully');
-            console.log('[ProviderAuth] Decoded token:', JSON.stringify(decoded, null, 2));
 
             if (decoded.role !== 'provider') {
                 console.log('[ProviderAuth] Role mismatch. Expected provider, got:', decoded.role);

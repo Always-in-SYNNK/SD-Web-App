@@ -193,11 +193,17 @@ export const approveOpportunity = async (req, res) => {
     // Get opportunity details for notification
     const opportunity = await getOpportunityById(id);
     
-    if (opportunity) {
-      // Send notifications to all applicants
-      await notifyAllApplicantsNewOpportunity(id, opportunity.title);
-      console.log(`✅ Notifications sent for approved opportunity: ${opportunity.title}`);
+    // Treat missing opportunity as an error
+    if (!opportunity) {
+      return res.status(404).json({
+        success: false,
+        error: "Opportunity not found",
+      });
     }
+
+    // Send notifications to all applicants
+    await notifyAllApplicantsNewOpportunity(id, opportunity.title);
+    console.log(`✅ Notifications sent for approved opportunity: ${opportunity.title}`);
 
     res.status(200).json({
       success: true,
