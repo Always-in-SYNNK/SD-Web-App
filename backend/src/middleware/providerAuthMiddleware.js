@@ -6,6 +6,7 @@
 // ============================================
 
 import jwt from "jsonwebtoken";
+console.log('🔧 PROVIDER AUTH MIDDLEWARE FILE LOADED');
 
 /**
  * Provider Authentication Middleware
@@ -13,8 +14,10 @@ import jwt from "jsonwebtoken";
  * Use this ONLY for provider-specific routes
  */
 async function providerAuthMiddleware(req, res, next) {
-    console.log('[ProviderAuth] Checking authentication...');
-    console.log('[ProviderAuth] Path:', req.path);
+    console.log('🔐 [ProviderAuth] ===== MIDDLEWARE STARTED =====');
+    console.log('🔐 [ProviderAuth] Request path:', req.path);
+    console.log('🔐 [ProviderAuth] Request method:', req.method);
+    console.log('🔐 [ProviderAuth] Authorization header:', req.headers.authorization);
     
     // ============================================
     // PRIORITY 1: Check JWT token FIRST (for API calls from frontend)

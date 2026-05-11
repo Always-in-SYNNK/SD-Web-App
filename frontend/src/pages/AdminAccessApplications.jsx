@@ -11,9 +11,7 @@ import {
   rejectAdminApplication,
 } from "../services/adminService";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-// ─── tiny stat card (mirrors AdminConsole's StatsGrid style) ───────────────
+// ─── stat card - no div/span ────────────────────────────────────────────────
 function StatCard({ label, value, color }) {
   return (
     <article className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -23,7 +21,7 @@ function StatCard({ label, value, color }) {
   );
 }
 
-// ─── status badge ────────────────────────────────────────────────────────────
+// ─── status badge - using p instead of span ─────────────────────────────────
 function StatusBadge({ status }) {
   const map = {
     pending:  "bg-yellow-100 text-yellow-700",
@@ -31,9 +29,9 @@ function StatusBadge({ status }) {
     rejected: "bg-red-100 text-red-700",
   };
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${map[status] || "bg-gray-100 text-gray-600"}`}>
+    <p className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${map[status] || "bg-gray-100 text-gray-600"}`}>
       {status}
-    </span>
+    </p>
   );
 }
 
@@ -45,17 +43,10 @@ export default function AdminAccessApplications() {
   const SidebarComponent = source === "provider" ? EmployerSidebar : ApplicantSidebar;
   const isAdmin = Boolean(user?.isAdmin);
 
-  const [pending,       setPending]       = useState([]);
-  const [history,       setHistory]       = useState([]);
-  const [filter,        setFilter]        = useState("all");
-  const [loading,       setLoading]       = useState(true);
+  const [pending, setPending] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [filter, setFilter] = useState("all");
   const [actionLoading, setActionLoading] = useState(null);
-
-  // ── resolve logged-in user ────────────────────────────────────────────────
-  useEffect(() => {
-    // No async user resolution needed — AdminTopbar handles it internally
-    setLoading(false);
-  }, [source]);
 
   // ── fetch all applications (pending + history) ────────────────────────────
   const fetchAll = useCallback(async () => {
@@ -66,84 +57,86 @@ export default function AdminAccessApplications() {
     setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
   }, []);
 
+  // ✅ Proper pattern - define async function inside useEffect and call it
   useEffect(() => {
-    if (!loading) {
-      queueMicrotask(() => { void fetchAll(); });
-    }
-  }, [loading, fetchAll]);
+    const loadData = async () => {
+      const allApplications = await getAdminApplications();
+      const rows = Array.isArray(allApplications) ? allApplications : [];
+
+      setPending(rows.filter((row) => row.status === "pending"));
+      setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
+    };
+    
+    loadData();
+  }, []); // Empty dependency array - only runs once on mount
 
   // ── grant / reject ────────────────────────────────────────────────────────
   const handleGrant = async (app) => {
     setActionLoading(app.id);
     await grantAdminAccess(app.id);
-    await fetchAll();
+    
+    // Refresh data after action
+    const allApplications = await getAdminApplications();
+    const rows = Array.isArray(allApplications) ? allApplications : [];
+    setPending(rows.filter((row) => row.status === "pending"));
+    setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
+    
     setActionLoading(null);
   };
 
   const handleReject = async (id) => {
     setActionLoading(id);
     await rejectAdminApplication(id);
-    await fetchAll();
+    
+    // Refresh data after action
+    const allApplications = await getAdminApplications();
+    const rows = Array.isArray(allApplications) ? allApplications : [];
+    setPending(rows.filter((row) => row.status === "pending"));
+    setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
+    
     setActionLoading(null);
   };
 
   // ── derived counts ────────────────────────────────────────────────────────
-  const allRows    = [...pending, ...history];
-  const approved   = history.filter(r => r.status === "approved");
-  const rejected   = history.filter(r => r.status === "rejected");
+  const allRows = [...pending, ...history];
+  const approved = history.filter(r => r.status === "approved");
+  const rejected = history.filter(r => r.status === "rejected");
 
-  const displayRows = filter === "all"      ? allRows
-    : filter === "pending"   ? pending
+  const displayRows = filter === "all" ? allRows
+    : filter === "pending" ? pending
     : history.filter(r => r.status === filter);
 
-  // ── loading gate ──────────────────────────────────────────────────────────
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#faf9f8] flex items-center justify-center">
-        <p className="text-gray-400">Loading…</p>
-      </main>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen bg-[#faf9f8]">
+    <section className="flex min-h-screen bg-[#faf9f8]">
       <SidebarComponent />
 
       <main className="ml-64 min-h-screen w-full min-w-0">
-
-        {/* ── Topbar ── */}
         <AdminTopbar title="Admin Access Applications" source={source} />
 
-        <div className="p-12">
-
-          {/* ── page intro ── */}
-          <div className="mb-8">
-            <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
+        <section className="p-12">
+          <header className="mb-8">
+            <p className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
               Admin Panel
-            </span>
+            </p>
             <h2 className="text-3xl font-extrabold mt-2 tracking-tight">
               Manage Admin Applications
             </h2>
             <p className="text-gray-500 mt-2">
               Review who has requested admin access and manage their status.
             </p>
-          </div>
+          </header>
 
-          {/* ── stat cards ── */}
           <section className="grid grid-cols-3 gap-4 mb-10">
-            <StatCard label="Total Applications" value={allRows.length}   color="text-gray-800" />
-            <StatCard label="Pending Review"      value={pending.length}  color="text-yellow-600" />
-            <StatCard label="Approved Admins"     value={approved.length} color="text-green-600" />
+            <StatCard label="Total Applications" value={allRows.length} color="text-gray-800" />
+            <StatCard label="Pending Review" value={pending.length} color="text-yellow-600" />
+            <StatCard label="Approved Admins" value={approved.length} color="text-green-600" />
           </section>
 
-          {/* ── table section ── */}
-          <div className="bg-[#f5f3f3] rounded-xl p-8">
-
-            {/* table header + filter */}
-            <div className="flex justify-between items-center mb-6">
+          <section className="bg-[#f5f3f3] rounded-xl p-8">
+            <section className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-lg">All Applications</h3>
-              <div className="flex gap-2">
-                {["all", "pending", "approved", "rejected"].map(f => (
+              <section className="flex gap-2">
+                {["all", "pending", "approved", "rejected"].map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
@@ -154,21 +147,20 @@ export default function AdminAccessApplications() {
                     }`}
                   >
                     {f}
-                    {f === "pending"  && ` (${pending.length})`}
+                    {f === "pending" && ` (${pending.length})`}
                     {f === "approved" && ` (${approved.length})`}
                     {f === "rejected" && ` (${rejected.length})`}
                   </button>
                 ))}
-              </div>
-            </div>
+              </section>
+            </section>
 
-            {/* table */}
             {displayRows.length === 0 ? (
               <p className="text-gray-400 text-sm py-8 text-center">
                 No applications found{filter !== "all" ? ` with status "${filter}"` : ""}.
               </p>
             ) : (
-              <div className="overflow-x-auto">
+              <section className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-200">
@@ -203,7 +195,7 @@ export default function AdminAccessApplications() {
                         {isAdmin && (
                           <td className="py-4">
                             {app.status === "pending" ? (
-                              <div className="flex gap-2">
+                              <section className="flex gap-2">
                                 <button
                                   onClick={() => handleGrant(app)}
                                   disabled={actionLoading === app.id}
@@ -218,9 +210,9 @@ export default function AdminAccessApplications() {
                                 >
                                   {actionLoading === app.id ? "…" : "Reject"}
                                 </button>
-                              </div>
+                              </section>
                             ) : (
-                              <span className="text-xs text-gray-400 italic">No actions</span>
+                              <p className="text-xs text-gray-400 italic">No actions</p>
                             )}
                           </td>
                         )}
@@ -228,12 +220,11 @@ export default function AdminAccessApplications() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+              </section>
             )}
-          </div>
-
-        </div>
+          </section>
+        </section>
       </main>
-    </div>
+    </section>
   );
 }

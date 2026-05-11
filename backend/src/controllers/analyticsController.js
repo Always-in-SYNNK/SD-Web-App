@@ -5,11 +5,17 @@ import {
 } from "../services/analyticsService.js";
 import { supabase } from "../config/supabaseClient.js";
 
+console.log('🔧 ANALYTICS CONTROLLER FILE LOADED - Provider endpoint should work');
 /**
  * GET /api/analytics/applications
  * FOR PROVIDERS - Returns their OWN opportunities (all statuses)
  */
 export async function getApplicationAnalytics(req, res) {
+    console.log('🚨🚨🚨 PROVIDER ANALYTICS CONTROLLER WAS CALLED! 🚨🚨🚨');
+    console.log('🔍 req.user:', req.user);
+    console.log('🔍 req.headers.authorization:', req.headers.authorization);
+    // ... rest of code
+
     try {
         console.log('[AnalyticsController] Provider analytics requested');
         
