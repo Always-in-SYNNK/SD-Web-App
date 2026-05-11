@@ -31,7 +31,7 @@ async function adminApiFetch(path) {
   if (!contentType || !contentType.includes('application/json')) {
     const text = await res.text();
     console.error("Expected JSON but got HTML:", text.substring(0, 200));
-    throw new Error(`Invalid response. Check if backend route exists: ${path}`);
+    throw new Error("Invalid response from server. Expected JSON but got text/html");
   }
 
 
