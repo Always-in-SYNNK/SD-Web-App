@@ -23,10 +23,10 @@ vi.mock("chart.js", () => ({
 }));
 
 const MOCK_DATA = [
-  { sector: "Engineering",    total_applications: 89, accepted_applications: 21, placement_rate: 23.6 },
-  { sector: "Business",       total_applications: 98, accepted_applications: 19, placement_rate: 19.4 },
-  { sector: "Health Sciences",total_applications: 53, accepted_applications: 9,  placement_rate: 17.0 },
-  { sector: "Arts",           total_applications: 27, accepted_applications: 5,  placement_rate: 18.5 },
+  { sector: "Engineering",    totalApplications: 89, acceptedApplications: 21, placementRate: 23.6 },
+  { sector: "Business",       totalApplications: 98, acceptedApplications: 19, placementRate: 19.4 },
+  { sector: "Health Sciences",totalApplications: 53, acceptedApplications: 9,  placementRate: 17.0 },
+  { sector: "Arts",           totalApplications: 27, acceptedApplications: 5,  placementRate: 18.5 },
 ];
 
 describe("SectorBarChart", () => {
@@ -47,12 +47,12 @@ describe("SectorBarChart", () => {
 
   it("shows empty state when data is empty", () => {
     render(<SectorBarChart data={[]} />);
-    expect(screen.getByText("No data available")).toBeDefined();
+    expect(screen.getByText("No sector data available")).toBeDefined();
   });
 
   it("shows empty state when no data prop passed", () => {
     render(<SectorBarChart />);
-    expect(screen.getByText("No data available")).toBeDefined();
+    expect(screen.getByText("No sector data available")).toBeDefined();
   });
 
   it("sorts data by total_applications descending", () => {
@@ -76,7 +76,7 @@ describe("SectorBarChart", () => {
 
   it("handles string number values from API", () => {
     const stringData = [
-      { sector: "Engineering", total_applications: "89", accepted_applications: "21", placement_rate: "23.6" },
+      { sector: "Engineering", totalApplications: "89", acceptedApplications: "21", placementRate: "23.6" },
     ];
     render(<SectorBarChart data={stringData} />);
     expect(screen.getByTestId("bar-chart")).toBeDefined();
@@ -84,7 +84,7 @@ describe("SectorBarChart", () => {
 
   it("handles missing accepted_applications gracefully", () => {
     const incompleteData = [
-      { sector: "Engineering", total_applications: 89 },
+      { sector: "Engineering", totalApplications: 89 },
     ];
     render(<SectorBarChart data={incompleteData} />);
     expect(screen.getByTestId("bar-chart")).toBeDefined();

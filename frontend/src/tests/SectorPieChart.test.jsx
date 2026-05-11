@@ -23,11 +23,11 @@ vi.mock("chart.js", () => ({
 }));
 
 const MOCK_DATA = [
-  { sector: "Engineering",     total_applications: 89, accepted_applications: 21, placement_rate: 23.6 },
-  { sector: "Business",        total_applications: 98, accepted_applications: 19, placement_rate: 19.4 },
-  { sector: "Health Sciences", total_applications: 53, accepted_applications: 9,  placement_rate: 17.0 },
-  { sector: "Arts",            total_applications: 27, accepted_applications: 5,  placement_rate: 18.5 },
-  { sector: "Law",             total_applications: 32, accepted_applications: 0,  placement_rate: 0    }, // filtered out
+  { sector: "Engineering",     totalApplications: 89, acceptedApplications: 21, placementRate: 23.6 },
+  { sector: "Business",        totalApplications: 98, acceptedApplications: 19, placementRate: 19.4 },
+  { sector: "Health Sciences", totalApplications: 53, acceptedApplications: 9,  placementRate: 17.0 },
+  { sector: "Arts",            totalApplications: 27, acceptedApplications: 5,  placementRate: 18.5 },
+  { sector: "Law",             totalApplications: 32, acceptedApplications: 0,  placementRate: 0    }, // filtered out
 ];
 
 describe("SectorPieChart", () => {
@@ -67,7 +67,7 @@ describe("SectorPieChart", () => {
 
   it("shows empty state when all sectors have zero accepted", () => {
     const zeroData = [
-      { sector: "Law", total_applications: 32, accepted_applications: 0, placement_rate: 0 },
+      { sector: "Law", totalApplications: 32, acceptedApplications: 0, placementRate: 0 },
     ];
     render(<SectorPieChart data={zeroData} />);
     expect(screen.getByText("No accepted applications yet")).toBeDefined();
@@ -93,7 +93,7 @@ describe("SectorPieChart", () => {
 
   it("handles missing sector name with Unknown fallback", () => {
     const noNameData = [
-      { sector: null, total_applications: 10, accepted_applications: 3, placement_rate: 30 },
+      { sector: null, totalApplications: 10, acceptedApplications: 3, placementRate: 30 },
     ];
     render(<SectorPieChart data={noNameData} />);
     const canvas = screen.getByTestId("pie-chart");
@@ -103,7 +103,7 @@ describe("SectorPieChart", () => {
 
   it("handles string number values from API", () => {
     const stringData = [
-      { sector: "Engineering", total_applications: "89", accepted_applications: "21", placement_rate: "23.6" },
+      { sector: "Engineering", totalApplications: "89", acceptedApplications: "21", placementRate: "23.6" },
     ];
     render(<SectorPieChart data={stringData} />);
     expect(screen.getByTestId("pie-chart")).toBeDefined();
