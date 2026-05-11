@@ -57,43 +57,24 @@ export default function AdminAccessApplications() {
     setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
   }, []);
 
-  // ✅ Proper pattern - define async function inside useEffect and call it
   useEffect(() => {
-    const loadData = async () => {
-      const allApplications = await getAdminApplications();
-      const rows = Array.isArray(allApplications) ? allApplications : [];
-
-      setPending(rows.filter((row) => row.status === "pending"));
-      setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
-    };
-    
-    loadData();
-  }, []); // Empty dependency array - only runs once on mount
+    fetchAll();
+  }, [fetchAll]);
 
   // ── grant / reject ────────────────────────────────────────────────────────
   const handleGrant = async (app) => {
     setActionLoading(app.id);
     await grantAdminAccess(app.id);
-    
-    // Refresh data after action
-    const allApplications = await getAdminApplications();
-    const rows = Array.isArray(allApplications) ? allApplications : [];
-    setPending(rows.filter((row) => row.status === "pending"));
-    setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
-    
+
+    await fetchAll();
     setActionLoading(null);
   };
 
   const handleReject = async (id) => {
     setActionLoading(id);
     await rejectAdminApplication(id);
-    
-    // Refresh data after action
-    const allApplications = await getAdminApplications();
-    const rows = Array.isArray(allApplications) ? allApplications : [];
-    setPending(rows.filter((row) => row.status === "pending"));
-    setHistory(rows.filter((row) => row.status === "approved" || row.status === "rejected"));
-    
+
+    await fetchAll();
     setActionLoading(null);
   };
 
