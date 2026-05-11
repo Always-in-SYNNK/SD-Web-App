@@ -22,9 +22,16 @@ const mockService = {
   getApproved: jest.fn(),
   updateStatus: jest.fn(),
   deleteOpportunityById: jest.fn(),
+  getOpportunityById: jest.fn(),
 };
 
 jest.unstable_mockModule("../src/services/opportunityService.js", () => mockService);
+
+const mockReminderService = {
+  notifyAllApplicantsNewOpportunity: jest.fn(),
+};
+
+jest.unstable_mockModule("../src/services/reminderService.js", () => mockReminderService);
 
 //import AFTER mock
 const {
@@ -246,6 +253,7 @@ describe("opportunityController", () => {
     mockService.getApproved.mockResolvedValue([{ id: 2 }]);
     mockService.updateStatus.mockResolvedValue();
     mockService.deleteOpportunityById.mockResolvedValue();
+    mockService.getOpportunityById.mockResolvedValue({id: "10", title: "Software Internship",});
 
     const pendingRes = createMockRes();
     await getPendingOpportunities({}, pendingRes);

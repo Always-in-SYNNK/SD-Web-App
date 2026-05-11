@@ -3,10 +3,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import EmployerApplicationCard from '../components/employer/EmployerApplicationCard';
 import * as employerApplicationService from '../services/employerApplicationService';
 
-vi.mock('../services/employerApplicationService', () => ({
-  getApplicationDetails: vi.fn(),
-  getApplicationCvSignedUrl: vi.fn(),
-}));
+vi.mock('../services/employerApplicationService', async () => {
+  const actual = await vi.importActual('../services/employerApplicationService');
+  return {
+    ...actual,
+    getApplicationDetails: vi.fn(),
+    getApplicationCvSignedUrl: vi.fn(),
+  };
+});
 
 describe('EmployerApplicationCard', () => {
   const mockOnShortlist = vi.fn();

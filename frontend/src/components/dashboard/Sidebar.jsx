@@ -10,29 +10,41 @@ export function Sidebar() {
   const isAdmin = Boolean(user?.isAdmin);
   const returnTo = location.state?.from || "/dashboard";
   const adminOrigin = location.state?.from || location.pathname;
-  const isAdminMode = location.pathname.startsWith("/admin");
+  const isAdminMode = location.pathname.startsWith("/admin") || location.state?.source === "admin";
 
   const normalLinks = [
     { icon: "🎓", label: "Qualifications", path: "/qualifications" },
     { icon: "💼", label: "Opportunities", path: "/opportunities" },
     { icon: "📄", label: "Applications", path: "/applications" },
-    { icon: "📊", label: "Analytics", path: "/analytics" },
     { icon: "✅", label: "Verification", path: "/verification" },
   ];
 
   const adminLinks = [
     { icon: "🛡️", label: "Access Applications", path: "/admin/applications" },
     { icon: "⚙️", label: "Admin Console", path: "/admin/console" },
+    //{ icon: "📊", label: "Analytics", path: "/analytics" },
+    { icon: "📈", label: "Admin Analytics", path: "/admin/analytics" }
   ];
 
   const links = isAdminMode ? adminLinks : normalLinks;
   
 
-  const handleLogout = () => {
-    localStorage.setItem("__logout_redirect", "true");
-    localStorage.removeItem("provider_user");
-    logout();
-    navigate("/", { replace: true });
+  const handleLogout = async () => {
+    try {
+      localStorage.setItem("__logout_redirect", "true");
+      localStorage.removeItem("provider_user"); //provider???
+      await Promise.resolve(logout());
+    } finally {
+      if (window.google?.accounts?.id) {
+        try {
+          window.google.accounts.id.disableAutoSelect?.();
+          window.google.accounts.id.cancel?.();
+        } catch {
+          /* ignore */
+        }
+      }
+      navigate("/", { replace: true });
+    }
   };
 
   return (

@@ -48,21 +48,18 @@ function normalizeDistinctValues(data) {
 export async function getDistinctLocations() {
   const { data, error } = await supabase.rpc("opportunities_get_location");
 
-  //console.log("RAW locations RPC data:", JSON.stringify(data, null, 2));
   if (error) throw new Error(error.message);
   return normalizeDistinctValues(data);
 }
 
 export async function getDistinctFields() {
   const { data, error } = await supabase.rpc("opportunities_get_fields");
-  //console.log("RAW locations RPC data:", JSON.stringify(data, null, 2));
   if (error) throw new Error(error.message);
   return normalizeDistinctValues(data);
 }
 
 export async function getDistinctNqfLevels() {
   const { data, error } = await supabase.rpc("opportunities_get_nqf_levels");
-  //console.log("RAW locations RPC data:", JSON.stringify(data, null, 2));
   if (error) throw new Error(error.message);
   return normalizeDistinctValues(data);
 }
@@ -110,7 +107,6 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
   const parsedPage = Math.max(Number(page) || 1, 1);
   const parsedLimit = Math.max(Number(limit) || 12, 1);
 
-  // Pull all APPROVED matching opportunities first so count reflects filtered total.
   let oppQuery = supabase
     .from("opportunities")
     .select("*", { count: "exact" })
@@ -144,8 +140,6 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
     _type: "qualification",
   }));
 
-  // Same behavior as your current component: combine both.
-  // Note: qualifications are not paginated here.
   const combined = [...taggedOpps, ...taggedQuals];
 
   return {
@@ -163,10 +157,7 @@ export async function getFilteredOpportunitiesAndQualifications(filters = {}) {
   };
 }
 
-
 export async function createOpportunity({ userId, data, status }) {
-  //The data passed into the function needs to have a skills array attached?
-  // 1. Resolve profile from either auth user ID (profiles.user_id) or profile ID (profiles.id).
   let { data: profile } = await supabase
     .from("profiles")
     .select("id")
@@ -197,7 +188,6 @@ export async function createOpportunity({ userId, data, status }) {
     throw new Error("Provider profile not found");
   }
 
-  // 2. Insert opportunity
   const { data: inserted, error } = await supabase
     .from("opportunities")
     .insert([
@@ -219,8 +209,6 @@ export async function createOpportunity({ userId, data, status }) {
 
   if (error) throw new Error(error.message);
 
-
-  // Only update skills if skillIds are provided
   if (data.skillIds && data.skillIds.length > 0) {
     const { error: skillsError } = await setOpportunitySkills(inserted.id, data.skillIds);
     if (skillsError) throw new Error(skillsError.message);
@@ -266,7 +254,6 @@ export async function updateOpportunityForProvider({ providerId, opportunityId, 
     .single();
 
   if (updateError) throw new Error(updateError.message);
-
 
   return updated;
 }
@@ -319,4 +306,23 @@ export const deleteOpportunityById = async (id) => {
     .eq("id", id);
 
   if (error) throw error;
+};
+
+// ✅ NEW FUNCTION at the end of the file
+export const getOpportunityById = async (id) => {
+  const { data, error } = await supabase
+    .from("opportunities")
+    .select("id, title, description, provider_id, status, created_at, location, stipend, duration, closing_date, nqf_level, field")
+    .eq("id", id)
+    .single();
+    
+  if (error) {
+    // Return null only for "not found" case; throw on real DB errors
+    if (error.message && error.message.includes('No rows found')) {
+      return null;
+    }
+    throw new Error(`Failed to fetch opportunity: ${error.message}`);
+  }
+  
+  return data;
 };
