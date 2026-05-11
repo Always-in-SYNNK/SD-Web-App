@@ -333,7 +333,7 @@ export async function matchingOpportunity(userId) {
   //2. Get applicant profile (location, NQF Level)
   const { data: applicantProfile, applicantError } = await supabase
     .from("applicant_profiles")
-    .select("location, nqf_level")
+    .select("id, location, nqf_level")
     .eq("profile_id", profile.id)
     .single();
   if (applicantError) throw applicantError;
@@ -342,26 +342,40 @@ export async function matchingOpportunity(userId) {
   const applicantNqf = applicantProfile.nqf_level;
 
   // 3. Get distinct fields the applicant has skills in (as array of strings)
-  const { data: fields, fieldsError } = await supabase.rpc("get_applicant_skill_fields_array", { applicant_id_param: profile.id });
+  const { data: fields, fieldsError } = await supabase.rpc("get_applicant_skill_fields_array", { applicant_id_param: applicantProfile.id });
   if (fieldsError) throw fieldsError;
+  // Convert fields to array if it's a string
+  const fieldArray = Array.isArray(fields) ? fields : [fields];
 
   // 4. Get detailed applicant skills (with IDs and fields)
-  const { data: applicantSkills, skillsError } = await getApplicantSkills(applicantProfile.id);
-  if (skillsError) throw skillsError;
+  const applicantSkills = await getApplicantSkills(applicantProfile.id);
+  //console.log("User Skills:", applicantSkills);
+
+  // Ensure we have an array
+  if (!applicantSkills || applicantSkills.length === 0) {
+    return [];  // No skills = no matching opportunities
+  }
 
   const applicantSkillIds = applicantSkills.map(skill => skill.id);
+
+  const nqfLevels = Array.from({ length: applicantNqf }, (_, i) => i + 1);
 
   // 5. Build opportunity query
   let query = supabase
     .from("opportunities")
     .select(`*, opportunity_skills(skills_id)`)
     .eq("status", "approved")
-    .in("field", fields)
-    .in("nqf_level", [null, ...Array.from({ length: applicantNqf }, (_, i) => i + 1)])
+    .in("field", fieldArray)
+    .in("nqf_level", nqfLevels)
     .or(`location.eq.${applicantLocation},location.eq.Remote`);
 
   const { data: opportunities, queryError } = await query;
   if (queryError) throw queryError;
+
+  if (!opportunities || opportunities.length === 0) {
+    console.log("No opportunities found matching criteria");
+    return [];
+  }
 
   //6. Filter opportunities that have at least one matching skill
   const matched = opportunities.filter(opp => {
@@ -394,7 +408,7 @@ export async function matchingOpportunity(userId) {
 
   // 8. Sort by score descending
   scored.sort((a, b) => b.score - a.score);
-
+  
   return scored;
 
 

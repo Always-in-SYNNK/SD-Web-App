@@ -2,7 +2,6 @@ import { supabase } from "../config/supabaseClient.js";
 import { sendEmailNotification } from "./emailService.js";
 
 export async function getNotificationsByUserId(userId) {
-    console.log(`User ID: ${userId}`);
     const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id")
@@ -18,7 +17,6 @@ export async function getNotificationsByUserId(userId) {
         .single();
 
     if (applicantError) throw applicantError;
-    console.log(`Applicant ID: ${applicantProfile.id}`);
     const { data: notifications, error } = await supabase
         .from("applicant_notifications")
         .select("id, type, title, message, is_read, created_at, application_id, opportunity_id")

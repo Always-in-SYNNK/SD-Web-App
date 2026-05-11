@@ -25,7 +25,7 @@ export async function fetchLocations(req, res, next) {
 export async function getMatchingOpportunities(req, res, next){
   try{
     const userId = req.user.id;
-    
+    //console.log("Matching opportunities controller User ID: ", userId)
     const matches = await matchingOpportunity(userId);
     res.status(200).json({
       success: true,

@@ -30,7 +30,7 @@ router.get('/filters/fields', fetchFields);
 router.get('/filters/nqf-levels', fetchNqfLevels);
 router.get('/', fetchOpportunities);
 
-router.get("/matches", authMiddleware, getMatchingOpportunities);
+router.get("/matches", requireAuth, getMatchingOpportunities);
 
 // provider
 router.post('/publish', providerAuthMiddleware, publishOpportunity);
