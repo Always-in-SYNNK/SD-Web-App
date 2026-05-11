@@ -1,4 +1,5 @@
 import { supabase } from "../config/supabaseClient.js";
+import { getApplicantSkills } from "./skillsService.js";
 
 export async function getApplicantProfileByUserId(userId) {
     // 1. Get base profile
@@ -14,7 +15,7 @@ export async function getApplicantProfileByUserId(userId) {
     // 2. Get applicant-specific data
     const { data: applicantProfile, error: applicantError } = await supabase
         .from("applicant_profiles")
-        .select("id, bio, location, nqf_level, cv_url")
+        .select("id, name, surname, bio, location, nqf_level, cv_url")
         .eq("profile_id", profile.id)
         .maybeSingle();
 
@@ -70,6 +71,10 @@ export async function getApplicantProfileByUserId(userId) {
         date_obtained: row.date_obtained,
     }));
 
+    //Get Applicant skills
+    const { data: applicantSkills, error} = await getApplicantSkills(applicantProfile.id);
+    if(error) throw new Error(error.message);
+
     // 5. Return unified profile object
     return {
         user_id: userId,
@@ -80,8 +85,10 @@ export async function getApplicantProfileByUserId(userId) {
         bio: applicantProfile?.bio ?? "",
         location: applicantProfile?.location ?? "",
         nqf_level: applicantProfile?.nqf_level ?? null,
+        surname: applicantProfile?.surname ?? "",
         cv_url: applicantProfile?.cv_url ?? null,
         qualifications: mappedQualifications,
+        skills: applicantSkills ?? null,
     };
 }
 
@@ -109,6 +116,7 @@ export async function upsertApplicantProfileByUserId(userId, payload) {
         .upsert(
             {
                 profile_id: profile.id,
+                surname,
                 bio,
                 location,
                 nqf_level,
@@ -264,15 +272,82 @@ export async function addApplicantQualificationByUserId(userId, payload) {
     return data;
 }
 
-// const mappedQualifications = (qualifications || []).map((row) => ({
-//     id: row.id,
-//     qualification_id: row.qualification_id,
-//     name: row.qualification_id ? row.qualifications?.name : row.custom_name,
-//     nqf_level: row.qualification_id ? row.qualifications?.nqf_level : row.custom_nqf_level,
-//     field: row.qualification_id ? row.qualifications?.field : row.custom_field,
-//     subfield: row.qualification_id ? row.qualifications?.subfield : row.custom_subfield,
-//     status: row.status,
-//     institution: row.institution,
-//     date_obtained: row.date_obtained,
-//     is_custom: row.is_custom,
-// }));
+export async function getApplicantProfileByProfileId(applicantProfileId) {
+    const { data: applicantProfile, error: applicantError } = await supabase
+        .from("applicant_profiles")
+        .select(`
+            id,
+            name,
+            surname,
+            bio,
+            location,
+            nqf_level,
+            cv_url,
+            profiles!inner (
+                id,
+                full_name,
+                email,
+                role
+            )
+        `)
+        .eq("id", applicantProfileId)
+        .single();
+
+    if (applicantError) throw applicantError;
+
+    const { data: qualifications, error: qualificationsError } = await supabase
+        .from("applicant_qualifications")
+        .select(`
+            id,
+            qualification_id,
+            qualification_name,
+            nqf_level,
+            field,
+            subfield,
+            status,
+            originator,
+            date_obtained,
+            qualifications (
+                title,
+                nqf_level,
+                field,
+                subfield
+            )
+        `)
+        .eq("applicant_id", applicantProfileId);
+
+    if (qualificationsError) throw qualificationsError;
+
+    const mappedQualifications = (qualifications || []).map((row) => ({
+        id: row.id,
+        qualification_id: row.qualification_id,
+        title: row.qualification_id
+            ? row.qualifications?.title
+            : row.qualification_name,
+        nqf_level: row.qualification_id
+            ? row.qualifications?.nqf_level
+            : row.nqf_level,
+        field: row.qualification_id
+            ? row.qualifications?.field
+            : row.field,
+        subfield: row.qualification_id
+            ? row.qualifications?.subfield
+            : row.subfield,
+        status: row.status,
+        originator: row.originator ?? null,
+        date_obtained: row.date_obtained,
+    }));
+
+    return {
+        applicant_profile_id: applicantProfile.id,
+        full_name: applicantProfile.profiles.full_name,
+        surname: applicantProfile.surname ?? "",
+        email: applicantProfile.profiles.email,
+        role: applicantProfile.profiles.role,
+        bio: applicantProfile.bio ?? "",
+        location: applicantProfile.location ?? "",
+        nqf_level: applicantProfile.nqf_level ?? null,
+        cv_url: applicantProfile.cv_url ?? null,
+        qualifications: mappedQualifications,
+    };
+}

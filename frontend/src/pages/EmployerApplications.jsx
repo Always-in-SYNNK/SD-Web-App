@@ -5,12 +5,13 @@ import EmployerApplicationCard from '../components/employer/EmployerApplicationC
 import Sidebar from '../components/layout/Sidebar';
 import Topbar from '../components/layout/Topbar';
 
-const statusTabs = ['all', 'received', 'shortlisted', 'accepted', 'rejected'];
+const statusTabs = ['all', 'received', 'shortlisted', 'offered', 'accepted', 'rejected'];
 
 const EmployerApplications = () => {
     const { opportunityId } = useParams();
     const navigate = useNavigate();
     const providerUser = JSON.parse(localStorage.getItem("user") || "null");
+    const token = localStorage.getItem("token");
     const [applications, setApplications] = useState([]);
     const [filteredApps, setFilteredApps] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -71,6 +72,7 @@ const EmployerApplications = () => {
         total: applications.length,
         received: applications.filter(a => a.status === 'received').length,
         shortlisted: applications.filter(a => a.status === 'shortlisted').length,
+        offered: applications.filter(a => a.status === 'offered').length,
         accepted: applications.filter(a => a.status === 'accepted').length,
         rejected: applications.filter(a => a.status === 'rejected').length
     };
@@ -92,10 +94,10 @@ const EmployerApplications = () => {
         }
     };
 
-    const handleAccept = async (appId) => {
+    const handleOffer = async (appId) => {
         setProcessingId(appId);
         try {
-            const response = await updateApplicationStatus(appId, 'accepted');
+            const response = await updateApplicationStatus(appId, 'offered'); //applicants will accept on their side
             if (response.success) {
                 await fetchApplications();
                 setSuccessMessage(response.message);
@@ -171,26 +173,30 @@ const EmployerApplications = () => {
                 )}
 
                 {/* Stats Cards */}
-                <section className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
+                    <article className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-black">
                         <p className="text-xs uppercase text-[#707881]">Total</p>
-                        <p className="text-2xl font-bold">{stats.total}</p>
+                        <p className="text-xl font-bold">{stats.total}</p>
                     </article>
-                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-yellow-500">
+                    <article className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-yellow-500">
                         <p className="text-xs uppercase text-[#707881]">Received</p>
-                        <p className="text-2xl font-bold text-yellow-600">{stats.received}</p>
+                        <p className="text-xl font-bold text-yellow-600">{stats.received}</p>
                     </article>
-                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-blue-500">
+                    <article className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-[#035b9d]">
                         <p className="text-xs uppercase text-[#707881]">Shortlisted</p>
-                        <p className="text-2xl font-bold text-blue-600">{stats.shortlisted}</p>
+                        <p className="text-xl font-bold text-blue-900">{stats.shortlisted}</p>
                     </article>
-                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-green-500">
+                    <article className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-purple-700">
+                        <p className="text-xs uppercase text-[#707881]">Offered</p>
+                        <p className="text-xl font-bold text-purple-700">{stats.offered}</p>
+                    </article>
+                    <article className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-green-500">
                         <p className="text-xs uppercase text-[#707881]">Accepted</p>
-                        <p className="text-2xl font-bold text-green-600">{stats.accepted}</p>
+                        <p className="text-xl font-bold text-green-600">{stats.accepted}</p>
                     </article>
-                    <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-red-500">
+                    <article className="bg-white rounded-xl p-4 shadow-sm border-l-4 border-red-500">
                         <p className="text-xs uppercase text-[#707881]">Rejected</p>
-                        <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
+                        <p className="text-xl font-bold text-red-600">{stats.rejected}</p>
                     </article>
                 </section>
 
@@ -231,9 +237,10 @@ const EmployerApplications = () => {
                                 key={app.applicationId}
                                 application={app}
                                 onShortlist={handleShortlist}
-                                onAccept={handleAccept}
+                                onOffer={handleOffer}
                                 onReject={handleReject}
                                 isProcessing={processingId === app.applicationId}
+                                token={token}
                             />
                         ))}
                     </section>

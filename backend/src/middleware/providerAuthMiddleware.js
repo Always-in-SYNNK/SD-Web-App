@@ -7,6 +7,26 @@
 
 import jwt from "jsonwebtoken";
 
+async function getProviderProfileByTokenId(supabase, tokenUserId) {
+    const { data: byUserId } = await supabase
+        .from('profiles')
+        .select('id, user_id, email, role, isAdmin')
+        .eq('user_id', tokenUserId)
+        .maybeSingle();
+
+    if (byUserId) {
+        return byUserId;
+    }
+
+    const { data: byProfileId } = await supabase
+        .from('profiles')
+        .select('id, user_id, email, role, isAdmin')
+        .eq('id', tokenUserId)
+        .maybeSingle();
+
+    return byProfileId || null;
+}
+
 /**
  * Provider Authentication Middleware
  * Checks if the user is logged in AND is a provider
@@ -14,23 +34,81 @@ import jwt from "jsonwebtoken";
  */
 async function providerAuthMiddleware(req, res, next) {
     console.log('[ProviderAuth] Checking authentication...');
-    
+    console.log('[ProviderAuth] Path:', req.path);
+
     // ============================================
-    // METHOD 1: Session-based auth (from Google OAuth)
-    // This is what your ProviderLogin uses
+    // PRIORITY 1: Check JWT token FIRST (for API calls from frontend)
+    // If it is missing/invalid/expired, fall through to session auth so a
+    // stale localStorage token does not block a valid browser session.
+    // ============================================
+    const authHeader = req.headers.authorization;
+    let jwtUser = null;
+
+    console.log('[ProviderAuth] ===== JWT DEBUG =====');
+    console.log('[ProviderAuth] Authorization header exists:', !!authHeader);
+    console.log('[ProviderAuth] Authorization header:', authHeader ? authHeader.substring(0, 50) + '...' : 'none');
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        console.log('[ProviderAuth] 🔑 JWT token found, attempting token auth');
+
+        try {
+            const token = authHeader.split(' ')[1];
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            console.log('[ProviderAuth] ✅ Token verified successfully');
+
+            if (decoded.role !== 'provider') {
+                console.log('[ProviderAuth] Role mismatch. Expected provider, got:', decoded.role);
+                return res.status(403).json({ error: "Access denied. Employers only." });
+            } else {
+                const { supabase } = await import('../config/supabaseClient.js');
+                const profile = await getProviderProfileByTokenId(supabase, decoded.id);
+
+                if (!profile) {
+                    console.log('[ProviderAuth] ❌ Profile not found for token user');
+                } else {
+                    const { data: providerProfile, error: providerError } = await supabase
+                        .from('provider_profiles')
+                        .select('id')
+                        .eq('profile_id', profile.id)
+                        .single();
+
+                    if (providerError || !providerProfile) {
+                        console.log('[ProviderAuth] ❌ Provider profile not found:', providerError);
+                    } else {
+                        console.log('[ProviderAuth] ✅ Provider profile found:', providerProfile.id);
+                        console.log('[ProviderAuth] ✅ Authentication successful for user:', decoded.email);
+
+                        req.user = {
+                            ...decoded,
+                            profileId: providerProfile.id,
+                        };
+
+                        return next();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('[ProviderAuth] ❌ JWT Verification Error:', error.message);
+            console.error('[ProviderAuth] Error type:', error.name);
+        }
+    }
+
+    // ============================================
+    // PRIORITY 2: Session-based auth (from Google OAuth for browser)
     // ============================================
     if (req.session && req.session.user) {
         console.log(`[ProviderAuth] Session user found: ${req.session.user.email}`);
         
         // Check if user has provider role
         if (req.session.user.role !== 'provider') {
+            console.log('[ProviderAuth] Session user is not provider');
             return res.status(403).json({ 
                 error: "Access denied. This feature is for employers only." 
             });
         }
         
         // Get the provider's profile ID from the database
-        // You need to fetch this since it might not be in the session
         const { supabase } = await import("../config/supabaseClient.js");
         
         const { data: profile, error: profileError } = await supabase
@@ -40,6 +118,7 @@ async function providerAuthMiddleware(req, res, next) {
             .single();
         
         if (profileError || !profile) {
+            console.log('[ProviderAuth] Profile not found for session user');
             return res.status(401).json({ error: "Profile not found" });
         }
         
@@ -50,6 +129,7 @@ async function providerAuthMiddleware(req, res, next) {
             .single();
         
         if (providerError || !providerProfile) {
+            console.log('[ProviderAuth] Provider profile not found for session user');
             return res.status(403).json({ error: "Provider profile not found" });
         }
         
@@ -61,59 +141,15 @@ async function providerAuthMiddleware(req, res, next) {
             profileId: providerProfile.id
         };
         
+        console.log('[ProviderAuth] ✅ Session auth successful for:', req.session.user.email);
         return next();
     }
     
     // ============================================
-    // METHOD 2: JWT token auth (for API calls)
+    // No auth found
     // ============================================
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ error: "No token provided. Please log in." });
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Check if user has provider role
-        if (decoded.role !== 'provider') {
-            return res.status(403).json({ error: "Access denied. Employers only." });
-        }
-
-        const { supabase } = await import("../config/supabaseClient.js");
-
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('user_id', decoded.id)
-            .single();
-
-        if (profileError || !profile) {
-            return res.status(401).json({ error: "Profile not found" });
-        }
-
-        const { data: providerProfile, error: providerError } = await supabase
-            .from('provider_profiles')
-            .select('id')
-            .eq('profile_id', profile.id)
-            .single();
-
-        if (providerError || !providerProfile) {
-            return res.status(403).json({ error: "Provider profile not found" });
-        }
-
-        req.user = {
-            ...decoded,
-            profileId: providerProfile.id,
-        };
-
-        next();
-    } catch {
-        return res.status(401).json({ error: "Invalid or expired token. Please log in again." });
-    }
+    console.log('[ProviderAuth] ❌ No token AND no session');
+    return res.status(401).json({ error: "No token provided. Please log in." });
 }
 
 export default providerAuthMiddleware;

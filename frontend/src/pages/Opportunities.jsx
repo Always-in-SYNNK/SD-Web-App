@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/useAuth";
 import {
   getLocations,
   getFields,
@@ -8,6 +9,7 @@ import {
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { OpportunityFilters } from "../components/opportunities/OpportunityFilters";
 import { OpportunityList } from "../components/opportunities/OpportunityList";
+import { MatchingOpportunities } from "../components/opportunities/matchingOpportunity";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 
 export default function Opportunities() {
@@ -16,12 +18,37 @@ export default function Opportunities() {
   const [nqfLevels, setNqfLevels] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [pagination, setPagination] = useState(null);
+  const [showMatches, setShowMatches] = useState(false);
+
+  const { token, user } = useAuth();
+  const API = import.meta.env.VITE_API_URL;
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API}/api/profile/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.profile) setProfile(data.profile);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    };
+    if (token) fetchProfile();
+  }, [token]);
+
+  const initials = profile?.full_name
+    ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : user?.email?.[0]?.toUpperCase() ?? "JD";
 
   const [filters, setFilters] = useState({
     field: '',
     location: '',
     nqfLevel: '',
     search: '',
+    searchInput: '',
     page: 1,
     limit: 12,
   });
@@ -96,7 +123,9 @@ export default function Opportunities() {
       }
     };
 
-    loadItems();
+    if (!showMatches) {
+      loadItems();
+    }
   }, [
     filters.search,
     filters.location,
@@ -104,6 +133,7 @@ export default function Opportunities() {
     filters.field,
     filters.page,
     filters.limit,
+    showMatches,
   ]);
 
   const handleSearchChange = (e) => {
@@ -132,6 +162,15 @@ export default function Opportunities() {
       page: 1,
     }));
   };
+
+  const handleViewMatch = () => {
+    setShowMatches(true);
+  };
+
+  const handleBackToAll = () => {
+    setShowMatches(false);
+  };
+
   const handleSearchKeyDown = (e) => {
     if (e.key === "Enter") {
       setFilters((prev) => ({
@@ -155,22 +194,32 @@ export default function Opportunities() {
           </section>
 
           <section className="flex items-center gap-3">
-            <section className="relative">
-              <i className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</i>
-              <input
-                type="text"
-                placeholder="Search and press Enter..."
-                value={filters.searchInput}
-                onChange={handleSearchChange}
-                onKeyDown={handleSearchKeyDown}
-                className="pl-9 pr-4 py-2 bg-gray-100 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-200 w-64"
-              />
-            </section>
+            {!showMatches ? (
+              <section className="relative">
+                <i className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</i>
+                <input
+                  type="text"
+                  placeholder="Search and press Enter..."
+                  value={filters.searchInput}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleSearchKeyDown}
+                  className="pl-9 pr-4 py-2 bg-gray-100 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-blue-200 w-64"
+                />
+              </section>
+            ) : (
+              <button
+                type="button"
+                onClick={handleBackToAll}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                ← Back to All Opportunities
+              </button>
+            )}
 
             <NotificationDropdown/>
             <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
-              JD
+              {initials}
             </figure>
           </section>
         </nav>
@@ -184,35 +233,42 @@ export default function Opportunities() {
             </p>
           </header>
 
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <aside className="lg:col-span-3">
-              <OpportunityFilters
-                location={filters.location}
-                nqfLevel={filters.nqfLevel}
-                field={filters.field}
-                setLocation={(value) => updateFilter("location", value)}
-                setNqfLevel={(value) => updateFilter("nqfLevel", value)}
-                setField={(value) => updateFilter("field", value)}
-                locations={locations}
-                nqfLevels={nqfLevels}
-                fields={fields}
-                onReset={resetFilters}
-                loading={loadingFilters}
-              />
-            </aside>
-            <section className="lg:col-span-9">
-              <OpportunityList
-                items={items}
-                loading={loadingItems}
-                error={error}
-                summary={summary}
-                pagination={pagination}
-                onPageChange={(page) =>
-                  setFilters((prev) => ({ ...prev, page }))
-                }
-              />
+          {showMatches ? (
+            <div className="space-y-8">
+              <MatchingOpportunities />
+            </div>
+          ) : (
+            <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <aside className="lg:col-span-3">
+                <OpportunityFilters
+                  location={filters.location}
+                  nqfLevel={filters.nqfLevel}
+                  field={filters.field}
+                  setLocation={(value) => updateFilter("location", value)}
+                  setNqfLevel={(value) => updateFilter("nqfLevel", value)}
+                  setField={(value) => updateFilter("field", value)}
+                  locations={locations}
+                  nqfLevels={nqfLevels}
+                  fields={fields}
+                  onReset={resetFilters}
+                  onViewMatch={handleViewMatch}
+                  loading={loadingFilters}
+                />
+              </aside>
+              <section className="lg:col-span-9">
+                <OpportunityList
+                  items={items}
+                  loading={loadingItems}
+                  error={error}
+                  summary={summary}
+                  pagination={pagination}
+                  onPageChange={(page) =>
+                    setFilters((prev) => ({ ...prev, page }))
+                  }
+                />
+              </section>
             </section>
-          </section>
+          )}
         </section>
       </section>
     </main>

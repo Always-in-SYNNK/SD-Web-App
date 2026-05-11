@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+
 import { PersonalInfoSection } from "./personalInfo";
 import { EducationSection } from "./education";
 import { SkillsSection } from "./skills";
@@ -34,10 +35,12 @@ export function EditProfileForm() {
         const res = await fetch(`${API}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        //debugging
         const text = await res.text();
-        console.log("Raw profile response:", text); // keep this so we can debug
+        console.log("Raw profile response:", text); 
         const data = JSON.parse(text);
 
+        //fill form with existing profile data (if it exists)
         if (data.profile) {
           setFormData({
             full_name: data.profile.full_name ?? "",
@@ -64,10 +67,12 @@ export function EditProfileForm() {
   setSuccess(false);
   try {
     const { email, ...rest } = formData; // exclude email from payload
+    //prevent overwriting data with empty values
     const payload = Object.fromEntries(
       Object.entries(rest).filter(([_, v]) => v !== "" && v !== null)
     );
 
+    //send updated profile data
     const res = await fetch(`${API}/api/profile/me`, {
       method: "POST",
       headers: {

@@ -5,16 +5,21 @@ import OpportunityForm from "../components/forms/OpportunityForm";
 
 const PostOpportunity = () => {
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <Topbar />
 
-      <section className="ml-72 p-8">
-        <h1 className="text-3xl font-bold mb-6">Post New Opportunity</h1>
-        <OpportunityForm />
+      <section className="ml-64 flex flex-col min-h-screen w-full min-w-0">
+        <Topbar />
+
+        <section className="flex-1 p-8">
+          <div className="max-w-4xl mx-auto">
+              <small className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">Post New Opportunity</small>
+            <OpportunityForm />
+          </div>
+        </section>
       </section>
     </main>
   );
-};
+}
 
 export default PostOpportunity; 

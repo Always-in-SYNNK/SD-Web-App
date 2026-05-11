@@ -24,6 +24,8 @@ import { jest } from "@jest/globals";
 import express from "express";
 import request from "supertest";
 
+const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
 // Mock only the middleware
 const mockAuthMiddleware = jest.fn((req, res, next) => {
   req.user = { id: "60de0da9-5806-4cdd-b950-916bdaadbd19" }; // Real UUID format
@@ -60,6 +62,10 @@ describe("profileRoutes", () => {
     app.use(express.json());
     app.use("/api/profile", profileRoutes);
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   test("GET /api/profile/me route exists and uses middleware", async () => {

@@ -2,7 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Opportunities from '../pages/Opportunities';
 
-// Remove unused 'beforeEach' import
+vi.mock('../context/authContextValue', () => {
+  const { createContext } = require('react');
+  const AuthContext = createContext({ token: 'mock-token', user: { email: 'test@test.com' } });
+  return { default: AuthContext };
+});
 
 vi.mock('../lib/api', () => ({
   getLocations: vi.fn().mockResolvedValue({ data: ['Cape Town', 'Johannesburg'] }),
@@ -14,6 +18,7 @@ vi.mock('../lib/api', () => ({
 vi.mock('../components/dashboard/Sidebar', () => ({ Sidebar: () => <aside>Sidebar</aside> }));
 vi.mock('../components/opportunities/OpportunityFilters', () => ({ OpportunityFilters: () => <aside>Filters</aside> }));
 vi.mock('../components/opportunities/OpportunityList', () => ({ OpportunityList: () => <section>OpportunityList</section> }));
+vi.mock('../components/notifications/notificationDropdown', () => ({ NotificationDropdown: () => <div>Notifications</div> }));
 
 describe('Opportunities', () => {
   it('should render the page', () => {

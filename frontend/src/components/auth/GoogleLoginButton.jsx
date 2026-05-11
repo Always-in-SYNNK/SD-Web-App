@@ -1,4 +1,5 @@
 import { GoogleLogin } from "@react-oauth/google";
+import { useCallback } from "react";
 import { useAuth } from "../../context/useAuth";
 import { loginWithGoogle } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +8,7 @@ export default function GoogleLoginButton({ selectedRole, from, onLoadingChange,
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSuccess = async (res) => {
+  const handleSuccess = useCallback(async (res) => {
     onLoadingChange?.(true);
     try {
       const googleToken = res.credential;
@@ -40,9 +41,9 @@ export default function GoogleLoginButton({ selectedRole, from, onLoadingChange,
     } finally {
       onLoadingChange?.(false);
     }
-  };
+  }, [onLoadingChange, selectedRole, navigate, login, onSuccess]);
 
-  const handleError = () => {
+  const handleError = useCallback(() => {
     console.error("Google OAuth failed");
     navigate("/auth-error", {
       state: {
@@ -50,7 +51,7 @@ export default function GoogleLoginButton({ selectedRole, from, onLoadingChange,
         message: "Google sign-in was cancelled or failed. Please try again.",
       },
     });
-  };
+  }, [navigate]);
 
   return (
     <div className="w-full flex items-center justify-center">

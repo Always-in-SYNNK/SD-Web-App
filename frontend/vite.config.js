@@ -17,9 +17,10 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: [
-        "src/components/employer/EmployerApplicationCard.jsx",
-        "src/pages/EmployerApplications.jsx",
-        "src/services/employerApplicationService.js",
+        "src/pages/**/*.{js,jsx}",
+        "src/components/**/*.{js,jsx}",
+        "src/services/**/*.{js,jsx}",
+        "src/lib/**/*.js",
       ],
       exclude: [],
     },

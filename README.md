@@ -1,7 +1,12 @@
 
 ```
 SD-Web-App
+
+```
+```
+SD1
 ├─ backend
+│  ├─ jest.config.js
 │  ├─ package-lock.json
 │  ├─ package.json
 │  ├─ src
@@ -10,56 +15,88 @@ SD-Web-App
 │  │  │  ├─ googleAuth.js
 │  │  │  └─ supabaseClient.js
 │  │  ├─ controllers
-│  │  │  ├─ myApplicationController.js
+│  │  │  ├─ adminController.js
+│  │  │  ├─ applicationController.js
 │  │  │  ├─ authController.js
+│  │  │  ├─ employerApplicationController.js
+│  │  │  ├─ myApplicationController.js
 │  │  │  ├─ notificationController.js
 │  │  │  ├─ opportunityController.js
-│  │  │  ├─ opportunityController.test.js
 │  │  │  ├─ profileController.js
-│  │  │  └─ profileController.test.js
+│  │  │  └─ skillsController.js
+│  │  ├─ cronJob.js
 │  │  ├─ middleware
 │  │  │  ├─ authMiddleware.js
 │  │  │  ├─ errorHandler.js
+│  │  │  ├─ providerAuthMiddleware.js
+│  │  │  ├─ requireAdmin.js
+│  │  │  ├─ requireAuth.js
 │  │  │  ├─ roleMiddleware.js
-│  │  │  ├─ uploadMiddleware.js
-│  │  │  └─ uploadMiddleware.test.js
-│  │  ├─ models
+│  │  │  └─ uploadMiddleware.js
 │  │  ├─ routes
+│  │  │  ├─ adminRoutes.js
 │  │  │  ├─ applicantAuthRoutes.js
+│  │  │  ├─ applicationRoutes.js
+│  │  │  ├─ employerApplicationRoutes.js
 │  │  │  ├─ myApplicationRoutes.js
 │  │  │  ├─ notificationRoutes.js
 │  │  │  ├─ opportunityRoutes.js
 │  │  │  ├─ profileRoutes.js
-│  │  │  ├─ profileRoutes.test.js
-│  │  │  └─ providerAuthRoutes.js
+│  │  │  ├─ providerAuthRoutes.js
+│  │  │  └─ skillsRoutes.js
 │  │  ├─ server.js
 │  │  ├─ services
-│  │  │  ├─ myApplicationService.js
+│  │  │  ├─ adminService.js
+│  │  │  ├─ applicationService.js
 │  │  │  ├─ emailService.js
+│  │  │  ├─ employerApplicationService.js
+│  │  │  ├─ myApplicationService.js
 │  │  │  ├─ notificationService.js
 │  │  │  ├─ opportunityService.js
-│  │  │  ├─ opportunityService.test.js
-│  │  │  └─ profileService.js
+│  │  │  ├─ profileService.js
+│  │  │  ├─ reminderService.js
+│  │  │  └─ skillsService.js
 │  │  └─ utils
 │  │     └─ generateJWT.js
 │  └─ tests
+│     ├─ adminController.test.js
+│     ├─ adminRoutes.test.js
+│     ├─ adminService.test.js
+│     ├─ applicantAuthRoutes.test.js
 │     ├─ applicationController.test.js
 │     ├─ applicationService.test.js
+│     ├─ authController.test.js
+│     ├─ authMiddleware.test.js
+│     ├─ employerApplicationController.test.js
+│     ├─ employerApplicationRoutes.test.js
+│     ├─ employerApplicationService.test.js
+│     ├─ myApplicationController.test.js
+│     ├─ myApplicationRoutes.test.js
+│     ├─ myApplicationService.test.js
 │     ├─ notificationController.test.js
 │     ├─ notificationRoutes.test.js
 │     ├─ notificationService.test.js
 │     ├─ opportunityController.test.js
-│     └─ opportunityService.test.js
+│     ├─ opportunityService.test.js
+│     ├─ profileController.test.js
+│     ├─ profileRoutes.test.js
+│     ├─ requireAdmin.test.js
+│     ├─ requireAuth.test.js
+│     ├─ roleMiddleware.test.js
+│     └─ uploadMiddleware.test.js
 ├─ frontend
+│  ├─ babel.config.cjs
 │  ├─ eslint.config.js
 │  ├─ index.html
+│  ├─ jest.config.js
 │  ├─ package-lock.json
 │  ├─ package.json
 │  ├─ postcss.config.js
 │  ├─ public
 │  │  ├─ favicon.svg
 │  │  ├─ icons.svg
-│  │  └─ web.config
+│  │  ├─ web.config
+│  │  └─ _redirects
 │  ├─ README.md
 │  ├─ src
 │  │  ├─ App.css
@@ -70,10 +107,15 @@ SD-Web-App
 │  │  │  └─ vite.svg
 │  │  ├─ components
 │  │  │  ├─ admin
+│  │  │  │  ├─ AdminSection.jsx
 │  │  │  │  ├─ OpportunitiesTable.jsx
 │  │  │  │  ├─ OpportunityRow.jsx
 │  │  │  │  ├─ StatsGrid.jsx
 │  │  │  │  └─ TopBar.jsx
+│  │  │  ├─ applications
+│  │  │  │  ├─ myApplicationCard.jsx
+│  │  │  │  ├─ myApplicationList.jsx
+│  │  │  │  └─ RecommendedPanel.jsx
 │  │  │  ├─ auth
 │  │  │  │  ├─ AuthFormPanel.jsx
 │  │  │  │  ├─ AuthHeroPanel.jsx
@@ -92,28 +134,27 @@ SD-Web-App
 │  │  │  │  ├─ QualificationItem.jsx
 │  │  │  │  ├─ QualificationList.jsx
 │  │  │  │  ├─ Sidebar.jsx
-│  │  │  │  ├─ StatsCard.jsx
 │  │  │  │  ├─ UploadBanner.jsx
 │  │  │  │  └─ VerificationCard.jsx
+│  │  │  ├─ employer
+│  │  │  │  └─ EmployerApplicationCard.jsx
 │  │  │  ├─ forms
-│  │  │  │  ├─ OpportunityForm.jsx
-│  │  │  │  └─ RequirementsForm.jsx
+│  │  │  │  └─ OpportunityForm.jsx
 │  │  │  ├─ Hero.jsx
 │  │  │  ├─ HowItWorks.jsx
 │  │  │  ├─ layout
+│  │  │  │  ├─ AdminTopbar.jsx
 │  │  │  │  ├─ Sidebar.jsx
 │  │  │  │  └─ Topbar.jsx
 │  │  │  ├─ Navbar.jsx
+│  │  │  ├─ notifications
+│  │  │  │  └─ notificationDropdown.jsx
 │  │  │  ├─ opportunities
 │  │  │  │  ├─ OpportunityCard.jsx
 │  │  │  │  ├─ OpportunityFilters.jsx
 │  │  │  │  ├─ OpportunityList.jsx
 │  │  │  │  └─ QualificationCard.jsx
 │  │  │  ├─ PortalCard.jsx
-│  │  │  ├─ requirements
-│  │  │  │  ├─ EducationSection.jsx
-│  │  │  │  ├─ RoleSection.jsx
-│  │  │  │  └─ SkillsSection.jsx
 │  │  │  └─ studentProfile
 │  │  │     ├─ connectivity.jsx
 │  │  │     ├─ cvUpload.jsx
@@ -121,7 +162,7 @@ SD-Web-App
 │  │  │     ├─ education.jsx
 │  │  │     ├─ personalInfo.jsx
 │  │  │     ├─ profileForm.jsx
-│  │  │     ├─ profileForm.test.jsx
+│  │  │     ├─ qualifications.jsx
 │  │  │     └─ skills.jsx
 │  │  ├─ context
 │  │  │  ├─ AuthContext.jsx
@@ -130,33 +171,61 @@ SD-Web-App
 │  │  ├─ index.css
 │  │  ├─ lib
 │  │  │  ├─ api.js
-│  │  │  ├─ api.test.js
 │  │  │  └─ supabaseClient.js
 │  │  ├─ main.jsx
 │  │  ├─ pages
+│  │  │  ├─ AdminAccessApplications.jsx
 │  │  │  ├─ AdminConsole.jsx
 │  │  │  ├─ ApplicantLogin.jsx
 │  │  │  ├─ AuthDenied.jsx
 │  │  │  ├─ AuthError.jsx
 │  │  │  ├─ CreateStudentProfile.jsx
-│  │  │  ├─ CreateStudentProfile.test.jsx
-│  │  │  ├─ DefineRequirements.jsx
 │  │  │  ├─ EditStudentProfile.jsx
+│  │  │  ├─ EmployerApplications.jsx
 │  │  │  ├─ Home.jsx
+│  │  │  ├─ MyApplications.jsx
+│  │  │  ├─ Notifications.jsx
 │  │  │  ├─ Opportunities.jsx
 │  │  │  ├─ OpportunityDetail.jsx
 │  │  │  ├─ PostOpportunity.jsx
 │  │  │  ├─ ProviderLogin.jsx
 │  │  │  ├─ ProviderRegistration.jsx
+│  │  │  ├─ QualificationDetail.jsx
 │  │  │  ├─ Qualifications.jsx
 │  │  │  ├─ StudentDashboard.jsx
-│  │  │  └─ ValidationPipeline.jsx
+│  │  │  ├─ ValidationPipeline.jsx
+│  │  │  └─ ViewStudentProfile.jsx
 │  │  ├─ routes
 │  │  │  └─ protectedRoute.jsx
 │  │  ├─ services
+│  │  │  ├─ adminService.js
+│  │  │  ├─ authService.js
+│  │  │  ├─ employerApplicationService.js
 │  │  │  ├─ myApplicationService.js
-│  │  │  └─ authService.js
-│  │  └─ setupTests.js
+│  │  │  └─ opportunityService.js
+│  │  ├─ setupTests.js
+│  │  └─ tests
+│  │     ├─ api.test.js
+│  │     ├─ authService.test.js
+│  │     ├─ CreateStudentProfile.test.jsx
+│  │     ├─ editProfileForm.test.jsx
+│  │     ├─ EmployerApplicationCard.test.jsx
+│  │     ├─ EmployerApplications.test.jsx
+│  │     ├─ employerApplicationService.test.js
+│  │     ├─ myApplicationCard.test.jsx
+│  │     ├─ MyApplications.test.jsx
+│  │     ├─ notificationDropdown.test.jsx
+│  │     ├─ Opportunities.test.jsx
+│  │     ├─ OpportunityCard.test.jsx
+│  │     ├─ OpportunityDetail.test.jsx
+│  │     ├─ OpportunityForm.test.jsx
+│  │     ├─ opportunityService.test.js
+│  │     ├─ PostOpportunity.test.jsx
+│  │     ├─ profileForm.test.jsx
+│  │     ├─ ProviderLogin.test.jsx
+│  │     ├─ ProviderRegistration.test.jsx
+│  │     ├─ Qualifications.test.jsx
+│  │     └─ ValidationPipeline.test.jsx
 │  ├─ tailwind.config.js
 │  └─ vite.config.js
 ├─ package-lock.json
