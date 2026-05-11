@@ -424,7 +424,7 @@ router.post('/signin', async (req, res) => {
         const jwtToken = generateJWT({
             id: profile.id, //profile.user_id is the auth.users id, profile.id is the profiles table id
             email: profile.email,
-            role: profile.role,
+            role: "provider",
             isAdmin: Boolean(profile.isAdmin)
         });
         

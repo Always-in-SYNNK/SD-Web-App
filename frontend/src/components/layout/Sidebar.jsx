@@ -22,11 +22,14 @@ const Sidebar = () => {
 
   const normalLinks = [
     { icon: "🔍", label: "Validation Pipeline", path: "/pipeline" },
+    {icon: "📊", label: "Analytics Dashboard", path: "/analytics"}
   ];
 
   const adminLinks = [
     { icon: "🛡️", label: "Access Applications", path: "/admin/applications" },
     { icon: "⚙️", label: "Admin Console", path: "/admin/console" },
+    { icon: "📊", label: "Analytics Dashboard", path: "/analytics" },
+    { icon: "📈", label: "Admin Analytics", path: "/admin/analytics" }
   ];
 
   const links = isAdminMode ? adminLinks : normalLinks;

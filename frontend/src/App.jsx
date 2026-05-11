@@ -25,6 +25,8 @@ import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
 import Notifications from "./pages/Notifications";
 import QualificationDetail from "./pages/QualificationDetail";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import AdminAnalytics from "./pages/AdminAnalytics";
 
 export default function App() {
   const clientId =
@@ -86,12 +88,12 @@ export default function App() {
             } /> 
             <Route path="/applications" element={
               <ProtectedRoute requiredRole="applicant">
-                <MyApplications />
+                <QualificationDetail />
               </ProtectedRoute>
-            } />
-            <Route path="/analytics" element={
+            } /> 
+            <Route path="/applications" element={
               <ProtectedRoute requiredRole="applicant">
-                <StudentDashboard />
+                <MyApplications />
               </ProtectedRoute>
             } />
             <Route path="/verification" element={
@@ -122,6 +124,12 @@ export default function App() {
                 <AdminAccessApplications />
               </ProtectedRoute>
             } />
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminAnalytics />
+              </ProtectedRoute>
+            } />
+                     
 
             {/* Employer routes - removed protected routing for now */}
 
@@ -152,10 +160,21 @@ export default function App() {
                 <ProviderRegistration />
               </ProtectedRoute>
             } />
+            <Route path="/analytics" element={
+              <ProtectedRoute requiredRole="provider">
+                <AnalyticsPage />
+              </ProtectedRoute>
+            } />
+            
           </Routes>
-
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
 }
+
+/*<Route path="/analytics" element={
+  <ProtectedRoute requiredRole={["provider", "admin"]}>
+    <AnalyticsPage />
+  </ProtectedRoute>
+} />*/

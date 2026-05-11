@@ -76,6 +76,12 @@ const Topbar = ({ user: providerUser, onLogout }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     await supabase.auth.signOut();
+    if (window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.disableAutoSelect?.();
+        window.google.accounts.id.cancel?.();
+      } catch {/* ignore */}
+    }
     navigate("/");
   };
 

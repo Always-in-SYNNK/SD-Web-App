@@ -32,7 +32,7 @@ function toError(err) {
 /* PROVIDER */
 export async function publishOpportunity(data) {
   try {
-    const res = await axios.post(`${API}/publish`, data, getSessionConfig());
+    const res = await axios.post(`${API}/publish`, data, getAuthConfig());
 
     return {
       data: res?.data?.data ?? null,
@@ -48,7 +48,7 @@ export async function publishOpportunity(data) {
 
 export const updateOpportunity = async (id, fields) => {
   try {
-    const res = await axios.patch(`${API}/${id}`, fields, getSessionConfig());
+    const res = await axios.patch(`${API}/${id}`, fields, getAuthConfig());
     return { data: res?.data?.data ?? null, error: null };
   } catch (err) {
     return { data: null, error: toError(err) };
@@ -57,7 +57,7 @@ export const updateOpportunity = async (id, fields) => {
 
 export const getOpportunityById = async (id) => {
   try {
-    const res = await axios.get(`${API}/${id}`, getSessionConfig());
+    const res = await axios.get(`${API}/${id}`, getAuthConfig());
     return { data: res?.data?.data ?? null, error: null };
   } catch (err) {
     return { data: null, error: toError(err) };
@@ -66,7 +66,7 @@ export const getOpportunityById = async (id) => {
 
 export async function saveDraft(data) {
   try {
-    const res = await axios.post(`${API}/draft`, data, getSessionConfig());
+    const res = await axios.post(`${API}/draft`, data, getAuthConfig());
 
     return {
       data: res?.data?.data ?? null,
@@ -169,7 +169,7 @@ export const getOpportunitySkills = async (opportunityId) => {
   try {
     const res = await axios.get(
       `${API_URL}/api/skills/opportunity/${opportunityId}`,
-      getSessionConfig()
+      getAuthConfig()
     );
     const skills = res?.data?.opportunitySkills ?? [];
     return {
@@ -207,7 +207,7 @@ export const getSkillsByField = async (field) => {
   try {
     const res = await axios.get(
       `${API_URL}/api/skills/field/${encodeURIComponent(field)}`,
-      getSessionConfig()
+      getAuthConfig()
     );
     return {
       data: res?.data?.data ?? [],

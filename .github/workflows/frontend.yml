@@ -2,9 +2,9 @@ name: Frontend CI
 
 on:
   push:
-    branches: [main, develop, api]
+    branches: [develop]
   pull_request:
-    branches: [main, develop, api]
+    branches: [develop]
 
 jobs:
   frontend:
@@ -26,15 +26,23 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm ci   # Use ci for faster, reproducible installs
+        run: npm ci
 
-      - name: List available scripts (debug)
-        run: npm run   # This will show all scripts, helping to confirm "test" exists
+      - name: Install coverage provider
+        run: npm install -D @vitest/coverage-v8
 
-      - name: Run tests
-        run: npx vitest run   # Directly run vitest without relying on npm script
+      - name: Run tests with coverage
+        run: npx vitest run --coverage
         env:
           VITE_API_URL: http://localhost:3000
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./frontend/coverage/lcov.info  # Specify coverage file path
+          flags: frontend  # Optional: add flag to identify this as frontend coverage
+          name: frontend-coverage  # Optional: name for this coverage report
