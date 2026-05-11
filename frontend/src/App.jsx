@@ -88,11 +88,6 @@ export default function App() {
             } /> 
             <Route path="/applications" element={
               <ProtectedRoute requiredRole="applicant">
-                <QualificationDetail />
-              </ProtectedRoute>
-            } /> 
-            <Route path="/applications" element={
-              <ProtectedRoute requiredRole="applicant">
                 <MyApplications />
               </ProtectedRoute>
             } />

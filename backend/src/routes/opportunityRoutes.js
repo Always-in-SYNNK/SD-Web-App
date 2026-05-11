@@ -35,17 +35,18 @@ router.get("/matches", requireAuth, getMatchingOpportunities);
 // provider
 router.post('/publish', providerAuthMiddleware, publishOpportunity);
 router.post('/draft', providerAuthMiddleware, saveDraft);
-router.patch('/:id', providerAuthMiddleware, updateOpportunity);
-router.get('/:id', providerAuthMiddleware, getOpportunity);
 
 // admin
 router.get("/pending", requireAuth, requireAdmin, getPendingOpportunities);
 router.get("/approved", requireAuth, requireAdmin, getApprovedOpportunities);
+
+//provider -- order was changed to avoid conflict with admin routes
+router.patch('/:id', providerAuthMiddleware, updateOpportunity);
+router.get('/:id', providerAuthMiddleware, getOpportunity);
+
+//admin
 router.patch("/:id/approve", requireAuth, requireAdmin, approveOpportunity);
 router.patch("/:id/reject", requireAuth, requireAdmin, rejectOpportunity);
 router.delete("/:id", requireAuth, requireAdmin, deleteOpportunity);
-
-// provider edit prefill
-
 
 export default router;

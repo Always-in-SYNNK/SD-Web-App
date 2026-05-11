@@ -47,6 +47,9 @@ describe('ProviderRegistration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
+    // Mock scrollIntoView for JSDOM tests
+    Element.prototype.scrollIntoView = vi.fn();
+
     getAllCountries.mockResolvedValue([
       {
         code: 'ZA',
