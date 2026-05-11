@@ -6,6 +6,7 @@ export function OpportunityFilters({
   setNqfLevel,
   setField,
   onReset,
+  onViewMatch,
   loading = false,
 }) {
   const SA_PROVINCES = [
@@ -120,7 +121,12 @@ export function OpportunityFilters({
         <p className="text-sm text-blue-100 mt-2">
           Based on your NQF profile, you may be eligible for exclusive opportunities.
         </p>
-        <button className="mt-4 bg-green-200 text-green-900 w-full py-2 rounded-full font-bold text-sm hover:opacity-90 transition">
+        <button
+          type="button"
+          onClick={onViewMatch}
+          disabled={loading}
+          className="mt-4 bg-green-200 text-green-900 w-full py-2 rounded-full font-bold text-sm hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           View Match
         </button>
       </section>

@@ -3,12 +3,6 @@
 //Correct resonse shape
 //Passing errors to next
 import { jest } from '@jest/globals';
-// import {
-//   fetchLocations,
-//   fetchFields,
-//   fetchNqfLevels,
-//   fetchOpportunities,
-// } from "../opportunityController.js";
 
 const mockService = {
   getDistinctLocations: jest.fn(),
@@ -22,6 +16,7 @@ const mockService = {
   getApproved: jest.fn(),
   updateStatus: jest.fn(),
   deleteOpportunityById: jest.fn(),
+  matchingOpportunity: jest.fn(),
   getOpportunityById: jest.fn(),
 };
 
@@ -48,6 +43,7 @@ const {
   approveOpportunity,
   rejectOpportunity,
   deleteOpportunity,
+  getMatchingOpportunities,
 } = await import("../src/controllers/opportunityController.js")
 
 function createMockRes() {
