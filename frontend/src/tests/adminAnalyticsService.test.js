@@ -37,7 +37,7 @@ describe("adminAnalyticsService", () => {
             const result = await getAdminApplicationVolume();
 
             expect(fetch).toHaveBeenCalledWith(
-                "http://localhost:3000/api/analytics/admin/applications",
+                "/api/analytics/admin/applications",
                 {
                     credentials: "include",
                     headers: {
@@ -63,7 +63,7 @@ describe("adminAnalyticsService", () => {
             });
 
             await expect(getAdminApplicationVolume()).rejects.toThrow(
-                "Invalid response. Check if backend route exists: /api/analytics/admin/applications"
+                "Invalid response from server. Expected JSON but got text/html"
             );
         });
 
@@ -118,7 +118,7 @@ describe("adminAnalyticsService", () => {
             await getAdminApplicationVolume();
 
             expect(fetch).toHaveBeenCalledWith(
-                "http://localhost:3000/api/analytics/admin/applications",
+                "/api/analytics/admin/applications",
                 {
                     credentials: "include",
                     headers: {
