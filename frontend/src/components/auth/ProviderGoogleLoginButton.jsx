@@ -1,4 +1,5 @@
-import { useEffect, useCallback } from "react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import {
@@ -76,34 +77,23 @@ export default function ProviderGoogleLoginButton({
     }
   }, [onLoadingChange, onError, navigate, onVerificationRequired, login]);
 
-  useEffect(() => {
-    if (window.google && window.google.accounts) {
-      window.google.accounts.id.initialize({
-        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-      
-      window.google.accounts.id.renderButton(
-        document.getElementById("google-button-container"),
-        {
-          type: "standard",
-          theme: "outline",
-          size: "large",
-          text: "continue_with",
-          shape: "rectangular",
-          logo_alignment: "left",
-          width: 240,
-        }
-      );
-    }
-  }, [handleCredentialResponse]);
+  const handleGoogleError = useCallback(() => {
+    onError("Google sign-in failed. Please try again.");
+  }, [onError]);
 
   return (
-    <section
-      id="google-button-container"
-      className="w-full flex items-center justify-center"
-    />
+    <section className="w-full flex items-center justify-center">
+      <GoogleLogin
+        onSuccess={handleCredentialResponse}
+        onError={handleGoogleError}
+        useOneTap={false}
+        theme="outline"
+        size="large"
+        text="continue_with"
+        shape="rectangular"
+        logo_alignment="left"
+        width="240"
+      />
+    </section>
   );
 }

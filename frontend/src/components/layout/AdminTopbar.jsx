@@ -6,13 +6,6 @@ import { useAuth } from "../../context/useAuth";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// ── Hardcoded applicant-side admin user ──────────────────────────────────────
-const APPLICANT_ADMIN_USER = {
-  displayName: "JD",
-  subtitle: "Admin",
-  avatar: "JD", // two-letter initials shown in the circle
-};
-
 const AdminTopbar = ({ title, source = "applicant" }) => {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
@@ -23,30 +16,23 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
   const [showMenu,  setShowMenu]  = useState(false);
 
   useEffect(() => {
-    // ── Applicant side: always show hardcoded JD ─────────────────────────
-    if (source === "applicant") {
-      setFullName(APPLICANT_ADMIN_USER.displayName);
-      setSubtitle(APPLICANT_ADMIN_USER.subtitle);
-      setAvatar(APPLICANT_ADMIN_USER.avatar);
-      return;
-    }
-
-    // ── Provider side: resolve from DB/session ───────────────────────────
     const resolveUser = async () => {
-      // Priority 1: Provider session cookie
-      try {
-        const res  = await fetch(`${API_URL}/api/auth/provider/me`, { credentials: "include" });
-        const data = await res.json();
-        if (data.authenticated && data.user) {
-          const name = data.user.name || data.user.full_name || "User";
-          setFullName(name);
-          setSubtitle(data.user.organisation_name || "Employer");
-          setAvatar(name.charAt(0).toUpperCase());
-          return;
-        }
-      } catch {/* ignore */}
+      // ── Priority 1: Provider session cookie (provider side only) ────────
+      if (source === "provider") {
+        try {
+          const res  = await fetch(`${API_URL}/api/auth/provider/me`, { credentials: "include" });
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            const name = data.user.name || data.user.full_name || "User";
+            setFullName(name);
+            setSubtitle(data.user.organisation_name || "Employer");
+            setAvatar(name.charAt(0).toUpperCase());
+            return;
+          }
+        } catch {/* ignore */}
+      }
 
-      // Priority 2: AuthContext
+      // ── Priority 2: AuthContext (applicant + admin Supabase users) ───────
       if (authUser) {
         const name = authUser.name || authUser.full_name || "User";
         setFullName(name);
@@ -55,7 +41,7 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
         return;
       }
 
-      // Priority 3: localStorage
+      // ── Priority 3: localStorage fallback ───────────────────────────────
       const stored = localStorage.getItem("user");
       if (stored) {
         try {
@@ -93,6 +79,12 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     await supabase.auth.signOut();
+    if (window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.disableAutoSelect?.();
+        window.google.accounts.id.cancel?.();
+      } catch {/* ignore */}
+    }
     navigate("/");
   };
 

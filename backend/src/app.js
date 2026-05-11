@@ -22,12 +22,14 @@ import { startReminderCron } from "./cronJob.js";
 
 startReminderCron();
 import skillsRoutes from "./routes/skillsRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 
 const app = express();
 
+
 // SIMPLE CORS 
 app.use(cors({
-  origin: process.env.CORS_ORIGIN,
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   credentials: true,
 }));
 
@@ -65,6 +67,10 @@ app.use("/api/auth/provider",  providerAuthRoutes);
 // ─── Application routes ────────────────────────────────────────────────────────
 
 app.use("/applications", myApplicationRoutes);
+
+// ─── Analytics routes ────────────────────────────────────────────────────────
+app.use("/api/analytics", analyticsRoutes);
+//app.use("/api/industries", industryRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
 import { supabase } from "./config/supabaseClient.js";
