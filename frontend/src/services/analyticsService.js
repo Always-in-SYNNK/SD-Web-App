@@ -19,7 +19,7 @@
 // frontend/src/services/analyticsService.js
 
 // Use absolute URL to directly call backend
-const API_BASE_URL = 'http://localhost:3000';
+//const API_BASE_URL = 'http://localhost:3000';
 
 const getAuthToken = () => {
   const token = localStorage.getItem("token");
@@ -30,8 +30,9 @@ const getAuthToken = () => {
 async function apiFetch(path) {
   const token = getAuthToken();
   
-  // ✅ FIX: Combine API_BASE_URL and path to create fullUrl
-  const fullUrl = `${API_BASE_URL}${path}`;
+  const fullUrl = path; // Use relative path to leverage Vite's proxy and avoid CORS issues
+  //Combine API_BASE_URL and path to create fullUrl
+ // const fullUrl = `${API_BASE_URL}${path}`;
 
   console.log("📡 Fetching:", fullUrl);
   console.log("🔑 Token being sent:", token ? "Yes ✅" : "No ❌");
