@@ -38,7 +38,7 @@ describe("adminAnalyticsService", () => {
             const result = await getAdminApplicationVolume();
 
             expect(fetch).toHaveBeenCalledWith(
-                "http://localhost:3000/api/analytics/admin/applications",
+                "/api/analytics/admin/applications",
                 {
                     credentials: "include",
                     headers: {
@@ -119,7 +119,7 @@ describe("adminAnalyticsService", () => {
             await getAdminApplicationVolume();
 
             expect(fetch).toHaveBeenCalledWith(
-                "http://localhost:3000/api/analytics/admin/applications",
+                "/api/analytics/admin/applications",
                 {
                     credentials: "include",
                     headers: {
