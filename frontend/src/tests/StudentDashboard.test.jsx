@@ -46,7 +46,6 @@ vi.mock("../components/notifications/notificationDropdown", () => ({
 }));
 
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
 
 const MOCK_PROFILE = {
   full_name: "Kirsten Strydom",
@@ -76,7 +75,16 @@ function renderPage() {
 
 describe("StudentDashboard", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.stubGlobal("fetch", mockFetch);
+    mockUseAuth.mockImplementation(() => ({
+      token: "mock-token",
+      user: { email: "test@example.com" },
+    }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -134,9 +142,8 @@ describe("StudentDashboard", () => {
   it("renders the floating shield button", async () => {
     setupFetchMocks();
     renderPage();
-    await waitFor(() => expect(screen.getByText("🛡️")).toBeDefined());
+    await waitFor(() => expect(screen.getByText(/🛡/)).toBeDefined());
   });
-
   // ── Nav links ──────────────────────────────────────────────────────────────
 
   it("renders Home nav link", async () => {
