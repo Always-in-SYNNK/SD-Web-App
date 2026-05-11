@@ -28,11 +28,17 @@ async function adminApiFetch(path) {
         headers,
     });
 
-    const contentType = res.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-        throw new Error(
-            `Invalid response from server. Expected JSON but got ${contentType || "unknown content type"}`
-        );
+    const contentType = res.headers.get('content-type');
+  if (!contentType || !contentType.includes('application/json')) {
+    const text = await res.text();
+    console.error("Expected JSON but got HTML:", text.substring(0, 200));
+    throw new Error(`Invalid response. Check if backend route exists: ${path}`);
+  }
+
+
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || `Request failed: ${res.status}`);
     }
 
     const json = await res.json();
