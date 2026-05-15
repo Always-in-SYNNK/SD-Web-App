@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAdminStats } from "../../services/adminService";
+import { getAdminStats } from "../../services/adminService";
 
 export function StatsGrid() {
   const [stats, setStats] = useState({
@@ -9,10 +9,19 @@ export function StatsGrid() {
     rejected: 0,
   });
 
+  function StatCard({ label, value, color }) {
+  return (
+    <article className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <p className="text-sm text-gray-500 mb-1">{label}</p>
+      <p className={`text-3xl font-extrabold ${color}`}>{value}</p>
+    </article>
+  );
+}
+
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const data = await fetchAdminStats();
+        const data = await getAdminStats();
         setStats(data);
       } catch (err) {
         console.error("Failed to load stats:", err);
@@ -24,43 +33,39 @@ export function StatsGrid() {
 
   const statItems = [
     {
-      label: "Approved Opportunities",
-      value: stats.approved,
-    },
-    {
       label: "New Today",
       value: stats.today,
+      color: "text-gray-800"
     },
     {
       label: "Pending Review",
       value: stats.pending,
+      color: "text-yellow-600"
     },
     {
-      label: "Rejected Opportunities",
+      label: "Approved",
+      value: stats.approved,
+      color: "text-green-600"
+    },
+    {
+      label: "Rejected",
       value: stats.rejected,
+      color: "text-red-600"
     },
   ];
 
   return (
-    <section
-      aria-labelledby="admin-stats-heading"
-      className="mb-6"
-    >
-      <h2 id="admin-stats-heading" className="sr-only">
-        Opportunity moderation statistics
-      </h2>
-
-      <dl className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <section className="mb-6">
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {statItems.map((stat) => (
-          <article
+          <StatCard
             key={stat.label}
-            className="bg-gray-100 p-6 rounded-xl"
-          >
-            <dt className="text-sm text-gray-500">{stat.label}</dt>
-            <dd className="text-2xl font-bold mt-2">{stat.value}</dd>
-          </article>
+            label={stat.label}
+            value={stat.value !== undefined ? stat.value : 0}
+            color={stat.color}
+          />
         ))}
-      </dl>
+      </section>
     </section>
   );
 }
