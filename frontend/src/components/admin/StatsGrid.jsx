@@ -1,19 +1,66 @@
+import { useEffect, useState } from "react";
+import { fetchAdminStats } from "../../services/adminService";
+
 export function StatsGrid() {
-  const stats = [
-    { label: "Total Active", value: "1,284" },
-    { label: "New Today", value: "42" },
-    { label: "Flagged", value: "12" },
-    { label: "Pending Review", value: "89" },
+  const [stats, setStats] = useState({
+    approved: 0,
+    today: 0,
+    pending: 0,
+    rejected: 0,
+  });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const data = await fetchAdminStats();
+        setStats(data);
+      } catch (err) {
+        console.error("Failed to load stats:", err);
+      }
+    };
+
+    loadStats();
+  }, []);
+
+  const statItems = [
+    {
+      label: "Approved Opportunities",
+      value: stats.approved,
+    },
+    {
+      label: "New Today",
+      value: stats.today,
+    },
+    {
+      label: "Pending Review",
+      value: stats.pending,
+    },
+    {
+      label: "Rejected Opportunities",
+      value: stats.rejected,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-2">
-      {stats.map((s) => (
-        <div key={s.label} className="bg-gray-100 p-6 rounded-xl">
-          <p className="text-sm text-gray-500">{s.label}</p>
-          <h3 className="text-2xl font-bold">{s.value}</h3>
-        </div>
-      ))}
-    </div>
+    <section
+      aria-labelledby="admin-stats-heading"
+      className="mb-6"
+    >
+      <h2 id="admin-stats-heading" className="sr-only">
+        Opportunity moderation statistics
+      </h2>
+
+      <dl className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {statItems.map((stat) => (
+          <article
+            key={stat.label}
+            className="bg-gray-100 p-6 rounded-xl"
+          >
+            <dt className="text-sm text-gray-500">{stat.label}</dt>
+            <dd className="text-2xl font-bold mt-2">{stat.value}</dd>
+          </article>
+        ))}
+      </dl>
+    </section>
   );
 }
