@@ -44,6 +44,7 @@ export async function sendClosingDateReminders() {
     console.log("🔍 Checking for opportunities closing soon...");
     
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
     const { data: opportunities, error } = await supabase
         .from("opportunities")
@@ -67,22 +68,37 @@ export async function sendClosingDateReminders() {
         return;
     }
 
+    if (!opportunities || opportunities.length === 0) {
+        console.log("📭 No opportunities with closing dates found");
+        return;
+    }
+
     for (const opp of opportunities || []) {
-        const closingDate = opp.closing_date;
-        const daysUntilClose = Math.ceil((new Date(closingDate) - today) / (1000 * 60 * 60 * 24));
+        const closingDate = new Date(opp.closing_date);
+        closingDate.setHours(0, 0, 0, 0);
+        
+        const daysUntilClose = Math.ceil((closingDate - today) / (1000 * 60 * 60 * 24));
         
         const shouldSend7Day = daysUntilClose === 7;
         const shouldSend1Day = daysUntilClose === 1;
         
         if (!shouldSend7Day && !shouldSend1Day) continue;
         
+        // Improved notification content
         const notificationType = shouldSend7Day ? "7_day_reminder" : "24_hour_reminder";
-        const reminderTitle = shouldSend7Day 
-            ? `Opportunity Closing in 7 Days! ⏰` 
-            : `Final Reminder: Closing Tomorrow! ⚠️`;
-        const reminderMessage = shouldSend7Day
-            ? `"${opp.title}" closes in 7 days. Make sure your application is submitted!`
-            : `"${opp.title}" closes TOMORROW! Submit your application now before it's too late.`;
+        
+        let reminderTitle = "";
+        let reminderMessage = "";
+        
+        if (shouldSend7Day) {
+            reminderTitle = "📅 7 Days Left to Apply!";
+            reminderMessage = `Don't miss your chance! "${opp.title}" closes in 7 days. Take action now and submit your application before time runs out.`;
+        } else {
+            reminderTitle = "⚠️ FINAL REMINDER: Closing Tomorrow!";
+            reminderMessage = `🚨 URGENT: "${opp.title}" closes TOMORROW! This is your last opportunity to apply. Don't let this chance slip away - submit your application today!`;
+        }
+        
+        let notificationCount = 0;
         
         for (const application of opp.applications || []) {
             if (!application.applicant_profiles?.id) continue;
@@ -106,7 +122,13 @@ export async function sendClosingDateReminders() {
                 notificationType
             );
             
-            console.log(`✅ ${notificationType} sent for "${opp.title}"`);
+            notificationCount++;
+        }
+        
+        if (notificationCount > 0) {
+            console.log(`✅ ${notificationType} sent for "${opp.title}" to ${notificationCount} applicants`);
+        } else {
+            console.log(`📭 No applicants to remind for "${opp.title}"`);
         }
     }
     
@@ -116,14 +138,28 @@ export async function sendClosingDateReminders() {
 export async function notifyAllApplicantsNewOpportunity(opportunityId, opportunityTitle) {
     console.log(`📢 Sending new opportunity notifications for: ${opportunityTitle}`);
     
-    const { data: applicants, error } = await supabase
+    // First, check if there are any applicants
+    const { data: applicants, error, count } = await supabase
         .from("applicant_profiles")
-        .select("id, profile_id");
+        .select("id, profile_id", { count: 'exact' });
 
     if (error) {
         console.error("Error fetching applicants:", error);
         return;
     }
+
+    if (!applicants || applicants.length === 0) {
+        console.log("📭 No applicants found in the system. No notifications sent.");
+        return;
+    }
+
+    console.log(`📊 Found ${applicants.length} applicants to notify`);
+
+    // Improved notification content
+    const title = "🎉 New Opportunity Available!";
+    const message = `Exciting news! "${opportunityTitle}" has been approved and is now open for applications. This opportunity matches your profile - don't wait, apply today!`;
+    
+    let successCount = 0;
 
     for (const applicant of applicants || []) {
         const { data: profile } = await supabase
@@ -131,9 +167,6 @@ export async function notifyAllApplicantsNewOpportunity(opportunityId, opportuni
             .select("email, full_name")
             .eq("id", applicant.profile_id)
             .single();
-
-        const title = "New Opportunity Available! 🎉";
-        const message = `A new opportunity "${opportunityTitle}" has been posted that matches your profile.`;
 
         await createNotification({
             applicantId: applicant.id,
@@ -152,8 +185,9 @@ export async function notifyAllApplicantsNewOpportunity(opportunityId, opportuni
                 message: message,
                 metadata: { opportunity_id: opportunityId }
             });
+            successCount++;
         }
     }
     
-    console.log(`✅ New opportunity notification sent to ${applicants?.length || 0} applicants`);
+    console.log(`✅ New opportunity notification sent to ${successCount} applicants for: ${opportunityTitle}`);
 }
