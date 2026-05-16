@@ -47,7 +47,6 @@ export default function StudentDashboard() {
           </section>
           <section className="flex items-center gap-3">
             <NotificationDropdown />
-            <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
               {initials}
             </figure>

@@ -26,6 +26,20 @@ export default function CompleteProfile() {
               </p>
             </header>
 
+            <section className="mb-10 grid gap-6 sm:grid-cols-2">
+              <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Progress</p>
+                    <p className="mt-2 text-3xl font-extrabold text-slate-900">25%</p>
+                  </div>
+                  <div className="h-3 w-24 rounded-full bg-slate-200 overflow-hidden">
+                    <div className="h-full w-1/4 rounded-full bg-gradient-to-r from-[#035b9d] to-[#3174b7]" />
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <ProfileForm />
 
           </div>
