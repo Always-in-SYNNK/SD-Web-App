@@ -126,9 +126,8 @@ export default function App() {
             } />
                      
 
-            {/* Employer routes - removed protected routing for now */}
 
-            {/* Employer routes */}
+            {/* Provider/Employer routes */}
              <Route path="/opportunity/:opportunityId/applications" element={
               <ProtectedRoute requiredRole="provider">
                 <EmployerApplications />
@@ -147,13 +146,11 @@ export default function App() {
             } />
             <Route path="/opportunities/edit/:id" element={
               <ProtectedRoute requiredRole="provider">
-              <PostOpportunity />
+                <PostOpportunity />
               </ProtectedRoute>
             } />
             <Route path="/provider-registration" element={
-              <ProtectedRoute requiredRole="provider">
                 <ProviderRegistration />
-              </ProtectedRoute>
             } />
             <Route path="/analytics" element={
               <ProtectedRoute requiredRole="provider">

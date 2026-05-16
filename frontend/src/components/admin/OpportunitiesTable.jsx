@@ -19,6 +19,9 @@ export function OpportunitiesTable({ mode = "pending" }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const getErrorMessage = (err, fallback) =>
+    err?.response?.data?.error || err?.message || fallback;
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -29,7 +32,11 @@ export function OpportunitiesTable({ mode = "pending" }) {
           ? await getPendingOpportunities()
           : await getApprovedOpportunities();
 
-      if (fetchError) setError(fetchError.message);
+      if (fetchError) {
+        const message = getErrorMessage(fetchError, "Failed to load opportunities");
+        setError(message);
+        alert(message);
+      }
       else setData(result);
 
       setLoading(false);
@@ -40,20 +47,20 @@ export function OpportunitiesTable({ mode = "pending" }) {
 
   //abstracted supabase logic to service layer
   const handleDelete = async (id) => {
-    const { error } = await deleteOpportunity(id);
-    if (error) console.error(error.message);
+    const { error: deleteError } = await deleteOpportunity(id);
+    if (deleteError) alert(getErrorMessage(deleteError, "Failed to delete opportunity"));
     else setData((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleApprove = async (id) => {
-    const { error } = await approveOpportunity(id);
-    if (error) console.error(error.message);
+    const { error: approveError } = await approveOpportunity(id);
+    if (approveError) alert(getErrorMessage(approveError, "Failed to approve opportunity"));
     else setData((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleReject = async (id) => {
-    const { error } = await rejectOpportunity(id);
-    if (error) console.error(error.message);
+    const { error: rejectError } = await rejectOpportunity(id);
+    if (rejectError) alert(getErrorMessage(rejectError, "Failed to reject opportunity"));
     else setData((prev) => prev.filter((item) => item.id !== id));
   };
 

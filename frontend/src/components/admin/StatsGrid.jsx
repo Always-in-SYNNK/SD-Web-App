@@ -21,8 +21,8 @@ export function StatsGrid() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const data = await getAdminStats();
-        setStats(data);
+        const response = await getAdminStats();
+        setStats(response?.data ?? response);
       } catch (err) {
         console.error("Failed to load stats:", err);
       }

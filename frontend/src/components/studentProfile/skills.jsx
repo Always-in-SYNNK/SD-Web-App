@@ -141,7 +141,7 @@ export function SkillsSection() {
                   key={skill.id}
                   className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm flex items-center gap-2"
                 >
-                  {skill.name}
+                  {skill.title}
                   <button
                     onClick={() => removeSkill(skill.id)}
                     className="text-blue-300 hover:text-blue-600 text-xs"
