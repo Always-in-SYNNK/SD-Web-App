@@ -19,6 +19,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { startReminderCron } from "./cronJob.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 startReminderCron();
 import skillsRoutes from "./routes/skillsRoutes.js";
@@ -71,6 +72,9 @@ app.use("/applications", myApplicationRoutes);
 // ─── Analytics routes ────────────────────────────────────────────────────────
 app.use("/api/analytics", analyticsRoutes);
 //app.use("/api/industries", industryRoutes);
+
+// Chat routes
+app.use("/api/chat", chatRoutes);
 
 // ─── Email verification ───────────────────────────────────────────────────────
 import { supabase } from "./config/supabaseClient.js";

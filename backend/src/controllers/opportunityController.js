@@ -196,7 +196,7 @@ export const getApprovedOpportunities = async (req, res) => {
   }
 };
 
-// ✅ UPDATED: approveOpportunity - ADD notifications here
+// UPDATED: approveOpportunity - ADD notifications here
 export const approveOpportunity = async (req, res) => {
   try {
     const { id } = req.params;
@@ -224,6 +224,7 @@ export const approveOpportunity = async (req, res) => {
       data: { id, status: "approved", message: "Approved and notifications sent" },
     });
   } catch (err) {
+     console.error("Approve opportunity error:", err);
     res.status(500).json({ error: err.message });
   }
 };
