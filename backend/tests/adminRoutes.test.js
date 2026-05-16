@@ -19,6 +19,7 @@ jest.unstable_mockModule("../src/controllers/adminController.js", () => ({
   getAdminApplications: (req, res) => res.json([]),
   approveApplication: (req, res) => res.json({ ok: true }),
   rejectApplication: (req, res) => res.json({ ok: true }),
+  getAdminStats: (req, res) => res.json({ ok: true }),
 }));
 
 const adminRoutes = (await import("../src/routes/adminRoutes.js")).default;
@@ -45,6 +46,11 @@ describe("adminRoutes", () => {
 
   test("PATCH reject", async () => {
     const res = await request(app).patch("/api/admin/123/reject");
+    expect(res.statusCode).toBe(200);
+  });
+
+  test("GET /admin-stats", async () => {
+    const res = await request(app).get("/api/admin/admin-stats");
     expect(res.statusCode).toBe(200);
   });
 });

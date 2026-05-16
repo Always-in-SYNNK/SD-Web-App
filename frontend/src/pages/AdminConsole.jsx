@@ -10,8 +10,8 @@ import { OpportunitiesTable } from "../components/admin/OpportunitiesTable";
 import AdminTopbar from "../components/layout/AdminTopbar";
 
 const TABS = [
-  { label: "Approved", value: "approved" },
   { label: "Pending Review", value: "pending" },
+  { label: "Approved", value: "approved" },
 ];
 
 export default function AdminConsole() {

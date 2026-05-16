@@ -245,4 +245,65 @@ describe("adminService", () => {
       );
     });
   });
+
+  describe("getAdminStats", () => {
+  it("should fetch admin opportunity stats", async () => {
+    const mockStats = {
+      success: true,
+      data: {
+        approved: 12,
+        today: 4,
+        pending: 7,
+        rejected: 1,
+      },
+    };
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockStats,
+    });
+
+    const result = await adminService.getAdminStats();
+
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/api/admin/admin-stats"),
+      expect.objectContaining({
+        credentials: "include",
+        headers: {
+          Authorization: "Bearer mock-token",
+        },
+      })
+    );
+
+    expect(result).toEqual(mockStats);
+  });
+
+  it("should throw parsed admin stats error", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({
+        error: "Stats unavailable",
+      }),
+    });
+
+    await expect(
+      adminService.getAdminStats()
+    ).rejects.toThrow("Stats unavailable");
+  });
+
+  it("should throw fallback admin stats error", async () => {
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      json: async () => {
+        throw new Error("Invalid JSON");
+      },
+    });
+
+    await expect(
+      adminService.getAdminStats()
+    ).rejects.toThrow(
+      "Failed to fetch admin opportunity stats"
+    );
+  });
+});
 });

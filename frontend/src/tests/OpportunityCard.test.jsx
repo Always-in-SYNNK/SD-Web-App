@@ -1,3 +1,4 @@
+// frontend/src/tests/OpportunityCard.test.jsx
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { act } from "@testing-library/react";
 import { vi, describe, test, expect, beforeEach } from "vitest";
@@ -185,5 +186,87 @@ describe("OpportunityCard", () => {
     );
 
     expect(await screen.findByText("Applied")).toBeInTheDocument();
+  });
+
+  // =========================
+  // DISABLED ADMIN ACTIONS
+  // =========================
+
+  test("disables approve button when disableApprove is true", () => {
+    const mockApprove = vi.fn();
+
+    render(
+      <OpportunityCard
+        id={1}
+        title="Pending Role"
+        isAdmin={true}
+        onApprove={mockApprove}
+        disableApprove={true}
+      />
+    );
+
+    const approveBtn = screen.getByText("Approve");
+
+    expect(approveBtn).toBeDisabled();
+    expect(approveBtn).toHaveAttribute(
+      "title",
+      "You cannot approve your own opportunity."
+    );
+
+    fireEvent.click(approveBtn);
+
+    expect(mockApprove).not.toHaveBeenCalled();
+  });
+
+  test("disables reject button when disableReject is true", () => {
+    const mockReject = vi.fn();
+
+    render(
+      <OpportunityCard
+        id={1}
+        title="Pending Role"
+        isAdmin={true}
+        onReject={mockReject}
+        disableReject={true}
+      />
+    );
+
+    const rejectBtn = screen.getByText("Reject");
+
+    expect(rejectBtn).toBeDisabled();
+    expect(rejectBtn).toHaveAttribute(
+      "title",
+      "You cannot reject your own opportunity."
+    );
+
+    fireEvent.click(rejectBtn);
+
+    expect(mockReject).not.toHaveBeenCalled();
+  });
+
+  test("disables delete button when disableDelete is true", () => {
+    const mockDelete = vi.fn();
+
+    render(
+      <OpportunityCard
+        id={1}
+        title="Approved Role"
+        isAdmin={true}
+        onDelete={mockDelete}
+        disableDelete={true}
+      />
+    );
+
+    const deleteBtn = screen.getByText("Delete");
+
+    expect(deleteBtn).toBeDisabled();
+    expect(deleteBtn).toHaveAttribute(
+      "title",
+      "You cannot delete your own opportunity."
+    );
+
+    fireEvent.click(deleteBtn);
+
+    expect(mockDelete).not.toHaveBeenCalled();
   });
 });

@@ -273,7 +273,7 @@ export default function OpportunityDetail() {
                   key={skill.id}
                   className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm"
                 >
-                  {skill.name}
+                  {skill.title}
                 </span>
               ))}
             </div>

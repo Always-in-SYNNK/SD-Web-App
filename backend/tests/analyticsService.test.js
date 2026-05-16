@@ -43,7 +43,7 @@ describe("Analytics Service", () => {
                 data: [
                     { id: "app-1", status: "shortlisted", opportunity_id: "opp-1", created_at: "2024-01-15" },
                     { id: "app-2", status: "accepted", opportunity_id: "opp-1", created_at: "2024-01-16" },
-                    { id: "app-3", status: "pending", opportunity_id: "opp-1", created_at: "2024-01-17" },
+                    { id: "app-3", status: "offered", opportunity_id: "opp-1", created_at: "2024-01-17" },
                     { id: "app-4", status: "pending", opportunity_id: "opp-2", created_at: "2024-01-18" },
                     { id: "app-5", status: "shortlisted", opportunity_id: "opp-2", created_at: "2024-01-19" },
                 ],
@@ -135,7 +135,7 @@ describe("Analytics Service", () => {
                 data: [
                     { id: "app-1", status: "pending", opportunity_id: "opp-1", created_at: "2024-01-15" },
                     { id: "app-2", status: "shortlisted", opportunity_id: "opp-1", created_at: "2024-01-16" },
-                    { id: "app-3", status: "accepted", opportunity_id: "opp-1", created_at: "2024-01-17" },
+                    { id: "app-3", status: "offered", opportunity_id: "opp-1", created_at: "2024-01-17" },
                     { id: "app-4", status: "rejected", opportunity_id: "opp-1", created_at: "2024-01-18" },
                 ],
                 error: null,
@@ -155,7 +155,7 @@ describe("Analytics Service", () => {
             expect(result.data[0].statusBreakdown).toBeDefined();
             expect(result.data[0].statusBreakdown.pending).toBe(1);
             expect(result.data[0].statusBreakdown.shortlisted).toBe(1);
-            expect(result.data[0].statusBreakdown.accepted).toBe(1);
+            expect(result.data[0].statusBreakdown.offered).toBe(1);
             expect(result.data[0].statusBreakdown.rejected).toBe(1);
         });
 
