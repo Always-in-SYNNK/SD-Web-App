@@ -184,6 +184,39 @@ describe('Employer Application Routes', () => {
     });
   });
 
+  test('GET opportunity handler - returns 500 when an unexpected error is thrown', async () => {
+    mockSupabase.from.mockImplementation((table) => {
+      if (table === 'applications') {
+        throw new Error('unexpected applications failure');
+      }
+
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.order.mockReturnValue(chain);
+
+      if (table === 'opportunities') {
+        chain.single.mockResolvedValueOnce({
+          data: { provider_id: 'provider-123' },
+          error: null
+        });
+      }
+
+      return chain;
+    });
+
+    const req = { params: { opportunityId: 'opp-123' } };
+    const res = createMockRes();
+
+    await getApplicationsForOpportunityHandler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: 'unexpected applications failure'
+    });
+  });
+
   // ============================================
   // TEST 2: GET applications - Missing opportunity ID
   // ============================================
@@ -407,6 +440,82 @@ describe('Employer Application Routes', () => {
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       error: 'update failed'
+    });
+  });
+
+  test('PATCH handler - continues when fetching old status fails', async () => {
+    let applicationsCallCount = 0;
+
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single.mockImplementation(() => {
+          applicationsCallCount += 1;
+
+          if (applicationsCallCount === 1) {
+            return Promise.resolve({
+              data: {
+                id: 'app-1',
+                status: 'received',
+                applicant_id: 'ap-1',
+                opportunity_id: 'opp-1'
+              },
+              error: new Error('old status lookup failed')
+            });
+          }
+
+          return Promise.resolve({
+            data: { id: 'app-1', status: 'shortlisted' },
+            error: null
+          });
+        });
+      }
+
+      if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
+          error: null
+        });
+      }
+
+      return chain;
+    });
+
+    const req = { params: { applicationId: 'app-1' }, body: { status: 'shortlisted' } };
+    const res = createMockRes();
+
+    await updateApplicationStatusHandler(req, res);
+
+    expect(res.status).not.toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
+  });
+
+  test('PATCH handler - returns 500 when an unexpected error is thrown', async () => {
+    mockSupabase.from.mockImplementation((table) => {
+      if (table === 'applications') {
+        throw new Error('unexpected update failure');
+      }
+
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      return chain;
+    });
+
+    const req = { params: { applicationId: 'app-1' }, body: { status: 'shortlisted' } };
+    const res = createMockRes();
+
+    await updateApplicationStatusHandler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: 'unexpected update failure'
     });
   });
 
