@@ -41,11 +41,11 @@ export function SkillsSection() {
             { headers: { Authorization: `Bearer ${token}` } }
           );
           const skillsData = await skillsRes.json();
-          //console.log("SKILL ITEM:", skillsData.applicantSkills?.[0]);
+          console.log("SKILL ITEM:", skillsData.applicantSkills?.[0]);
           if (skillsData.success && skillsData.applicantSkills) {
             const shaped = skillsData.applicantSkills.map((s) => ({
               id: s.skills_id ?? s.id,
-              name: s.title ?? s.skill_name ?? `Skill ${s.skills_id}`,
+              name: s.name ?? s.skill_name ?? `Skill ${s.skills_id}`,
             }));
             setSelectedSkills(shaped);
           }

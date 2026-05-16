@@ -20,8 +20,8 @@ const MOCK_PROFILE = {
 const MOCK_SKILLS_RESPONSE = {
   success: true,
   applicantSkills: [
-    { skills_id: "skill-1", title: "JavaScript" },
-    { skills_id: "skill-2", title: "Python" },
+    { skills_id: "skill-1", title: "JavaScript", name: "JavaScript" },
+    { skills_id: "skill-2", title: "Python", name: "Python" },
   ],
 };
 
