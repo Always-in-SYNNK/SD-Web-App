@@ -56,7 +56,7 @@ describe("myApplicationService", () => {
       select: () => ({
         eq: () => ({
           single: async () => ({
-            data: { id: "applicant-1" },
+            data: { id: "applicant-1", location: "Remote", nqf_level: 5 },
             error: null,
           }),
         }),
@@ -68,13 +68,41 @@ describe("myApplicationService", () => {
       select: () => ({
         eq: () => ({
           eq: () => ({
-            maybeSingle: async () => ({ data: null, error: null }), // No existing application
+            maybeSingle: async () => ({ data: null, error: null }),
           }),
         }),
       }),
     });
 
-    // 4. insert application - with .single()
+    // 4. get opportunity details
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({
+            data: {
+              id: opportunityId,
+              title: "Software Developer Role",
+              location: "Remote",
+              nqf_level: 5,
+              opportunity_skills: [{ skills_id: "skill-1" }],
+            },
+            error: null,
+          }),
+        }),
+      }),
+    });
+
+    // 5. applicant skills
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          data: [{ id: "skill-1" }],
+          error: null,
+        }),
+      }),
+    });
+
+    // 6. insert application
     mockFrom.mockReturnValueOnce({
       insert: () => ({
         select: () => ({
@@ -85,18 +113,6 @@ describe("myApplicationService", () => {
               opportunity_id: opportunityId,
               status: "received",
             },
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    // 5. get opportunity title
-    mockFrom.mockReturnValueOnce({
-      select: () => ({
-        eq: () => ({
-          single: async () => ({
-            data: { title: "Software Developer Role" },
             error: null,
           }),
         }),

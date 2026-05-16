@@ -22,8 +22,6 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
     console.log(`[AppService] Fetching applications for job: ${opportunityId}`);
 
     // STEP 1: VERIFY OWNERSHIP
-    // So Employer A can't see Employer B's applications
-    // Real world: You can't open someone else's mail
     const { data: opportunity, error: oppError } = await supabase
         .from('opportunities')
         .select('provider_id')
@@ -34,15 +32,11 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
         throw new Error('Job posting not found');
     }
 
-    // If the logged-in employer doesn't own this job, reject
     if (opportunity.provider_id !== providerProfileId) {
         throw new Error('Unauthorized: This is not your job posting');
     }
 
-    // STEP 2: FETCH APPLICATIONS
-    // Get all applications with the applicant's full profile
-    // The '!inner' means only get applications that have matching applicant data
-
+    // STEP 2: FETCH APPLICATIONS INCLUDING MATCH_SCORE
     const { data: applications, error: appError } = await supabase
         .from('applications')
         .select(`
@@ -52,6 +46,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
             cv_url,
             applied_at,
             updated_at,
+            match_score,
             applicant_profiles!inner (
                 id,
                 bio,
@@ -70,14 +65,13 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
             )
         `)
         .eq('opportunity_id', opportunityId)
-        .order('applied_at', { ascending: false });  // Newest first
+        .order('applied_at', { ascending: false });
 
     if (appError) {
         throw appError;
     }
 
-    // STEP 3: FORMAT DATA FOR FRONTEND
-    // The database returns nested data. We flatten it for easier use in React
+    // STEP 3: FORMAT DATA FOR FRONTEND (INCLUDING SCORE)
     const formattedApplications = applications.map(app => ({
         applicationId: app.id,
         status: app.status,
@@ -85,6 +79,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
         cvUrl: app.cv_url || app.applicant_profiles.cv_url,
         appliedAt: app.applied_at,
         updatedAt: app.updated_at,
+        matchScore: app.match_score,                // ← added match score
         applicant: {
             id: app.applicant_profiles.profile_id,
             name: app.applicant_profiles.profiles.full_name,
@@ -93,7 +88,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
             bio: app.applicant_profiles.bio,
             location: app.applicant_profiles.location,
             nqfLevel: app.applicant_profiles.nqf_level,
-            skills: app.applicant_profiles.skills || [],    //We need to go into applicant_skills for this
+            skills: app.applicant_profiles.skills || [],
             phoneNumber: app.applicant_profiles.phone_number
         }
     }));
@@ -159,7 +154,7 @@ export async function updateApplicationStatus(applicationId, newStatus, provider
         .single();
 
     if (updateError) throw updateError;
-    
+
     // STEP 4: Create Notification
     try {
         await notifyApplicationStatusChange(application.applicant_id, applicationId, application.opportunity_id, newStatus);
