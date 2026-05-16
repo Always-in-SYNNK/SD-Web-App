@@ -16,10 +16,14 @@ export async function getApplicantSkills(applicantId) {
             id,
             applicant_id,
             skills_id,
-            skills:skills_id (
+            unit_standards:skills_id (
                 id,
-                name,
-                field
+                saqa_us_id,
+                title,
+                field,
+                subfield,
+                originator,
+                nqf_level
             )
         `)
         .eq("applicant_id", applicantId);
@@ -36,11 +40,16 @@ export async function getApplicantSkills(applicantId) {
     }
 
     const mapped = data.map((row) => {
+        const unitStandards = row.unit_standards;
         return {
-            id: row.skills?.id ?? row.skills_id,
+            id: unitStandards?.id ?? row.skills_id,
+            saqa_id: unitStandards?.saqa_us_id ?? null,
             skills_id: row.skills_id,
-            name: row.skills?.name ?? null,
-            field: row.skills?.field ?? null,
+            name: unitStandards?.title ?? null,
+            field: unitStandards?.field ?? null,
+            subfield: unitStandards?.subfield ?? null,
+            originator: unitStandards?.originator ?? null,
+            nqf_level: unitStandards?.nqf_level ?? null,
         };
     });
 

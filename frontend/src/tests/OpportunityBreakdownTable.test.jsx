@@ -14,6 +14,7 @@ describe("OpportunityBreakdownTable", () => {
             statusBreakdown: {
                 pending: 20,
                 shortlisted: 15,
+                offered: 10,
                 accepted: 10,
                 rejected: 5,
             },
@@ -27,6 +28,7 @@ describe("OpportunityBreakdownTable", () => {
             statusBreakdown: {
                 pending: 8,
                 shortlisted: 7,
+                offered: 5,
                 accepted: 5,
                 rejected: 5,
             },
@@ -74,6 +76,7 @@ describe("OpportunityBreakdownTable", () => {
                 statusKeys={[
                     "pending",
                     "shortlisted",
+                    "offered",
                     "accepted",
                     "rejected",
                 ]}
@@ -82,6 +85,7 @@ describe("OpportunityBreakdownTable", () => {
 
         expect(screen.getByText("Pending")).toBeInTheDocument();
         expect(screen.getByText("Shortlisted")).toBeInTheDocument();
+        expect(screen.getByText("Offered")).toBeInTheDocument();
         expect(screen.getByText("Accepted")).toBeInTheDocument();
         expect(screen.getByText("Rejected")).toBeInTheDocument();
     });

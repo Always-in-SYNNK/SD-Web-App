@@ -1,3 +1,4 @@
+//frontend/src/components/studentProfile/skills.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/useAuth";
 
@@ -45,7 +46,7 @@ export function SkillsSection() {
           if (skillsData.success && skillsData.applicantSkills) {
             const shaped = skillsData.applicantSkills.map((s) => ({
               id: s.skills_id ?? s.id,
-              name: s.name ?? s.skill_name ?? `Skill ${s.skills_id}`,
+              title: s.title ?? s.skill_name ?? `Skill ${s.skills_id}`,
             }));
             setSelectedSkills(shaped);
           }
@@ -141,7 +142,7 @@ export function SkillsSection() {
                   key={skill.id}
                   className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm flex items-center gap-2"
                 >
-                  {skill.name}
+                  {skill.title}
                   <button
                     onClick={() => removeSkill(skill.id)}
                     className="text-blue-300 hover:text-blue-600 text-xs"
@@ -196,7 +197,7 @@ export function SkillsSection() {
                           : "bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700"
                       }`}
                     >
-                      {skill.name} {already ? "✓" : "+"}
+                      {skill.title} {already ? "✓" : "+"}
                     </button>
                   );
                 })}

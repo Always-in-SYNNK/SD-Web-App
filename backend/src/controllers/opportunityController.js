@@ -13,7 +13,7 @@ import {
   matchingOpportunity,
   getOpportunityById,
 } from '../services/opportunityService.js';
-import { notifyAllApplicantsNewOpportunity } from '../services/reminderService.js';
+import { notifyMatchingOpportunities } from '../services/reminderService.js';
 
 export async function fetchLocations(req, res, next) {
   try {
@@ -215,8 +215,8 @@ export const approveOpportunity = async (req, res) => {
       });
     }
 
-    // Send notifications to all applicants
-    await notifyAllApplicantsNewOpportunity(id, opportunity.title);
+    // Send matchingOpportunity notifications to all applicants
+     await notifyMatchingOpportunities();
     console.log(`✅ Notifications sent for approved opportunity: ${opportunity.title}`);
 
     res.status(200).json({

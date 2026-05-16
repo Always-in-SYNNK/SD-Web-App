@@ -46,7 +46,9 @@ export const getMyAdminApplicationStatus = async () => {
   return res.json();
 };
 
-/* GET ALL */
+
+
+/* GET ALL ADMIN APPLICATIONS */
 export const getAdminApplications = async () => {
   const res = await fetch(`${API_URL}/api/admin/applications`, {
     credentials: "include",
@@ -84,4 +86,18 @@ export const rejectAdminApplication = async (id) => {
   if (!res.ok) {
     throw new Error(await parseErrorMessage(res, "Failed to reject"));
   }
+};
+
+/* GET ADMIN OPPORTUNITY STATS */
+export const getAdminStats = async () => {
+  const res = await fetch(`${API_URL}/api/admin/admin-stats`, {
+    credentials: "include",
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    throw new Error(await parseErrorMessage(res, "Failed to fetch admin opportunity stats"));
+  }
+
+  return res.json();
 };

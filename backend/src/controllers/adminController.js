@@ -36,6 +36,7 @@ export const getAdminApplications = async (req, res) => {
   }
 };
 
+
 export const approveApplication = async (req, res) => {
   try {
     const { id } = req.params;
@@ -57,5 +58,21 @@ export const rejectApplication = async (req, res) => {
     res.json({ message: "Rejected" });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const getAdminStats = async (req, res) => {
+  try {
+    const stats = await adminService.getAdminStats();
+
+    res.status(200).json({
+      success: true,
+      data: stats,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
   }
 };

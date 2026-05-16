@@ -56,6 +56,8 @@ export const fetchApplications = async () => {
   return data;
 };
 
+
+
 export const approveApplication = async (applicationId) => {
   // get application - need the user id to grant admin later
   const { data: app, error: fetchError } = await supabase
@@ -86,4 +88,48 @@ export const rejectApplication = async (applicationId) => {
     .eq("id", applicationId);
 
   if (error) throw error;
+};
+
+export const getAdminStats = async () => {
+  // approved
+  const { count: approvedCount, error: approvedError } = await supabase
+    .from("opportunities")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "approved");
+
+  if (approvedError) throw approvedError;
+
+  // pending
+  const { count: pendingCount, error: pendingError } = await supabase
+    .from("opportunities")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "pending");
+
+  if (pendingError) throw pendingError;
+
+  // rejected
+  const { count: rejectedCount, error: rejectedError } = await supabase
+    .from("opportunities")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "rejected");
+
+  if (rejectedError) throw rejectedError;
+
+  // today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const { count: todayCount, error: todayError } = await supabase
+    .from("opportunities")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", today.toISOString());
+
+  if (todayError) throw todayError;
+
+  return {
+    approved: approvedCount || 0,
+    pending: pendingCount || 0,
+    rejected: rejectedCount || 0,
+    today: todayCount || 0,
+  };
 };
