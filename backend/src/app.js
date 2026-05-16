@@ -8,6 +8,7 @@ import cors from "cors";
 import session from "express-session";
 import path from "path";
 
+//import applicationRoutes from "./routes/applicationRoutes.js";
 import employerApplicationRoutes from "./routes/employerApplicationRoutes.js";
 import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
@@ -45,6 +46,9 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000,
   },
 }));
+
+// ─── Application Routes ───────────────────────────────────────────────────────
+//app.use('/api/applications', applicationRoutes);
 
 // ─── Skills Routes ───────────────────────────────────────────────────────
 app.use('/api/skills', skillsRoutes);
