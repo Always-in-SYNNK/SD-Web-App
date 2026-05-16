@@ -38,8 +38,13 @@ jest.unstable_mockModule('../src/middleware/providerAuthMiddleware.js', () => ({
 }));
 
 // Import after mocks
-const { default: router } = await import('../src/routes/employerApplicationRoutes.js');
+const {
+  default: router,
+  getApplicationsForOpportunityHandler,
+  updateApplicationStatusHandler,
+} = await import('../src/routes/employerApplicationRoutes.js');
 const { getApplicantCVSignedUrl } = await import('../src/services/profileService.js');
+const { notifyApplicationStatusChange } = await import('../src/services/notificationService.js');
 import express from 'express';
 import request from 'supertest';
 
@@ -53,6 +58,13 @@ describe('Employer Application Routes', () => {
     select: jest.fn().mockReturnThis(),
     update: jest.fn().mockReturnThis()
   });
+
+  const createMockRes = () => {
+    const res = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+    return res;
+  };
 
   beforeEach(() => {
     app = express();
@@ -120,6 +132,56 @@ describe('Employer Application Routes', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data).toHaveLength(1);
     expect(response.body.data[0].applicant.name).toBe('John Doe');
+    expect(response.body.data[0].matchScore).toBeUndefined();
+  });
+
+  test('GET opportunity handler - returns 400 when opportunityId is missing', async () => {
+    const req = { params: {} };
+    const res = createMockRes();
+
+    await getApplicationsForOpportunityHandler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: 'Opportunity ID required'
+    });
+  });
+
+  test('GET opportunity handler - returns 500 when applications query fails', async () => {
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+      chain.order.mockReturnValue(chain);
+
+      if (table === 'opportunities') {
+        chain.single.mockResolvedValueOnce({
+          data: { provider_id: 'provider-123' },
+          error: null
+        });
+      }
+
+      if (table === 'applications') {
+        chain.order.mockResolvedValueOnce({
+          data: null,
+          error: new Error('query failed')
+        });
+      }
+
+      return chain;
+    });
+
+    const req = { params: { opportunityId: 'opp-123' } };
+    const res = createMockRes();
+
+    await getApplicationsForOpportunityHandler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: 'query failed'
+    });
   });
 
   // ============================================
@@ -276,6 +338,157 @@ describe('Employer Application Routes', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
+  });
+
+  test('PATCH handler - returns 400 when applicationId missing', async () => {
+    const req = { params: {}, body: { status: 'shortlisted' } };
+    const res = createMockRes();
+
+    await updateApplicationStatusHandler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: 'Application ID required'
+    });
+  });
+
+  test('PATCH handler - returns 400 when status is invalid', async () => {
+    const req = { params: { applicationId: 'app-1' }, body: { status: 'invalid-status' } };
+    const res = createMockRes();
+
+    await updateApplicationStatusHandler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+  });
+
+  test('PATCH handler - returns 500 when update fails', async () => {
+    let applicationsCallCount = 0;
+
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single.mockImplementation(() => {
+          applicationsCallCount += 1;
+
+          if (applicationsCallCount === 1) {
+            return Promise.resolve({
+              data: {
+                id: 'app-1',
+                status: 'received',
+                applicant_id: 'ap-1',
+                opportunity_id: 'opp-1'
+              },
+              error: null
+            });
+          }
+
+          return Promise.resolve({
+            data: null,
+            error: new Error('update failed')
+          });
+        });
+      }
+
+      return chain;
+    });
+
+    const req = { params: { applicationId: 'app-1' }, body: { status: 'shortlisted' } };
+    const res = createMockRes();
+
+    await updateApplicationStatusHandler(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      error: 'update failed'
+    });
+  });
+
+  test('PATCH handler - skips notification when status does not change', async () => {
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single
+          .mockResolvedValueOnce({
+            data: {
+              id: 'app-1',
+              status: 'received',
+              applicant_id: 'ap-1',
+              opportunity_id: 'opp-1'
+            },
+            error: null
+          })
+          .mockResolvedValueOnce({
+            data: { id: 'app-1', status: 'received' },
+            error: null
+          });
+      }
+
+      return chain;
+    });
+
+    const req = { params: { applicationId: 'app-1' }, body: { status: 'received' } };
+    const res = createMockRes();
+
+    await updateApplicationStatusHandler(req, res);
+
+    expect(res.status).not.toHaveBeenCalledWith(500);
+    expect(notifyApplicationStatusChange).not.toHaveBeenCalled();
+  });
+
+  test('PATCH handler - returns 200 even when notification fails', async () => {
+    notifyApplicationStatusChange.mockRejectedValueOnce(new Error('notification failed'));
+
+    mockSupabase.from.mockImplementation((table) => {
+      const chain = createMockChain();
+      chain.select.mockReturnValue(chain);
+      chain.update.mockReturnValue(chain);
+      chain.eq.mockReturnValue(chain);
+
+      if (table === 'applications') {
+        chain.single
+          .mockResolvedValueOnce({
+            data: {
+              id: 'app-1',
+              status: 'received',
+              applicant_id: 'ap-1',
+              opportunity_id: 'opp-1'
+            },
+            error: null
+          })
+          .mockResolvedValueOnce({
+            data: { id: 'app-1', status: 'shortlisted' },
+            error: null
+          });
+      }
+
+      if (table === 'applicant_profiles') {
+        chain.single.mockResolvedValueOnce({
+          data: { id: 'ap-1' },
+          error: null
+        });
+      }
+
+      return chain;
+    });
+
+    const req = { params: { applicationId: 'app-1' }, body: { status: 'shortlisted' } };
+    const res = createMockRes();
+
+    await updateApplicationStatusHandler(req, res);
+
+    expect(res.status).not.toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
   });
 
   // ============================================
