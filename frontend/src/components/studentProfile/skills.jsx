@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/useAuth";
 
+// Array of predefined fields/categories for skill selection
 const FIELDS = [
   "Human and Social Studies",
   "Physical, Mathematical, Computer and Life Sciences",
@@ -17,10 +18,12 @@ const FIELDS = [
   "Communication Studies and Language",
 ];
 
+// Main component for managing user skills
 export function SkillsSection() {
   const { token } = useAuth();
   const API = import.meta.env.VITE_API_URL;
 
+  // States
   const [selectedField, setSelectedField] = useState("");
   const [availableSkills, setAvailableSkills] = useState([]);
   const [selectedSkills, setSelectedSkills] = useState([]);
@@ -28,22 +31,23 @@ export function SkillsSection() {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
 
-  // Pre-populate existing skills on mount
   useEffect(() => {
     const fetchExistingSkills = async () => {
       try {
+        //Fetch user profile
         const res = await fetch(`${API}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
         if (data.profile?.applicant_profile_id) {
+          // Fetch skills associated with the user's profile
           const skillsRes = await fetch(
             `${API}/api/skills/applicant/${data.profile.applicant_profile_id}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           const skillsData = await skillsRes.json();
-          //console.log("SKILL ITEM:", skillsData.applicantSkills?.[0]);
           if (skillsData.success && skillsData.applicantSkills) {
+            // Transform skill data to consistent format
             const shaped = skillsData.applicantSkills.map((s) => ({
               id: s.skills_id ?? s.id,
               title: s.title ?? s.skill_name ?? `Skill ${s.skills_id}`,
@@ -58,7 +62,7 @@ export function SkillsSection() {
     if (token) fetchExistingSkills();
   }, [API, token]);
 
-  // Fetch available skills when field changes
+  //fetch available skills when selected field changes
   useEffect(() => {
     if (!selectedField) {
       setAvailableSkills([]);
@@ -67,6 +71,7 @@ export function SkillsSection() {
     const fetchSkills = async () => {
       setLoadingSkills(true);
       try {
+        // Fetch skills for the selected field
         const res = await fetch(
           `${API}/api/skills/field/${encodeURIComponent(selectedField)}`
         );
@@ -81,20 +86,27 @@ export function SkillsSection() {
     fetchSkills();
   }, [API, selectedField]);
 
+  //add skill to skills list
   const addSkill = (skill) => {
+    // check if skill is already in selected skills
     if (!selectedSkills.find((s) => s.id === skill.id)) {
+      // add skill to the list
       setSelectedSkills((prev) => [...prev, skill]);
     }
   };
 
+  //remove skill from skills list by filtering it out
   const removeSkill = (skillId) => {
+    // filter out the skill with matching id
     setSelectedSkills((prev) => prev.filter((s) => s.id !== skillId));
   };
 
+  //save selected skills to backend
   const saveSkills = async () => {
     setSaving(true);
     setSaveMessage("");
     try {
+      //update user skills via API call
       const res = await fetch(`${API}/api/skills/applicant/me`, {
         method: "PUT",
         headers: {
@@ -104,6 +116,7 @@ export function SkillsSection() {
         body: JSON.stringify({ skillIds: selectedSkills.map((s) => s.id) }),
       });
       const data = await res.json();
+      // check if save was successful
       if (data.success) {
         setSaveMessage("Skills saved successfully!");
       } else {
@@ -128,12 +141,13 @@ export function SkillsSection() {
 
       <div className="space-y-8">
 
-        {/* Selected skills */}
+        {/* Display all skills that user has selected */}
         <div>
           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-4">
             Your Skills
           </label>
           <div className="flex flex-wrap gap-2 min-h-[40px]">
+            {/* show empty message if no skills, otherwise display them */}
             {selectedSkills.length === 0 ? (
               <p className="text-gray-300 text-sm">No skills added yet.</p>
             ) : (
@@ -185,7 +199,9 @@ export function SkillsSection() {
             ) : (
               <div className="flex flex-wrap gap-2">
                 {availableSkills.map((skill) => {
+                  // check if this skill is already selected
                   const already = selectedSkills.find((s) => s.id === skill.id);
+                  // button is disabled if skill already selected, shows checkmark or plus sign
                   return (
                     <button
                       key={skill.id}
