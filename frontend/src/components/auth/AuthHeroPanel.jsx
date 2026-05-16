@@ -65,7 +65,7 @@ export default function AuthHeroPanel({
             src={backgroundImageUrl}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-800/90 to-blue-950/95" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-800/75 to-blue-950/70" />
         <div className="absolute inset-0 opacity-40" style={gridOverlayStyle} />
       </div>
 

@@ -55,7 +55,13 @@ export default function GoogleLoginButton({ selectedRole, from, onLoadingChange,
 
   return (
     <div className="w-full flex items-center justify-center">
-      <GoogleLogin onSuccess={handleSuccess} onError={handleError} />
+      <GoogleLogin
+        onSuccess={handleSuccess}
+        onError={handleError}
+        useOneTap={false}
+        auto_select={false}
+        prompt="select_account"
+      />
     </div>
   );
 }

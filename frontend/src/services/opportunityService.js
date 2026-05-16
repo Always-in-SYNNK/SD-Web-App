@@ -173,7 +173,10 @@ export const getOpportunitySkills = async (opportunityId) => {
     );
     const skills = res?.data?.opportunitySkills ?? [];
     return {
-      data: skills.map((s) => ({ id: s.id ?? s.skills_id, name: s.name ?? s.skill_name })),
+      data: skills.map((s) => ({
+        id: s.id ?? s.skills_id,
+        title: s.title ?? s.name ?? s.skill_name,
+      })),
       error: null,
     };
   } catch (err) {

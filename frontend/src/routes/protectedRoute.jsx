@@ -13,34 +13,22 @@ export default function ProtectedRoute({ children, requiredRole }) {
     return <Navigate to="/" replace />;
   }
 
-  let providerRole = null;
-  let providerIsAdmin = false;
-
-  try {
-    const providerUser = localStorage.getItem("provider_user");
-    if (providerUser) {
-      const parsedProviderUser = JSON.parse(providerUser);
-      providerRole = parsedProviderUser?.role || null;
-      providerIsAdmin = Boolean(parsedProviderUser?.isAdmin);
-    }
-  } catch {
-    localStorage.removeItem("provider_user");
-  }
-
-  const hasApplicantSession = Boolean(token && role);
-  const hasProviderSession = providerRole === "provider";
-  const applicantSessionIsAdmin = hasApplicantSession && Boolean(user?.isAdmin);
-  const providerSessionIsAdmin = hasProviderSession && providerIsAdmin;
+  // Rely on AuthContext (token/role/user) as the single source of truth.
+  // Avoid trusting raw `localStorage.provider_user` which can be stale.
+  const hasSession = Boolean(token && role);
+  const isProviderSession = hasSession && role === "provider";
+  const isApplicantSession = hasSession && role === "applicant";
+  const sessionIsAdmin = hasSession && Boolean(user?.isAdmin);
 
   if (requiredRole === "admin") {
-    if (hasApplicantSession && applicantSessionIsAdmin) {
+    if (isApplicantSession && sessionIsAdmin) {
       return children;
     }
-    if (!hasApplicantSession && hasProviderSession && providerSessionIsAdmin) {
+    if (!isApplicantSession && isProviderSession && sessionIsAdmin) {
       return children;
     }
 
-    if (hasApplicantSession || hasProviderSession) {
+    if (isApplicantSession || isProviderSession) {
       return (
         <Navigate
           to="/unauthorized"
@@ -55,7 +43,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
     return (
       <Navigate
-        to={isLogout ? "/" : "/auth-error"}
+        to={isLogout ? "/" : "/auth-error"}  //this redirection doesn't work at all
         replace
         state={{
           loginPage: "", // No specific login page for admin - redirect to home
@@ -67,11 +55,10 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole === "provider") {
-    if (hasProviderSession) {
+    if (isProviderSession) {
       return children;
     }
-
-    if (hasApplicantSession) {
+    if (isApplicantSession) {
       return (
         <Navigate
           to="/unauthorized"
@@ -86,7 +73,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
     return (
       <Navigate
-        to={isLogout ? "/" : "/auth-error"}
+        to={isLogout ? "/" : "/auth-error"} //this redirection doesn't work at all
         replace
         state={{
           loginPage: "prov-login",
@@ -98,11 +85,10 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole === "applicant") {
-    if (hasApplicantSession && role === "applicant") {
+    if (isApplicantSession && role === "applicant") {
       return children;
     }
-
-    if (hasProviderSession || (hasApplicantSession && role !== "applicant")) {
+    if (isProviderSession || (isApplicantSession && role !== "applicant")) {
       return (
         <Navigate
           to="/unauthorized"
@@ -129,7 +115,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   //Not logged in
-  if (!hasApplicantSession && !hasProviderSession) {
+  if (!isApplicantSession && !isProviderSession) {
     return (
       <Navigate
         to={isLogout ? "/" : "/auth-error"}

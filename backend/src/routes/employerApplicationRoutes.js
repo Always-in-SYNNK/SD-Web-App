@@ -10,14 +10,7 @@ import { notifyApplicationStatusChange } from "../services/notificationService.j
 
 const router = Router();
 
-// All routes require provider authentication
-router.use(providerAuthMiddleware);
-
-// GET /api/employer/applications/:applicationId/details
-router.get('/:applicationId/details', fetchApplicantDetails);
-
-// GET /api/employer/applications/opportunity/:opportunityId
-router.get('/opportunity/:opportunityId', async (req, res) => {
+export async function getApplicationsForOpportunityHandler(req, res) {
   try {
     const { opportunityId } = req.params;
 
@@ -32,6 +25,7 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
         id,
         status,
         created_at,
+        match_score,
         applicant_profiles!inner (
           id,
           surname,
@@ -56,6 +50,7 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
       applicationId: app.id,
       status: app.status,
       appliedAt: app.created_at,
+      matchScore: app.match_score,
       applicant: {
         id: app.applicant_profiles.profile_id,
         applicantProfileId: app.applicant_profiles.id,
@@ -69,19 +64,15 @@ router.get('/opportunity/:opportunityId', async (req, res) => {
       }
     }));
 
-    res.json({ success: true, data: formattedApplications, count: formattedApplications.length });
+    return res.json({ success: true, data: formattedApplications, count: formattedApplications.length });
 
   } catch (error) {
     console.error('Error fetching applications:', error);
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
-});
+}
 
-// GET /api/employer/applications/:applicationId/cv/signed-url
-router.get('/:applicationId/cv/signed-url', fetchApplicantCvSignedUrl);
-
-// PATCH /api/employer/applications/:applicationId
-router.patch('/:applicationId', async (req, res) => {
+export async function updateApplicationStatusHandler(req, res) {
   try {
     const { applicationId } = req.params;
     const { status } = req.body;
@@ -154,12 +145,27 @@ router.patch('/:applicationId', async (req, res) => {
             status === 'offered' ? 'Offer sent successfully' :
             'Candidate rejected successfully';
 
-    res.json({ success: true, message, data });
+    return res.json({ success: true, message, data });
 
   } catch (error) {
     console.error('Error updating application:', error);
-    res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
-});
+}
+
+// All routes require provider authentication
+router.use(providerAuthMiddleware);
+
+// GET /api/employer/applications/:applicationId/details
+router.get('/:applicationId/details', fetchApplicantDetails);
+
+// GET /api/employer/applications/opportunity/:opportunityId
+router.get('/opportunity/:opportunityId', getApplicationsForOpportunityHandler);
+
+// GET /api/employer/applications/:applicationId/cv/signed-url
+router.get('/:applicationId/cv/signed-url', fetchApplicantCvSignedUrl);
+
+// PATCH /api/employer/applications/:applicationId
+router.patch('/:applicationId', updateApplicationStatusHandler);
 
 export default router;

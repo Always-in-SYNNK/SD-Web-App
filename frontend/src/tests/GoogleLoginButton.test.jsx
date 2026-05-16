@@ -150,4 +150,26 @@ describe("GoogleLoginButton", () => {
       })
     );
   });
+
+  it("handles login failure when selectedRole is provider", async () => {
+    mockLoginWithGoogle.mockRejectedValue(new Error("Provider auth failed"));
+
+    render(
+      <GoogleLoginButton selectedRole="provider" />
+    );
+
+    fireEvent.click(screen.getByText("Google Success"));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/auth-error",
+        expect.objectContaining({
+          state: expect.objectContaining({
+            loginPage: "prov-login",
+            message: "Provider auth failed",
+          }),
+        })
+      );
+    });
+  });
 });
