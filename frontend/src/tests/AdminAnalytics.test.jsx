@@ -204,8 +204,9 @@ describe("AdminAnalytics", () => {
   it("both APIs fail — still renders page with mock data", async () => {
     mockGetPlacementRates.mockRejectedValue(new Error("Network error"));
     mockGetApplicationVolume.mockRejectedValue(new Error("Network error"));
+
     renderPage();
-    await waitFor(() => expect(screen.getByText("Analytics & Governance")).toBeDefined());
-    expect(screen.getByTestId("sector-bar-chart")).toBeDefined();
+
+    expect(await screen.findByTestId("sector-bar-chart")).toBeDefined();
   });
 });

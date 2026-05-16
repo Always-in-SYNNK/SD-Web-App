@@ -1,4 +1,4 @@
-// src/tests/SkillsSection.test.jsx
+// src/tests/Skills.test.jsx
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { SkillsSection } from "../components/studentProfile/skills";

@@ -278,7 +278,13 @@ export async function getOpportunityForProvider({ providerId, opportunityId }) {
 export const getOpportunitiesByStatus = async (status) => {
   const { data, error } = await supabase
     .from("opportunities")
-    .select("*")
+    .select(`
+      *,
+      provider_profiles (
+        id,
+        profile_id
+      )
+    `)
     .eq("status", status)
     .order("created_at", { ascending: false });
 

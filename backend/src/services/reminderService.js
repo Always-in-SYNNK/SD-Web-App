@@ -68,6 +68,11 @@ export async function sendClosingDateReminders() {
         return;
     }
 
+    if (!opportunities || opportunities.length === 0) {
+        console.log("📭 No opportunities with closing dates found");
+        return;
+    }
+
     for (const opp of opportunities || []) {
         const closingDate = opp.closing_date;
         const daysUntilClose = Math.ceil((new Date(closingDate) - today) / (1000 * 60 * 60 * 24));
@@ -134,6 +139,19 @@ export async function notifyMatchingOpportunities() {
         console.error("Error fetching applicants:", error);
         return;
     }
+
+    if (!applicants || applicants.length === 0) {
+        console.log("📭 No applicants found in the system. No notifications sent.");
+        return;
+    }
+
+    console.log(`📊 Found ${applicants.length} applicants to notify`);
+
+    // Improved notification content
+    //const title = "🎉 New Opportunity Available!";
+    //const message = `Exciting news! "${opportunityTitle}" has been approved and is now open for applications. This opportunity matches your profile - don't wait, apply today!`;
+    
+    let successCount = 0;
 
     for (const applicant of applicants || []) {
         const userId = applicant.profiles?.user_id;

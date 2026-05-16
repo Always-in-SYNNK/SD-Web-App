@@ -368,12 +368,12 @@ const OpportunityForm = () => {
                       key={skill.id}
                       className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm flex items-center gap-2"
                     >
-                      {skill.name}
+                      {skill.title}
                       <button
                         type="button"
                         onClick={() => removeSkill(skill.id)}
                         className="text-blue-300 hover:text-blue-600 text-xs leading-none"
-                        aria-label={`Remove ${skill.name}`}
+                        aria-label={`Remove ${skill.title}`}
                       >
                         ✕
                       </button>
@@ -409,7 +409,7 @@ const OpportunityForm = () => {
                               : "bg-[#e3e2e2] text-[#404850] hover:bg-green-100 hover:text-green-700"
                           }`}
                         >
-                          {skill.name} {already ? "✓" : "+"}
+                          {skill.title} {already ? "✓" : "+"}
                         </button>
                       );
                     })}
@@ -464,6 +464,7 @@ const OpportunityForm = () => {
                   <option value="1 Month">1 Month</option>
                   <option value="3 Months">3 Months</option>
                   <option value="6 Months">6 Months</option>
+                  <option value="9 Months">9 Months</option>
                   <option value="12 Months">12 Months</option>
                   <option value="18 Months">18 Months</option>
                 </select>
