@@ -1,3 +1,4 @@
+//frontend/src/components/studentProfile/skills.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/useAuth";
 
@@ -45,7 +46,7 @@ export function SkillsSection() {
           if (skillsData.success && skillsData.applicantSkills) {
             const shaped = skillsData.applicantSkills.map((s) => ({
               id: s.skills_id ?? s.id,
-              name: s.title ?? s.skill_name ?? `Skill ${s.skills_id}`,
+              title: s.title ?? s.skill_name ?? `Skill ${s.skills_id}`,
             }));
             setSelectedSkills(shaped);
           }

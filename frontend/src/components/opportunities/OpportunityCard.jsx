@@ -117,6 +117,7 @@ export function OpportunityCard({
             )}
             {onDelete && (
               <button
+                disabled={disableDelete}
                 onClick={(e) => { e.stopPropagation(); onDelete(id); }}
                 className="px-5 py-2 bg-red-100 text-red-600 rounded-lg font-bold text-sm hover:bg-red-200 transition"
                 title={disableDelete ? "You cannot delete your own opportunity." : undefined}
