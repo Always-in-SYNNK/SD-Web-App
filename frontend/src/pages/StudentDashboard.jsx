@@ -2,33 +2,44 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/useAuth";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { UploadBanner } from "../components/dashboard/UploadBanner";
 import { QualificationList } from "../components/dashboard/QualificationList";
-import { OpportunityCard } from "../components/dashboard/OpportunityCard";
-import { VerificationCard } from "../components/dashboard/VerificationCard";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
+import { CVCard } from "../components/dashboard/CVCard";
 
 export default function StudentDashboard() {
   const { token, user } = useAuth();
   const API = import.meta.env.VITE_API_URL;
   const [profile, setProfile] = useState(null);
+  const [cvUrl, setCvUrl] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        console.log("TOKEN:", token);
         const res = await fetch(`${API}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("STATUS:", res.status);
         const data = await res.json();
-        console.log("PROFILE:", data);
         if (data.profile) setProfile(data.profile);
       } catch (err) {
         console.error("Failed to load profile:", err);
       }
     };
     if (token) fetchProfile();
+  }, [token]);
+
+  useEffect(() => {
+    const fetchCv = async () => {
+      try {
+        const res = await fetch(`${API}/api/profile/me/cv/signed-url`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.signed_url) setCvUrl(data.signed_url);
+      } catch (err) {
+        console.error("Failed to fetch CV:", err);
+      }
+    };
+    if (token) fetchCv();
   }, [token]);
 
   const initials = profile?.full_name
@@ -55,12 +66,8 @@ export default function StudentDashboard() {
 
         <section className="p-12">
           <DashboardHeader profile={profile} />
-          <UploadBanner />
-          <QualificationList />
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <OpportunityCard />
-            <VerificationCard />
-          </section>
+          <QualificationList qualifications={profile?.qualifications ?? []} />
+          <CVCard cvUrl={cvUrl} />
         </section>
       </section>
 
