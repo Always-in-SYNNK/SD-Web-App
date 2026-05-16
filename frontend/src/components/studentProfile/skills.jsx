@@ -45,7 +45,7 @@ export function SkillsSection() {
           if (skillsData.success && skillsData.applicantSkills) {
             const shaped = skillsData.applicantSkills.map((s) => ({
               id: s.skills_id ?? s.id,
-              name: s.name ?? s.skill_name ?? `Skill ${s.skills_id}`,
+              name: s.title ?? s.skill_name ?? `Skill ${s.skills_id}`,
             }));
             setSelectedSkills(shaped);
           }
@@ -196,7 +196,7 @@ export function SkillsSection() {
                           : "bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700"
                       }`}
                     >
-                      {skill.name} {already ? "✓" : "+"}
+                      {skill.title} {already ? "✓" : "+"}
                     </button>
                   );
                 })}

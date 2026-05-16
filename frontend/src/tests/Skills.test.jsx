@@ -5,11 +5,6 @@ import { SkillsSection } from "../components/studentProfile/skills";
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock("../../context/useAuth", () => ({
-  useAuth: () => ({ token: "mock-token" }),
-}));
-
-// Fix the import path to match your actual file location
 vi.mock("../context/useAuth", () => ({
   useAuth: () => ({ token: "mock-token" }),
 }));
@@ -25,17 +20,17 @@ const MOCK_PROFILE = {
 const MOCK_SKILLS_RESPONSE = {
   success: true,
   applicantSkills: [
-    { skills_id: "skill-1", name: "JavaScript" },
-    { skills_id: "skill-2", name: "Python" },
+    { skills_id: "skill-1", title: "JavaScript" },
+    { skills_id: "skill-2", title: "Python" },
   ],
 };
 
 const MOCK_FIELD_SKILLS = {
   success: true,
   data: [
-    { id: "skill-3", name: "React" },
-    { id: "skill-4", name: "Node.js" },
-    { id: "skill-1", name: "JavaScript" }, // already selected
+    { id: "skill-3", title: "React", name: "React" },
+    { id: "skill-4", title: "Node.js", name: "Node.js" },
+    { id: "skill-1", title: "JavaScript", name: "JavaScript" }, // already selected
   ],
 };
 
