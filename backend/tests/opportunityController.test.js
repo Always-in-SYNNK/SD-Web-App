@@ -23,7 +23,7 @@ const mockService = {
 jest.unstable_mockModule("../src/services/opportunityService.js", () => mockService);
 
 const mockReminderService = {
-  notifyAllApplicantsNewOpportunity: jest.fn(),
+  notifyMatchingOpportunities: jest.fn(),
 };
 
 jest.unstable_mockModule("../src/services/reminderService.js", () => mockReminderService);
