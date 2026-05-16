@@ -16,10 +16,13 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        console.log("TOKEN:", token);
         const res = await fetch(`${API}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("STATUS:", res.status);
         const data = await res.json();
+        console.log("PROFILE:", data);
         if (data.profile) setProfile(data.profile);
       } catch (err) {
         console.error("Failed to load profile:", err);

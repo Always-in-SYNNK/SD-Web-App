@@ -1,58 +1,68 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabaseClient";
-import { QualificationCard } from "../components/opportunities/QualificationCard";
+import { QualificationCard } from "../components/qualifications/QualificationCard";
 import { Sidebar } from "../components/dashboard/Sidebar";
-import { OpportunityFilters } from "../components/opportunities/OpportunityFilters";
+import { QualificationFilters } from "../components/qualifications/QualificationFilters";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 
 export default function Qualifications() {
   const [search, setSearch] = useState("");
   const [committedSearch, setCommittedSearch] = useState("");
   const [quals, setQuals] = useState([]);
-  const [location, setLocation] = useState("");
   const [nqf, setNqf] = useState("");
   const [field, setField] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const { token, user } = useAuth();
-    const API = import.meta.env.VITE_API_URL;
-    const [profile, setProfile] = useState(null);
-  
-    useEffect(() => {
-      const fetchProfile = async () => {
-        try {
-          const res = await fetch(`${API}/api/profile/me`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-          if (data.profile) setProfile(data.profile);
-        } catch (err) {
-          console.error("Failed to load profile:", err);
-        }
-      };
-      if (token) fetchProfile();
-    }, [token]);
-  
-    const initials = profile?.full_name
-      ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-      : user?.email?.[0]?.toUpperCase() ?? "JD";
-  
+  const API = import.meta.env.VITE_API_URL;
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API}/api/profile/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.profile) setProfile(data.profile);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      }
+    };
+    if (token) fetchProfile();
+  }, [token]);
+
+  const initials = profile?.full_name
+    ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : user?.email?.[0]?.toUpperCase() ?? "JD";
 
   useEffect(() => {
     const fetchQuals = async () => {
       setLoading(true);
       setError(null);
+
       const { data, error } = await supabase.rpc(
         committedSearch ? "search_qualifications" : "get_all_qualifications",
         committedSearch ? { search_term: committedSearch } : undefined
       );
-      if (error) { setError(error.message); } else { setQuals(data || []); }
+
+      if (error) {
+        setError(error.message);
+      } else {
+        let filtered = data || [];
+        if (field) filtered = filtered.filter((q) => q.field === field);
+        if (nqf) filtered = filtered.filter((q) => String(q.nqf_level) === String(nqf));
+        setQuals(filtered); // only set AFTER all filters applied
+      }
+      //console.log("RAW DATA LENGTH:", data?.length);
+      //console.log("NQF VALUES IN DATA:", [...new Set(data?.map(q => q.nqf_level))]);
       setLoading(false);
     };
+
     fetchQuals();
-  }, [committedSearch]);
+  }, [committedSearch, field, nqf]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") setCommittedSearch(search);
@@ -93,10 +103,13 @@ export default function Qualifications() {
 
           <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <aside className="lg:col-span-3">
-              <OpportunityFilters
-                location={location} setLocation={setLocation}
-                nqf={nqf} setNqf={setNqf}
-                field={field} setField={setField}
+              <QualificationFilters
+                nqfLevel={nqf}
+                field={field}
+                setNqfLevel={setNqf}
+                setField={setField}
+                onReset={() => { setNqf(""); setField(""); }}
+                loading={loading}
               />
             </aside>
             <section className="lg:col-span-9">

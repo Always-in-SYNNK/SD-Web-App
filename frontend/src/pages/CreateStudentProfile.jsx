@@ -24,15 +24,6 @@ export default function CompleteProfile() {
               <p className="text-gray-500 text-lg leading-relaxed max-w-2xl mx-auto">
                 Let's build your professional foundation. Your profile is the stage where your ambition meets opportunity.
               </p>
-              <div className="mt-8 flex justify-center">
-                <div className="flex items-center gap-3 bg-gray-100 px-6 py-3 rounded-full">
-                  <span className="text-[#035b9d] font-bold">25%</span>
-                  <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="w-1/4 h-full bg-[#035b9d] rounded-full" />
-                  </div>
-                  <span className="text-gray-400 text-sm uppercase tracking-widest font-semibold">Progress</span>
-                </div>
-              </div>
             </header>
 
             <ProfileForm />

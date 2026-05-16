@@ -16,7 +16,6 @@ export function Sidebar() {
     { icon: "🎓", label: "Qualifications", path: "/qualifications" },
     { icon: "💼", label: "Opportunities", path: "/opportunities" },
     { icon: "📄", label: "Applications", path: "/applications" },
-    { icon: "✅", label: "Verification", path: "/verification" },
   ];
 
   const adminLinks = [
@@ -102,13 +101,6 @@ export function Sidebar() {
             View Profile
           </button>
           <div className="space-y-2">
-            <a
-              href="#"
-              className="flex items-center space-x-3 px-4 py-2 text-gray-500 hover:text-[#035b9d]"
-            >
-              <i>⚙️</i>
-              <strong>Settings</strong>
-            </a>
             <button
               onClick={handleLogout}
               className="flex items-center space-x-3 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition"

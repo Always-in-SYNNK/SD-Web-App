@@ -1,25 +1,16 @@
 import { useEffect, useState } from "react";
 import { OpportunityCard } from "./OpportunityCard";
-import { QualificationCard } from "./QualificationCard";
 import { fetchMyApplications } from "../../services/myApplicationService";
 
 export function OpportunityList({
   items = [],
   loading = false,
   error = "",
-  summary = { opportunities: 0, qualifications: 0 },
+  summary = { opportunities: 0 },
   pagination = null,
   onPageChange,
 }) {
   const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
-
-  const getItemKey = (item, index) => {
-    if (item?._type === "qualification") {
-      return `qualification-${item.qual_id ?? item.id ?? index}`;
-    }
-
-    return `opportunity-${item?.id ?? index}`;
-  };
 
   useEffect(() => {
     const fetchAppliedOpportunityIds = async () => {
@@ -31,19 +22,15 @@ export function OpportunityList({
               const opportunity = Array.isArray(application?.opportunities)
                 ? application.opportunities[0]
                 : application?.opportunities;
-
               return opportunity?.id;
             })
             .filter(Boolean)
         );
-
         setAppliedOpportunityIds(ids);
       } catch {
-        // Keep the opportunities view functional even if applied-status lookup fails.
         setAppliedOpportunityIds(new Set());
       }
     };
-
     fetchAppliedOpportunityIds();
   }, [items]);
 
@@ -68,9 +55,7 @@ export function OpportunityList({
     return (
       <section className="flex flex-col items-center justify-center py-24 text-center">
         <p className="font-bold text-gray-700">No opportunities found</p>
-        <p className="text-sm text-gray-400 mt-1">
-          Try adjusting your filters
-        </p>
+        <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
       </section>
     );
   }
@@ -79,32 +64,17 @@ export function OpportunityList({
     <section className="space-y-6">
       <header className="flex items-center justify-between">
         <small className="text-sm text-gray-500">
-          Showing <strong>{summary.opportunities}</strong> opportunities and <strong>{summary.qualifications}</strong> qualifications
+          Showing <strong>{summary.opportunities}</strong> opportunities
         </small>
-
-        <nav className="flex items-center gap-2">
-          <small className="text-xs font-bold uppercase tracking-widest text-gray-400">
-            Sort by:
-          </small>
-          <select className="bg-transparent border-none text-sm font-bold text-[#035b9d] focus:ring-0">
-            <option>Recently Added</option>
-            <option>Closing Soon</option>
-            <option>Highest Stipend</option>
-          </select>
-        </nav>
       </header>
 
       <section className="flex flex-col gap-4">
         {items.map((item, index) => (
-          item?._type === "qualification" ? (
-            <QualificationCard key={getItemKey(item, index)} {...item} />
-          ) : (
-            <OpportunityCard
-              key={getItemKey(item, index)}
-              {...item}
-              isApplied={appliedOpportunityIds.has(item.id)}
-            />
-          )
+          <OpportunityCard
+            key={`opportunity-${item?.id ?? index}`}
+            {...item}
+            isApplied={appliedOpportunityIds.has(item.id)}
+          />
         ))}
       </section>
 
@@ -117,11 +87,9 @@ export function OpportunityList({
           >
             Previous
           </button>
-
           <span className="text-sm text-gray-600">
             Page {pagination.page} of {pagination.totalPages}
           </span>
-
           <button
             onClick={() => onPageChange?.(pagination.page + 1)}
             disabled={pagination.page >= pagination.totalPages}
@@ -131,7 +99,6 @@ export function OpportunityList({
           </button>
         </section>
       )}
-
     </section>
   );
 }
