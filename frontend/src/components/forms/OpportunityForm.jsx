@@ -172,6 +172,8 @@ const OpportunityForm = () => {
     setSelectedSkills((prev) => prev.filter((s) => s.id !== skillId));
   };
 
+  const getSkillLabel = (skill) => skill?.title ?? skill?.name ?? "";
+
   // Save skills to an opportunity that already has an id
   const persistSkills = async (opportunityId) => {
     const { data, error } = await saveOpportunitySkills(
@@ -368,12 +370,12 @@ const OpportunityForm = () => {
                       key={skill.id}
                       className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm flex items-center gap-2"
                     >
-                      {skill.title}
+                      {getSkillLabel(skill)}
                       <button
                         type="button"
                         onClick={() => removeSkill(skill.id)}
                         className="text-blue-300 hover:text-blue-600 text-xs leading-none"
-                        aria-label={`Remove ${skill.title}`}
+                        aria-label={`Remove ${getSkillLabel(skill)}`}
                       >
                         ✕
                       </button>
@@ -409,7 +411,7 @@ const OpportunityForm = () => {
                               : "bg-[#e3e2e2] text-[#404850] hover:bg-green-100 hover:text-green-700"
                           }`}
                         >
-                          {skill.title} {already ? "✓" : "+"}
+                          {getSkillLabel(skill)} {already ? "✓" : "+"}
                         </button>
                       );
                     })}

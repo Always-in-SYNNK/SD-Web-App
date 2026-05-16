@@ -111,7 +111,7 @@ describe("opportunityService", () => {
 
     const res = await service.getOpportunitySkills(1);
 
-    expect(res.data).toEqual([{ id: 1, name: "React" }]);
+    expect(res.data).toEqual([{ id: 1, title: "React" }]);
       expect(axios.get).toHaveBeenCalledWith(
         expect.stringContaining("/api/skills/opportunity/1"),
         expect.objectContaining({
@@ -133,7 +133,7 @@ describe("opportunityService", () => {
 
       const success = await service.getOpportunitySkills(2);
 
-      expect(success.data).toEqual([{ id: 2, name: "TypeScript" }]);
+      expect(success.data).toEqual([{ id: 2, title: "TypeScript" }]);
 
       axios.get.mockRejectedValue(new Error("skills failed"));
 

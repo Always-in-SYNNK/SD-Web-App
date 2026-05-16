@@ -395,6 +395,50 @@ describe("OpportunityForm", () => {
     expect(screen.getByText(/React/i)).toBeInTheDocument();
   });
 
+  it("renders prefilled skills when API returns name instead of title", async () => {
+    vi.doMock("react-router-dom", async () => {
+      const actual = await vi.importActual("react-router-dom");
+      return {
+        ...actual,
+        useParams: () => ({ id: "123" }),
+      };
+    });
+
+    vi.resetModules();
+
+    const { default: EditingForm } = await import(
+      "../components/forms/OpportunityForm"
+    );
+
+    service.getOpportunityById.mockResolvedValue({
+      data: {
+        title: "Existing Opportunity",
+        description: "Existing description",
+        field: "Services",
+      },
+      error: null,
+    });
+
+    service.getOpportunitySkills.mockResolvedValue({
+      data: [{ id: 1, name: "Collect arterial blood samples" }],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <EditingForm />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByDisplayValue("Existing Opportunity")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/Collect arterial blood samples/i)
+    ).toBeInTheDocument();
+  });
+
   it("shows error when edit prefill fails", async () => {
     vi.doMock("react-router-dom", async () => {
       const actual = await vi.importActual("react-router-dom");
