@@ -72,6 +72,7 @@ export async function getApplicationsPerOpportunity(providerProfileId) {
             pending: 0,
             shortlisted: 0,
             accepted: 0,
+            offered: 0,
             rejected: 0
         });
     });
@@ -110,6 +111,7 @@ export async function getApplicationsPerOpportunity(providerProfileId) {
             pending: 0,
             shortlisted: 0,
             accepted: 0,
+            offered: 0,
             rejected: 0
         }
     }));

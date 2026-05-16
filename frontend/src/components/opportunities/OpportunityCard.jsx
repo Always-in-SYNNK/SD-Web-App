@@ -14,8 +14,11 @@ export function OpportunityCard({
   isAdmin = false,
   onEdit,
   onDelete,
-  onApprove,  // new
-  onReject,   // new
+  onApprove,
+  onReject,
+  disableApprove = false,
+  disableReject = false,
+  disableDelete = false,
 }) {
   const navigate = useNavigate();
 
@@ -84,16 +87,20 @@ export function OpportunityCard({
             {/* Approve/Reject — pending tab only */}
             {onApprove && (
               <button
+                disabled={disableApprove}
                 onClick={(e) => { e.stopPropagation(); onApprove(id); }}
-                className="px-5 py-2 bg-green-100 text-green-700 rounded-lg font-bold text-sm hover:bg-green-200 transition"
+                className="px-5 py-2 bg-green-100 text-green-700 rounded-lg font-bold text-sm hover:bg-green-200 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-100"
+                title={disableApprove ? "You cannot approve your own opportunity." : undefined}
               >
                 Approve
               </button>
             )}
             {onReject && (
               <button
+                disabled={disableReject}
                 onClick={(e) => { e.stopPropagation(); onReject(id); }}
-                className="px-5 py-2 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm hover:bg-orange-200 transition"
+                className="px-5 py-2 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm hover:bg-orange-200 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-100"
+                title={disableReject ? "You cannot reject your own opportunity." : undefined}
               >
                 Reject
               </button>
@@ -110,8 +117,10 @@ export function OpportunityCard({
             )}
             {onDelete && (
               <button
+                disabled={disableDelete}
                 onClick={(e) => { e.stopPropagation(); onDelete(id); }}
                 className="px-5 py-2 bg-red-100 text-red-600 rounded-lg font-bold text-sm hover:bg-red-200 transition"
+                title={disableDelete ? "You cannot delete your own opportunity." : undefined}
               >
                 Delete
               </button>

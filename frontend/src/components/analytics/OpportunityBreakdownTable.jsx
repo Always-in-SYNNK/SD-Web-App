@@ -57,7 +57,7 @@ function MiniCount({ value, color = "text-gray-500" }) {
 
 export default function OpportunityBreakdownTable({ 
   data = [],
-  statusKeys = ['pending', 'shortlisted', 'accepted', 'rejected'],
+  statusKeys = ['pending', 'shortlisted', 'accepted', 'offered', 'rejected'],
   showOpportunityStatus = true
 }) {
   const maxCount = Math.max(...data.map(d => d.count ?? 0)) || 1;

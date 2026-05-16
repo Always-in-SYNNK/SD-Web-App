@@ -18,9 +18,10 @@ import {
 
 // provider and admin auth middleware
 import providerAuthMiddleware from '../middleware/providerAuthMiddleware.js';
+import authMiddleware from "../middleware/authMiddleware.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireAdmin } from "../middleware/requireAdmin.js";
-import authMiddleware from "../middleware/authMiddleware.js";
+import { preventSelfModeration } from '../middleware/preventSelfModeration.js';
 
 const router = Router();
 
@@ -45,8 +46,8 @@ router.patch('/:id', providerAuthMiddleware, updateOpportunity);
 router.get('/:id', providerAuthMiddleware, getOpportunity);
 
 //admin
-router.patch("/:id/approve", requireAuth, requireAdmin, approveOpportunity);
-router.patch("/:id/reject", requireAuth, requireAdmin, rejectOpportunity);
-router.delete("/:id", requireAuth, requireAdmin, deleteOpportunity);
+router.patch("/:id/approve", requireAuth, requireAdmin, preventSelfModeration,approveOpportunity);
+router.patch("/:id/reject", requireAuth, requireAdmin, preventSelfModeration, rejectOpportunity);
+router.delete("/:id", requireAuth, requireAdmin, preventSelfModeration, deleteOpportunity);
 
 export default router;

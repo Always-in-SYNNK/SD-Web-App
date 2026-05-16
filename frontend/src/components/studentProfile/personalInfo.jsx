@@ -1,3 +1,16 @@
+const LOCATION = [
+  "Eastern Cape",
+  "Free State",
+  "Gauteng",
+  "KwaZulu-Natal",
+  "Limpopo",
+  "Mpumalanga",
+  "North West",
+  "Northern Cape",
+  "Western Cape",
+  "Remote/Other",
+];
+
 export function PersonalInfoSection({ formData, setFormData }) {
   const set = (field) => (e) => setFormData((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -43,13 +56,18 @@ export function PersonalInfoSection({ formData, setFormData }) {
         </div>
         <div className="md:col-span-2 space-y-2">
           <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">Location</label>
-          <input
-            type="text"
-            value={formData.location}
-            onChange={set("location")}
-            placeholder="e.g. Cape Town, Western Cape"
-            className="w-full bg-gray-50 border-none rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-200 text-[#1b1c1c]"
-          />
+          <div className="relative">
+                <select
+                  className={"w-full bg-gray-50 border-none rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-200 text-[#1b1c1c]"}
+                  value={formData.location}
+                  onChange={set("location")}
+                >
+                  <option value="">Select location...</option>
+                  {LOCATION.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
         </div>
       </div>
     </section>
