@@ -148,8 +148,8 @@ export async function notifyMatchingOpportunities() {
     console.log(`📊 Found ${applicants.length} applicants to notify`);
 
     // Improved notification content
-    const title = "🎉 New Opportunity Available!";
-    const message = `Exciting news! "${opportunityTitle}" has been approved and is now open for applications. This opportunity matches your profile - don't wait, apply today!`;
+    //const title = "🎉 New Opportunity Available!";
+    //const message = `Exciting news! "${opportunityTitle}" has been approved and is now open for applications. This opportunity matches your profile - don't wait, apply today!`;
     
     let successCount = 0;
 
