@@ -430,6 +430,19 @@ app.use((req, res) => {
 
 app.use(errorHandler);
 
+/* Add before the 404 handler
+app.get('/api/test-notification', async (req, res) => {
+    const { sendEmailNotification } = await import('./services/emailService.js');
+    const result = await sendEmailNotification({
+        to: 'dobahnatasha@gmail.com',
+        name: 'Test User',
+        type: 'test',
+        title: 'Test Email from GrowthStage',
+        message: 'This is a test email to verify the notification system is working.'
+    });
+    res.json(result);
+});*/
+
 // ─── Global error handler ─────────────────────────────────────────────────────
 
 // app.use((err, req, res, next) => {

@@ -1,10 +1,26 @@
 import nodemailer from "nodemailer";
 
+// Check if email is configured on startup
+console.log('📧 Email Service Loading...');
+console.log('📧 EMAIL_USER configured:', !!process.env.EMAIL_USER);
+console.log('📧 EMAIL_PASS configured:', !!process.env.EMAIL_PASS);
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    },
+    debug: true,      // Add this
+    logger: true      // Add this
+});
+
+// Verify transporter connection on startup
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('❌ Email transporter verification failed:', error.message);
+    } else {
+        console.log('✅ Email transporter ready to send emails');
     }
 });
 
@@ -14,22 +30,38 @@ async function sendVerificationEmail(to, verificationToken, name) {
     
     const htmlContent = `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
             <meta charset="UTF-8">
             <title>Verify Your Email</title>
         </head>
-        <body style="font-family: Arial, sans-serif;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #4F46E5;">SA Learnerships Portal</h1>
-                <p>Hello ${name || 'there'},</p>
-                <p>Please verify your email address by clicking the link below:</p>
-                <a href="${verificationLink}" style="background: #4F46E5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
-                <p>Or copy this link: ${verificationLink}</p>
-                <p>This link expires in 24 hours.</p>
-                <hr>
-                <p style="color: #666; font-size: 12px;">This is an automated message. Please do not reply.</p>
-            </div>
+        <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+                <tr>
+                    <td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <tr>
+                                <td style="background: linear-gradient(135deg, #4F46E5, #002356); padding: 40px 30px; text-align: center;">
+                                    <h1 style="color: white; margin: 0; font-size: 28px;">SA Learnerships Portal</h1>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 35px;">
+                                    <p style="font-size: 18px; color: #1b1c1c; margin-bottom: 15px;">Hello ${name || 'there'},</p>
+                                    <p style="color: #404850; line-height: 1.6; margin: 15px 0;">Please verify your email address by clicking the link below:</p>
+                                    <p style="text-align: center; margin: 25px 0;">
+                                        <a href="${verificationLink}" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email</a>
+                                    </p>
+                                    <p style="color: #404850; line-height: 1.6; margin: 15px 0;">Or copy this link: <a href="${verificationLink}" style="color: #4F46E5;">${verificationLink}</a></p>
+                                    <p style="color: #666; font-size: 12px;">This link expires in 24 hours.</p>
+                                    <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                                    <p style="color: #666; font-size: 12px;">This is an automated message. Please do not reply.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>
     `;
@@ -50,61 +82,111 @@ async function sendVerificationEmail(to, verificationToken, name) {
 }
 
 export async function sendEmailNotification({ to, name, type, title, message, metadata }) {
+    // Debug logging
+    console.log(`📧 Attempting to send email to: ${to}`);
+    console.log(`📧 Email subject: ${title}`);
+    console.log(`📧 Email type: ${type}`);
+    
+    // Check if email is configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.error('❌ Email not configured. Missing EMAIL_USER or EMAIL_PASS in .env');
+        return { success: false, error: 'Email not configured' };
+    }
+    
     const appName = "GrowthStageSA";
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+    
+    // Different styling based on notification type
+    let headerColor = '#035b9d';
+    let buttonText = 'View Details →';
+    let actionLink = `${baseUrl}/opportunities`;
+    let emoji = '';
+    
+    if (type === 'new_opportunity') {
+        headerColor = '#10b981';
+        buttonText = 'View Opportunity →';
+        emoji = '🎉';
+        if (metadata?.opportunity_id) {
+            actionLink = `${baseUrl}/opportunities/${metadata.opportunity_id}`;
+        }
+    } else if (type === '7_day_reminder') {
+        headerColor = '#f59e0b';
+        buttonText = 'Apply Now →';
+        emoji = '⏰';
+        if (metadata?.opportunity_id) {
+            actionLink = `${baseUrl}/opportunities/${metadata.opportunity_id}`;
+        }
+    } else if (type === '24_hour_reminder') {
+        headerColor = '#ef4444';
+        buttonText = 'Apply Immediately →';
+        emoji = '⚠️';
+        if (metadata?.opportunity_id) {
+            actionLink = `${baseUrl}/opportunities/${metadata.opportunity_id}`;
+        }
+    }
     
     const htmlContent = `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
             <meta charset="UTF-8">
             <title>${title} | ${appName}</title>
-            <style>
-                body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-                .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                .header { background: #035b9d; padding: 30px; text-align: center; color: white; }
-                .header h1 { margin: 0; font-size: 24px; }
-                .content { padding: 30px; }
-                .content h2 { margin-top: 0; color: #1b1c1c; }
-                .content p { color: #404850; line-height: 1.6; margin: 15px 0; }
-                .button { background: #035b9d; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 20px; }
-                .footer { background: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-                hr { border: none; border-top: 1px solid #eee; margin: 20px 0; }
-            </style>
         </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>${appName}</h1>
-                </div>
-                <div class="content">
-                    <h2>Hello ${name || 'there'},</h2>
-                    <p>${message}</p>
-                    <hr>
-                    <p style="font-size: 12px; color: #999;">
-                        You're receiving this because you have notifications enabled.
-                        <br>
-                        <a href="${process.env.BASE_URL || 'http://localhost:5173'}/settings/notifications" style="color: #035b9d;">Manage preferences</a>
-                    </p>
-                </div>
-                <div class="footer">
-                    <p>${appName} | Building Futures in South Africa</p>
-                </div>
-            </div>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f0eeea;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0eeea; padding: 20px;">
+                <tr>
+                    <td align="center">
+                        <table width="580" cellpadding="0" cellspacing="0" style="background-color: white; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);">
+                            <tr>
+                                <td style="background: linear-gradient(135deg, ${headerColor}, #002356); padding: 40px 30px; text-align: center;">
+                                    ${emoji ? `<p style="font-size: 48px; margin: 0 0 10px 0;">${emoji}</p>` : ''}
+                                    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">${title}</h1>
+                                    <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0;">${appName}</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 35px;">
+                                    <h2 style="color: #1b1c1c; margin-top: 0; font-size: 20px;">Hello ${name || 'there'},</h2>
+                                    <p style="color: #404850; line-height: 1.6; margin: 15px 0; font-size: 16px;">${message}</p>
+                                    ${type === '7_day_reminder' ? '<p style="color: #f59e0b; font-weight: 700; margin-top: 15px;">📅 Only 7 days left to apply!</p>' : ''}
+                                    ${type === '24_hour_reminder' ? '<p style="color: #ef4444; font-weight: 700; margin-top: 15px;">⚠️ This opportunity closes TOMORROW! Don\'t miss out.</p>' : ''}
+                                    <p style="text-align: center; margin: 25px 0;">
+                                        <a href="${actionLink}" style="background: ${headerColor}; color: white; padding: 14px 32px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: 600; font-size: 16px;">${buttonText}</a>
+                                    </p>
+                                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
+                                    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">
+                                        You're receiving this because you have a student profile on ${appName}.
+                                        <br>
+                                        <a href="${baseUrl}/settings/notifications" style="color: #035b9d;">Manage preferences</a>
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background: #f8fafc; padding: 20px 35px; text-align: center;">
+                                    <p style="margin: 0; font-size: 12px; color: #94a3b8;">${appName} | Building Futures in South Africa</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>
     `;
     
     try {
-        await transporter.sendMail({
+        const result = await transporter.sendMail({
             from: `"${appName}" <${process.env.EMAIL_USER}>`,
             to: to,
             subject: title,
             html: htmlContent
         });
         console.log(`✅ Notification email sent to ${to}: ${title}`);
-        return { success: true };
+        console.log(`📧 Message ID: ${result.messageId}`);
+        return { success: true, messageId: result.messageId };
     } catch (error) {
         console.error('❌ Failed to send notification email:', error.message);
+        console.error('❌ Error details:', error);
         return { success: false, error: error.message };
     }
 }
