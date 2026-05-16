@@ -1,0 +1,345 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<title>SAQA</title>
+		<link rel=STYLESHEET type="text/css" href="styles.css" title="Normal Style">
+	</head>
+	<body style="margin:0;">
+		<table width="100%" cellpadding="0" cellspacing="0" style="border:0; margin-left: auto; margin-right: auto;">
+	<tr>
+		<td style="width:179px">
+			<a href="http://www.saqa.org.za"><img src="banner/saqa_logo.jpg" width="179" height="98" alt="South African Qualifications Authority (SAQA)"></a>
+		</td>
+		<td style="width:288px">
+			<img src="banner/banner_left.jpg" width="288" height="98" alt="banner">
+		</td>
+		<td class="tilebanner">
+			<img src="banner/blank.gif" width="20" height="98" alt="banner">
+		</td>
+		<td style="width:247px" align="right">
+			<img src="banner/banner_photo.jpg" width="247" height="98" alt="banner">
+		</td>
+	</tr>
+</table>
+<table width="100%"cellpadding="4" cellspacing="2" style="border:0; margin-left: auto; margin-right: auto;">
+	<tr>
+		<td>
+			<a class="block" href="http://www.saqa.org.za">SAQA Home</a>
+		</td>
+	</tr>
+</table>
+	<table border=0 width="100%">
+	<tr><td align=left class=mainmenu>
+[<a class="main" href="index.php">All Qualifications and Unit Standards - Home Page</a>]			[<a class="main" href="search.php?cat=qual">Search Qualifications</a>]
+	</td></tr></table>
+	<script>
+		function refine() {
+			document.saveForm.GO.value = "";
+			document.saveForm.submit();
+		}
+		function reorder(fld) {
+			document.saveForm.GO.value = "Go";
+			document.saveForm.qOrder.value = fld;
+			document.saveForm.submit();
+		}
+		function swapView() {
+			document.saveForm.GO.value = "Go";
+			if (saveForm.view.value == 'list') {
+				document.saveForm.view.value = "table";
+			} else {
+				document.saveForm.view.value = "list";
+			}
+			document.saveForm.submit();
+		}
+		function goPrevNext(go) {
+			document.saveForm.GO.value = "Go";
+			document.saveForm.searchResultsATfirst.value = go;
+			document.saveForm.submit();
+		}
+	</script>
+<form name=saveForm action="search.php" method=POST>
+<input type=hidden name=GO value="">
+<input type=hidden name="searchResultsATfirst" value="0">
+<INPUT TYPE=HIDDEN NAME="cat" VALUE="unit">
+<INPUT TYPE=HIDDEN NAME="UNIT_STD_TITLE" VALUE="Computer">
+<INPUT TYPE=HIDDEN NAME="UNIT_STANDARD_ID" VALUE="">
+<INPUT TYPE=HIDDEN NAME="NQF_LEVEL_ID" VALUE="">
+<INPUT TYPE=HIDDEN NAME="NQF_LEVEL_G2_ID" VALUE="">
+<INPUT TYPE=HIDDEN NAME="ABET_BAND_ID" VALUE="">
+<INPUT TYPE=HIDDEN NAME="SUBFIELD_ID" VALUE="">
+<INPUT TYPE=HIDDEN NAME="ORIGINATOR_ID" VALUE="">
+<INPUT TYPE=HIDDEN NAME="FIELD_ID" VALUE="10">
+<INPUT TYPE=HIDDEN NAME="SEARCH_TEXT" VALUE="">
+<INPUT TYPE=HIDDEN NAME="ACCRED_PROVIDER_ID" VALUE="">
+</form>
+<table width="95%" align="center" cellpadding="2" cellspacing="0" border="0">
+<tr>
+<td class="ondeep">All Unit Standards - Search Results</td>
+<td class="ondeep" align=right></td>
+</tr></table>
+<table border=0 width=95% align=center><tr><td align=left>Searched system for Computer, Physical, Mathematical, Computer and Life Sciences</td><td align=right>Result: 1-20 of 77</td></tr></table>
+<table width="95%"  align="center" cellpadding="2" cellspacing="0" border="0">
+<tr>
+	<td>It is possible to sort by the underlined table headings.  Please note that, after the sorting has taken place, the table will remain on whatever page it was on at the time.</td>
+</tr>
+</table>
+<table width="95%" align="center" cellpadding="2" cellspacing="2" border="1">
+<tr>
+<td class=title valign=bottom>U Std ID</td>
+<td class=title valign=bottom><a href="javascript:reorder('UNIT_STD_TITLE')">Unit Standard Title</a></td>
+<td class=title valign=bottom><a href="javascript:reorder('NQF_LEVEL_DESCRIPTION, UNIT_STD_TITLE')">Pre-2009 NQF Level</a></td>
+<td class=title valign=bottom><a href="javascript:reorder('NQF_LEVEL_G2_DESCRIPTION, UNIT_STD_TITLE')">NQF Level</a></td>
+<td class=title valign=bottom>ABET Band</td>
+<td class=title valign=bottom>Learning Subfield</td>
+<td class=title valign=bottom>Originator</td>
+<td class=title valign=bottom><a href="javascript:reorder('FIELD_OCTO, UNIT_STD_TITLE')">Field</a></td>
+<td class=title valign=bottom>Credits</td>
+<td class=title valign=bottom>Status</td>
+<tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=114054">114054</a></td>
+<td valign=top>Administer a local area computer network</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Information Systems and Technology</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>7</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=114069">114069</a></td>
+<td valign=top>Administer security systems for a multi-user computer system</td>
+<td valign=top>Level 6</td>
+<td valign=top>Level TBA: Pre-2009 was L6</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Information Systems and Technology</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>15</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115358">115358</a></td>
+<td valign=top>Apply information gathering techniques for computer system development</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>7</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115392">115392</a></td>
+<td valign=top>Apply principles of creating computer software by developing a complete programme to meet given business specifications</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>12</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=14910">14910</a></td>
+<td valign=top>Apply the principles of Computer Programming</td>
+<td valign=top>Level 4</td>
+<td valign=top>NQF Level 04</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Information Systems and Technology</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>8</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115387">115387</a></td>
+<td valign=top>Apply the principles of creating a computer program using a procedural programming language in a GUI environment</td>
+<td valign=top>Level 6</td>
+<td valign=top>Level TBA: Pre-2009 was L6</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>14</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115381">115381</a></td>
+<td valign=top>Apply the principles of creating a computer program using an OOP language in a GUI environment</td>
+<td valign=top>Level 6</td>
+<td valign=top>Level TBA: Pre-2009 was L6</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>12</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115386">115386</a></td>
+<td valign=top>Apply the principles of creating batch and interactive computer programs using a procedural programming language</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>10</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115382">115382</a></td>
+<td valign=top>Apply the principles of creating computer programs containing advanced algorithms using a procedural programming language</td>
+<td valign=top>Level 6</td>
+<td valign=top>Level TBA: Pre-2009 was L6</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>12</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115365">115365</a></td>
+<td valign=top>Apply the principles of designing computer system inputs and outputs</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>7</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=114183">114183</a></td>
+<td valign=top>Apply the principles of resolving problems for single-user and multi-user computer operating systems</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Information Systems and Technology</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>7</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=14939">14939</a></td>
+<td valign=top>Assemble a personal computer or handheld computer and peripherals from modules</td>
+<td valign=top>Level 4</td>
+<td valign=top>NQF Level 04</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Information Systems and Technology</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>7</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=114062">114062</a></td>
+<td valign=top>Assemble a server computer and peripherals from modules</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Information Systems and Technology</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>5</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115390">115390</a></td>
+<td valign=top>Create an application for a single-user personal computer using a fourth generation language</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>10</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115364">115364</a></td>
+<td valign=top>Create animation for a multimedia/web-based computer application</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>10</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=114048">114048</a></td>
+<td valign=top>Create database access for a computer application using structured query language</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Information Systems and Technology</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>9</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115371">115371</a></td>
+<td valign=top>Create digitised sound for a multimedia/web-based computer application</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>10</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115370">115370</a></td>
+<td valign=top>Create digitised still images for a multimedia/web-based computer application</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>10</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115361">115361</a></td>
+<td valign=top>Create digitised text for a multimedia/web-based computer application</td>
+<td valign=top>Level 6</td>
+<td valign=top>Level TBA: Pre-2009 was L6</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>8</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+<tr>
+<td valign=top><a href="showUnitStandard.php?id=115375">115375</a></td>
+<td valign=top>Create digitised video for a multimedia/web-based computer application</td>
+<td valign=top>Level 5</td>
+<td valign=top>Level TBA: Pre-2009 was L5</td>
+<td valign=top>Undefined</td>
+<td valign=top>Information Technology and Computer Sciences</td>
+<td valign=top>SGB Computer Sciences and Information Systems</td>
+<td valign=top>Field 010 - Physical, Mathematical, Computer and Life Sciences</td>
+<td valign=top>10</td>
+<td valign=top><span style="color: #0000FF; font-weight: normal;">Passed the end date - Status was "Reregistered"</span></td>
+</tr>
+</table>
+<table border=0 width="95%" align=center><tr><td align=right width="50%"></td><td align=left width="20%">[<a href="javascript:goPrevNext(20)">Next 20</a>]</td><td align=right width="30%"><span class=>
+[<a class="" href="javascript:refine();">Refine search</a>]
+</td></tr></table>
+
+	</body>
+</html>
