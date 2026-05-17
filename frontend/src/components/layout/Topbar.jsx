@@ -129,7 +129,6 @@ const Topbar = ({ user: providerUser, onLogout }) => {
       <NavShell>
         <section className="flex items-center gap-3 shrink-0">
           <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
-          <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
           <button
             onClick={() => navigate("/prov-login")}
             className="px-4 py-2 bg-[#035b9d] text-white rounded-lg text-sm font-semibold hover:bg-[#024a82] transition-colors"
@@ -147,7 +146,6 @@ const Topbar = ({ user: providerUser, onLogout }) => {
       <section className="flex items-center gap-3 shrink-0">
         {/* Notifications */}
         <button className="p-2 hover:bg-gray-100 rounded-full text-base">🔔</button>
-        <button className="p-2 hover:bg-gray-100 rounded-full text-base">❓</button>
 
         {/* Divider */}
         <div className="w-px h-5 bg-gray-200" />
@@ -175,6 +173,13 @@ const Topbar = ({ user: providerUser, onLogout }) => {
 
           {showMenu && (
             <section className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+              <button
+                type="button"
+                onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Profile
+              </button>
               <button
                 type="button"
                 onClick={() => { setShowMenu(false); navigate("/pipeline"); }}

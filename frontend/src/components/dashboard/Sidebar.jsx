@@ -100,15 +100,6 @@ export function Sidebar() {
           >
             View Profile
           </button>
-          <div className="space-y-2">
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-3 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg transition"
-            >
-              <i>🚪</i>
-              <strong>Logout</strong>
-            </button>
-          </div>
         </div>
       )}
 

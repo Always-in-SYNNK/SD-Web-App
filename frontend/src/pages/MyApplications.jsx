@@ -4,6 +4,7 @@ import { Sidebar } from "../components/dashboard/Sidebar";
 import { ApplicationList } from "../components/applications/myApplicationList";
 //import { RecommendedPanel } from "../components/applications/RecommendedPanel";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
+import { useNavigate } from "react-router-dom";
 import {
   acceptOffer,
   fetchMyApplications,
@@ -86,6 +87,8 @@ export default function MyApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const navigate = useNavigate();
 
   const { token, user } = useAuth();
     const API = import.meta.env.VITE_API_URL;
@@ -105,6 +108,14 @@ export default function MyApplications() {
       };
       if (token) fetchProfile();
     }, [token]);
+
+    useEffect(() => {
+      const handler = (e) => {
+        if (!e.target.closest("[data-user-menu]")) setShowMenu(false);
+      };
+      document.addEventListener("mousedown", handler);
+      return () => document.removeEventListener("mousedown", handler);
+    }, []);
   
     const initials = profile?.full_name
       ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -156,6 +167,13 @@ export default function MyApplications() {
     }
   };
 
+  const logout= () =>{
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    navigate("/");
+   }
+  
+
   return (
     <main className="flex min-h-screen bg-[#faf9f8]">
       <Sidebar activePage="/applications" />
@@ -173,9 +191,43 @@ export default function MyApplications() {
 
           <section className="flex items-center gap-3">
             <NotificationDropdown/>
-            <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
-              {initials}
-            </figure>
+              <section className="relative" data-user-menu>
+                <button
+                  type="button"
+                  onClick={() => setShowMenu(!showMenu)}
+                  className="flex items-center gap-2"
+                  >
+                  <section className="text-right hidden sm:block">
+                    <p className="text-sm font-semibold text-gray-700 leading-tight truncate max-w-[160px]">
+                      {profile?.full_name || user?.email || "User"}
+                    </p>
+                    <p className="text-xs text-gray-400 leading-tight">Applicant</p>
+                  </section>
+
+                  <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs shrink-0">
+                   {initials}
+                  </figure>
+                </button>
+
+                {showMenu && (
+                  <section className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+                    <button
+                      type="button"
+                      onClick={() => { setShowMenu(false); navigate("/dashboard"); }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                Dashboard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowMenu(false); logout(); }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                >
+                Sign Out
+                </button>
+              </section>
+              )}
+            </section>
           </section>
         </nav>
 
