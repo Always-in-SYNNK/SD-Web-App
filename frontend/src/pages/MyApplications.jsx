@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/useAuth";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { ApplicationList } from "../components/applications/myApplicationList";
-import { RecommendedPanel } from "../components/applications/RecommendedPanel";
+//import { RecommendedPanel } from "../components/applications/RecommendedPanel";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 import {
   acceptOffer,
@@ -214,7 +214,7 @@ export default function MyApplications() {
               />
             </section>
 
-            {/* Recommendations sidebar */}
+            {/* Recommendations sidebar 
             <aside className="lg:col-span-4 space-y-8">
               <RecommendedPanel
                 recommendations={MOCK_RECOMMENDATIONS}
@@ -222,6 +222,7 @@ export default function MyApplications() {
                 skillScore={92}
               />
             </aside>
+            */}
           </section>
         </section>
       </section>
