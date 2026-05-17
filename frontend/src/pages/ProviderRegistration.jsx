@@ -8,26 +8,14 @@ import { getAllCountries } from "../services/countryService";
 const HERO_IMAGE_URL = "https://lh3.googleusercontent.com/aida-public/AB6AXuDxNPyShfIjVGSg0JRX5t6gMdYfWSad3-JBDqPllih_qCrvQI6gj0CkdUZ6FgGjkbWALsM8D8lnpJO1k3L3CKiApnRUHx53SVp-w0qKYzGb0PiezwFvCvQAeJltcACD3F_sFQytmH-BXopRUBDOUUVkz1hGSOOgrpHiHmDCITIhPQiEUhAbAT-czEzzxCJDgArueKQb7uYLuYJEeNx5F4nfdPkhKG36Nyxhajn-jkyO7wFtuj5646YpTAbsvwzASsMdGHvTMJABHVqA";
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Industries list (hardcoded or could also come from API/database)
-const industries = [
-  "Technology & IT",
-  "Finance & Banking",
-  "Healthcare",
-  "Education & Training",
-  "Manufacturing",
-  "Retail & E-commerce",
-  "Construction & Engineering",
-  "Hospitality & Tourism",
-  "Media & Communications",
-  "Transportation & Logistics",
-  "Energy & Utilities",
-  "Agriculture",
-  "Government & Public Sector",
-  "Non-Profit",
-  "Consulting",
-  "Real Estate",
-  "Legal Services",
-  "Other"
+const ORGANISATION_TYPES = [
+  "Private Company",
+  "Training Organisation",
+  "TVET College",
+  "University",
+  "NGO",
+  "Government Department",
+  "Other",
 ];
 
 export default function ProviderRegistration() {
@@ -44,7 +32,7 @@ export default function ProviderRegistration() {
   const [formData, setFormData] = useState({
     companyName: "",
     regNumber: "",
-    industry: "",
+    organisationType: "",
     contactPerson: "",
     phoneNumber: "",
     countryCode: ""
@@ -137,8 +125,8 @@ export default function ProviderRegistration() {
     return "";
   };
 
-  const validateIndustry = (value) => {
-    if (!value) return "Industry selection is required";
+  const validateOrganisationType = (value) => {
+    if (!value) return "Organisation type selection is required";
     return "";
   };
 
@@ -180,8 +168,8 @@ export default function ProviderRegistration() {
       case "phoneNumber":
         error = validatePhoneNumber(formData.phoneNumber, getSelectedCountry());
         break;
-      case "industry":
-        error = validateIndustry(formData.industry);
+      case "organisationType":
+        error = validateOrganisationType(formData.organisationType);
         break;
       default:
         break;
@@ -200,14 +188,14 @@ export default function ProviderRegistration() {
       companyName: validateCompanyName(formData.companyName),
       contactPerson: validateContactPerson(formData.contactPerson),
       phoneNumber: validatePhoneNumber(formData.phoneNumber, selectedCountry),
-      industry: validateIndustry(formData.industry)
+      organisationType: validateOrganisationType(formData.organisationType)
     };
   };
 
   const isFormValid = () => {
     const validationErrors = getAllErrors();
     const hasErrors = Object.values(validationErrors).some(error => error);
-    const hasRequiredFields = formData.companyName && formData.contactPerson && formData.phoneNumber && formData.industry && formData.countryCode;
+    const hasRequiredFields = formData.companyName && formData.contactPerson && formData.phoneNumber && formData.organisationType && formData.countryCode;
     const isTermsAccepted = termsAccepted;
     
     return !hasErrors && hasRequiredFields && isTermsAccepted;
@@ -221,7 +209,7 @@ export default function ProviderRegistration() {
       companyName: true,
       contactPerson: true,
       phoneNumber: true,
-      industry: true
+      organisationType: true
     });
     
     const validationErrors = getAllErrors();
@@ -247,7 +235,7 @@ export default function ProviderRegistration() {
         credentials: "include",
         body: JSON.stringify({
           companyName: formData.companyName,
-          industry: formData.industry,
+          organisationType: formData.organisationType,
           contactPerson: formData.contactPerson,
           phoneNumber: formData.phoneNumber.replace(/\D/g, ''),
           countryCode: selectedCountry?.phone_code || '+27',
@@ -356,26 +344,26 @@ export default function ProviderRegistration() {
 
             <label className="block mb-4">
               <strong className="text-sm font-semibold text-slate-700 block mb-1">
-                Industry <small className="text-red-500">*</small>
+                Organisation Type <small className="text-red-500">*</small>
               </strong>
               <select
-                name="industry"
-                value={formData.industry}
+                name="organisationType"
+                value={formData.organisationType}
                 onChange={handleChange}
-                onBlur={() => handleBlur("industry")}
+                onBlur={() => handleBlur("organisationType")}
                 className={`w-full px-4 py-3 rounded-xl border ${
-                  touched.industry && errors.industry
+                  touched.organisationType && errors.organisationType
                     ? "border-red-500 focus:border-red-500"
                     : "border-slate-200 focus:border-sky-500"
                 } focus:outline-none focus:ring-2 focus:ring-sky-100 bg-white`}
               >
-                <option value="">Select industry...</option>
-                {industries.map(industry => (
-                  <option key={industry} value={industry}>{industry}</option>
+                <option value="">Select organisation type...</option>
+                {ORGANISATION_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
                 ))}
               </select>
-              {touched.industry && errors.industry && (
-                <p className="text-red-500 text-xs mt-1">{errors.industry}</p>
+              {touched.organisationType && errors.organisationType && (
+                <p className="text-red-500 text-xs mt-1">{errors.organisationType}</p>
               )}
             </label>
 

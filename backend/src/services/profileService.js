@@ -351,3 +351,124 @@ export async function getApplicantProfileByProfileId(applicantProfileId) {
         qualifications: mappedQualifications,
     };
 }
+
+// PROVIDER PROFILE
+
+const FIELDS = [
+  "Human and Social Studies",
+  "Physical, Mathematical, Computer and Life Sciences",
+  "Law, Military Science and Security",
+  "Culture and Arts",
+  "Manufacturing, Engineering and Technology",
+  "Services",
+  "Health Sciences and Social Services",
+  "Business, Commerce and Management Studies",
+  "Physical Planning and Construction",
+  "Agriculture and Nature Conservation",
+  "Education, Training and Development",
+  "Communication Studies and Language",
+];
+
+function normalizeProviderProfile(profile) {
+    if (!profile) return null;
+
+    const providerProfiles = profile.provider_profiles;
+    const providerProfile = Array.isArray(providerProfiles)
+        ? (providerProfiles[0] ?? null)
+        : providerProfiles ?? null;
+
+    return {
+        ...profile,
+        provider_profiles: providerProfile,
+    };
+}
+
+async function fetchProviderProfileRecord(identity) {
+
+    console.log("FETCH IDENTITY:", identity);
+
+    const { data, error } = await supabase
+        .from("profiles")
+        .select(`
+            id,
+            user_id,
+            full_name,
+            email,
+            role,
+            provider_profiles (
+                id,
+                organisation_name,
+                organisation_type,
+                focus_fields,
+                description,
+                location,
+                website_url
+            )
+        `)
+        .eq("role", "provider")
+        .or(`id.eq.${identity},user_id.eq.${identity}`)
+        .single();
+
+    console.log("SUPABASE ERROR:", error);    
+    if (error) throw error;
+
+    return normalizeProviderProfile(data);
+}
+
+export async function fetchProviderProfileByUserId(userId) {
+    return fetchProviderProfileRecord(userId);
+}
+
+export async function editProviderProfile(userId, updates) {
+    const profile = await fetchProviderProfileRecord(userId);
+
+    if (!profile) throw new Error("Provider profile not found");
+
+    // 1. Update base profile (full_name lives on profiles table)
+    if (updates.full_name !== undefined) {
+        const { error: profileError } = await supabase
+            .from("profiles")
+            .update({ full_name: updates.full_name })
+            .eq("id", profile.id);
+
+        if (profileError) throw profileError;
+    }
+
+    // 2. Upsert provider_profiles row so first-time saves work too
+    const providerUpdates = {
+        profile_id: profile.id,
+    };
+    if (updates.organisation_name !== undefined) providerUpdates.organisation_name = updates.organisation_name;
+    if (updates.organisation_type !== undefined) providerUpdates.organisation_type = updates.organisation_type;
+    if (updates.focus_fields !== undefined) {
+
+        if (!Array.isArray(updates.focus_fields)) {
+            throw new Error("focus_fields must be an array");
+        }
+
+        const invalidFields = updates.focus_fields.filter(
+            (field) => !FIELDS.includes(field)
+        );
+
+        if (invalidFields.length > 0) {
+            throw new Error("Invalid focus fields provided");
+        }
+
+        providerUpdates.focus_fields = updates.focus_fields;
+    }
+
+    if (updates.description  !== undefined) providerUpdates.description  = updates.description;
+    if (updates.location     !== undefined) providerUpdates.location     = updates.location; 
+    if (updates.website_url  !== undefined) providerUpdates.website_url  = updates.website_url; 
+
+    if (Object.keys(providerUpdates).length > 1) {
+        const { error: providerError } = await supabase
+            .from("provider_profiles")
+            .upsert(providerUpdates, { onConflict: "profile_id" });
+
+        if (providerError) throw providerError;
+    }
+
+    // 3. Return fresh data
+    return fetchProviderProfileRecord(userId);
+}

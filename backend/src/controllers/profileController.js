@@ -7,7 +7,9 @@ import {
     saveApplicantCVPath,
     deleteApplicantCVIfExists,
     addApplicantQualificationByUserId,
-    getApplicantCVSignedUrl
+    getApplicantCVSignedUrl,
+    fetchProviderProfileByUserId,
+    editProviderProfile,
 } from "../services/profileService.js";
 import { supabase } from "../config/supabaseClient.js";
 
@@ -147,4 +149,46 @@ export async function getApplicantProfileById(req, res, next) {
         });
         next(error);
     }
+}
+
+// PROVIDER PROFILE 
+export async function getProviderProfile(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const profile = await fetchProviderProfileByUserId(userId);
+
+    if (!profile) {
+      return res.status(404).json({
+        error: "Provider profile not found",
+      });
+    }
+
+    return res.status(200).json(profile);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+}
+
+export async function updateProviderProfile(req, res) {
+  try {
+    const userId = req.user.id;
+
+    const updatedProfile = await editProviderProfile(
+      userId,
+      req.body
+    );
+
+    return res.status(200).json(updatedProfile);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Failed to update profile",
+    });
+  }
 }
