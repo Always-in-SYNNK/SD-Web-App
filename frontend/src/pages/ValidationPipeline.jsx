@@ -4,7 +4,7 @@ import { useAuth } from "../context/useAuth";
 import { supabase } from "../lib/supabaseClient";
 import Sidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
-import JobCard from "../components/dashboard/JobCard";
+import { OpportunityCard } from "../components/opportunities/OpportunityCard";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -162,8 +162,6 @@ const ValidationPipeline = () => {
               </p>
             </article>
 
-            
-
             <article className="bg-white rounded-xl p-5 shadow-sm border-l-4 border-red-600">
               <div className="flex items-center justify-between">
                 <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
@@ -223,7 +221,7 @@ const ValidationPipeline = () => {
 
             {!error &&
               filteredJobs.map((job) => (
-                <JobCard
+                <OpportunityCard
                   key={job.id}
                   id={job.id}
                   title={job.title}
@@ -232,6 +230,7 @@ const ValidationPipeline = () => {
                   stipend={job.stipend}
                   closing_date={job.closing_date}
                   status={job.status}
+                  isProvider
                 />
               ))}
           </section>
