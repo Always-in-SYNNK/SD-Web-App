@@ -178,6 +178,13 @@ const Topbar = ({ user: providerUser, onLogout }) => {
                 onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
               >
+                Profile
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
                 Dashboard
               </button>
               <button

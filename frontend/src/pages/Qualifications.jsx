@@ -129,17 +129,17 @@ export default function Qualifications() {
                       type="button"
                       onClick={() => { setShowMenu(false); navigate("/dashboard"); }}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                >
-                Dashboard
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowMenu(false); logout(); }}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
-                >
-                Sign Out
-                </button>
-              </section>
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowMenu(false); logout(); }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                    >
+                      Sign Out
+                    </button>
+                  </section>
               )}
             </section>
           </section>
