@@ -80,6 +80,7 @@ describe("OpportunityCard", () => {
         id={1}
         title="Approved Role"
         status="approved"
+        isProvider={true}
       />
     );
 
@@ -92,6 +93,7 @@ describe("OpportunityCard", () => {
         id={1}
         title="Unknown Role"
         status="weird-status"
+        isProvider={true}
       />
     );
 

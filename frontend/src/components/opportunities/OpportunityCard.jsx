@@ -92,7 +92,7 @@ export function OpportunityCard({
           <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#035b9d] transition-colors">
             {title}
           </h3>
-          {statusPill}
+          {isProvider && statusPill}
         </div>
 
         {description && (
