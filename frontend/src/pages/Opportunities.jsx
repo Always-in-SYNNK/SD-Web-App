@@ -108,7 +108,10 @@ export default function Opportunities() {
           limit: filters.limit,
         });
 
-        setItems(result.data || []);
+        // Filter to only show opportunities, exclude qualifications
+        const opportunitiesOnly = (result.data || []).filter(item => item._type === "opportunity");
+        
+        setItems(opportunitiesOnly);
         setPagination(result.pagination || null);
         setSummary(
           result.summary || {
