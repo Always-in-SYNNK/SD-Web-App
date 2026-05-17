@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    debug: true,      // Add this
-    logger: true      // Add this
+    debug: true,
+    logger: true
 });
 
 // Verify transporter connection on startup
@@ -25,8 +25,8 @@ transporter.verify((error, success) => {
 });
 
 async function sendVerificationEmail(to, verificationToken, name) {
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}`;
+    const backendUrl = process.env.BASE_URL || 'http://localhost:3000';
+    const verificationLink = `${backendUrl}/verify-email?token=${verificationToken}`;
     
     const htmlContent = `
         <!DOCTYPE html>
@@ -59,7 +59,7 @@ async function sendVerificationEmail(to, verificationToken, name) {
                                 </td>
                             </tr>
                         </table>
-                    </td>
+                    </tr>
                 </tr>
             </table>
         </body>
@@ -94,35 +94,21 @@ export async function sendEmailNotification({ to, name, type, title, message, me
     }
     
     const appName = "GrowthStageSA";
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5173';
+    const backendUrl = process.env.BASE_URL || 'http://localhost:3000';
     
     // Different styling based on notification type
     let headerColor = '#035b9d';
-    let buttonText = 'View Details →';
-    let actionLink = `${baseUrl}/opportunities`;
     let emoji = '';
     
     if (type === 'new_opportunity') {
         headerColor = '#10b981';
-        buttonText = 'View Opportunity →';
         emoji = '🎉';
-        if (metadata?.opportunity_id) {
-            actionLink = `${baseUrl}/opportunities/${metadata.opportunity_id}`;
-        }
     } else if (type === '7_day_reminder') {
         headerColor = '#f59e0b';
-        buttonText = 'Apply Now →';
         emoji = '⏰';
-        if (metadata?.opportunity_id) {
-            actionLink = `${baseUrl}/opportunities/${metadata.opportunity_id}`;
-        }
     } else if (type === '24_hour_reminder') {
         headerColor = '#ef4444';
-        buttonText = 'Apply Immediately →';
         emoji = '⚠️';
-        if (metadata?.opportunity_id) {
-            actionLink = `${baseUrl}/opportunities/${metadata.opportunity_id}`;
-        }
     }
     
     const htmlContent = `
@@ -148,22 +134,19 @@ export async function sendEmailNotification({ to, name, type, title, message, me
                                 <td style="padding: 35px;">
                                     <h2 style="color: #1b1c1c; margin-top: 0; font-size: 20px;">Hello ${name || 'there'},</h2>
                                     <p style="color: #404850; line-height: 1.6; margin: 15px 0; font-size: 16px;">${message}</p>
-                                    ${type === '7_day_reminder' ? '<p style="color: #f59e0b; font-weight: 700; margin-top: 15px;">📅 Only 7 days left to apply!</p>' : ''}
-                                    ${type === '24_hour_reminder' ? '<p style="color: #ef4444; font-weight: 700; margin-top: 15px;">⚠️ This opportunity closes TOMORROW! Don\'t miss out.</p>' : ''}
-                                    <p style="text-align: center; margin: 25px 0;">
-                                        <a href="${actionLink}" style="background: ${headerColor}; color: white; padding: 14px 32px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: 600; font-size: 16px;">${buttonText}</a>
-                                    </p>
+                                    <p style="color: #404850; line-height: 1.6; margin: 15px 0;">Please log in to your GrowthStageSA account to view this opportunity and submit your application.</p>
                                     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
                                     <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">
                                         You're receiving this because you have a student profile on ${appName}.
                                         <br>
-                                        <a href="${baseUrl}/settings/notifications" style="color: #035b9d;">Manage preferences</a>
+                                        <a href="${backendUrl}/settings/notifications" style="color: #035b9d;">Manage preferences</a>
                                     </p>
                                 </td>
                             </tr>
                             <tr>
                                 <td style="background: #f8fafc; padding: 20px 35px; text-align: center;">
                                     <p style="margin: 0; font-size: 12px; color: #94a3b8;">${appName} | Building Futures in South Africa</p>
+                                    <p style="margin: 5px 0 0 0; font-size: 11px; color: #94a3b8;">Visit: www.growthstage.co.za</p>
                                 </td>
                             </tr>
                         </table>
