@@ -251,7 +251,7 @@ export default function AnalyticsPage() {
       <SidebarComponent />
 
       <main className="ml-64 min-h-screen w-full min-w-0">
-        <AdminTopbar title="Analytics" source={source} />
+        <AdminTopbar title="Provider Analytics" source={source} />
 
         <section className="p-12">
           {/* Header */}

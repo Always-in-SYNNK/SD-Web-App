@@ -16,10 +16,13 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        console.log("TOKEN:", token);
         const res = await fetch(`${API}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("STATUS:", res.status);
         const data = await res.json();
+        console.log("PROFILE:", data);
         if (data.profile) setProfile(data.profile);
       } catch (err) {
         console.error("Failed to load profile:", err);
@@ -44,7 +47,6 @@ export default function StudentDashboard() {
           </section>
           <section className="flex items-center gap-3">
             <NotificationDropdown />
-            <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
               {initials}
             </figure>

@@ -114,7 +114,7 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
                                 <p className="text-sm text-gray-500">{applicant.email}</p>
                             </section>
                             {matchPercent !== null && (
-                                <p className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-sm font-semibold shadow-sm">
+                                <p className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-sm font-semibold">
                                     Match: <span className="text-blue-900">{matchPercent}%</span>
                                 </p>
                             )}

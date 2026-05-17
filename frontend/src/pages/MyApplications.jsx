@@ -3,6 +3,7 @@ import { useAuth } from "../context/useAuth";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { ApplicationList } from "../components/applications/myApplicationList";
 import { RecommendedPanel } from "../components/applications/RecommendedPanel";
+import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 import {
   acceptOffer,
   fetchMyApplications,
@@ -171,8 +172,7 @@ export default function MyApplications() {
           </section>
 
           <section className="flex items-center gap-3">
-            <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
-            <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
+            <NotificationDropdown/>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
               {initials}
             </figure>

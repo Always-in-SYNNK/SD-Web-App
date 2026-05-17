@@ -87,6 +87,8 @@ export default function ProviderGoogleLoginButton({
         onSuccess={handleCredentialResponse}
         onError={handleGoogleError}
         useOneTap={false}
+        auto_select={false}
+        prompt="select_account"
         theme="outline"
         size="large"
         text="continue_with"

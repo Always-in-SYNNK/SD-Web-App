@@ -29,16 +29,10 @@ export function QualificationCard({ qual_id, title, nqf_level, field, subfield, 
       </section>
       <nav className="flex flex-row md:flex-col gap-3 shrink-0">
         <button
-          onClick={(e) => e.stopPropagation()}
+          onClick={() => navigate(`/qualifications/${qual_id}`)}
           className="px-6 py-2.5 bg-[#035b9d] text-white rounded-full font-bold text-sm hover:opacity-90 transition min-w-[100px]"
         >
           View
-        </button>
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="p-2.5 bg-gray-100 rounded-full hover:bg-blue-100 transition flex items-center justify-center"
-        >
-          🔖
         </button>
       </nav>
     </article>
