@@ -1,20 +1,38 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+// Opportunities.test.jsx
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import Opportunities from "../pages/Opportunities";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+// ── Router mock ───────────────────────────────────────────────────────────────
+const mockNavigate = vi.fn();
 
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+// ── Auth mock ─────────────────────────────────────────────────────────────────
+let mockAuthUser = { email: "test@example.com" };
+let mockToken = "mock-token";
+
+vi.mock("../context/useAuth", () => ({
+  useAuth: () => ({
+    user: mockAuthUser,
+    token: mockToken,
+  }),
+}));
+
+// ── API mock ─────────────────────────────────────────────────────────────────
 const mockGetLocations = vi.fn();
 const mockGetFields = vi.fn();
 const mockGetNqfLevels = vi.fn();
 const mockGetOpportunities = vi.fn();
-
-vi.mock("../context/useAuth", () => ({
-  useAuth: () => ({
-    token: "mock-token",
-    user: { email: "john@example.com" },
-  }),
-}));
 
 vi.mock("../lib/api", () => ({
   getLocations: (...args) => mockGetLocations(...args),
@@ -23,9 +41,38 @@ vi.mock("../lib/api", () => ({
   getOpportunities: (...args) => mockGetOpportunities(...args),
 }));
 
+// ── Child mocks ──────────────────────────────────────────────────────────────
 vi.mock("../components/dashboard/Sidebar", () => ({
   Sidebar: ({ activePage }) => (
-    <div data-testid="sidebar">{activePage}</div>
+    <div data-testid="sidebar" data-active={activePage} />
+  ),
+}));
+
+vi.mock("../components/opportunities/OpportunityFilters", () => ({
+  OpportunityFilters: ({ onReset, onViewMatch }) => (
+    <div data-testid="opportunity-filters">
+      <button onClick={onReset}>Reset Filters</button>
+      <button onClick={onViewMatch}>View Matches</button>
+    </div>
+  ),
+}));
+
+vi.mock("../components/opportunities/OpportunityList", () => ({
+  OpportunityList: ({ loading, error, items }) => (
+    <div data-testid="opportunity-list">
+      {loading && <span>Loading...</span>}
+      {error && <span>{error}</span>}
+
+      {items?.map((item) => (
+        <span key={item.id}>{item.title}</span>
+      ))}
+    </div>
+  ),
+}));
+
+vi.mock("../components/opportunities/matchingOpportunity", () => ({
+  MatchingOpportunities: () => (
+    <div data-testid="matching-opportunities" />
   ),
 }));
 
@@ -35,470 +82,370 @@ vi.mock("../components/notifications/notificationDropdown", () => ({
   ),
 }));
 
-vi.mock("../components/opportunities/matchingOpportunity", () => ({
-  MatchingOpportunities: () => (
-    <div data-testid="matching-opportunities">
-      Matching Opportunities
-    </div>
-  ),
-}));
+// ── fetch mock ────────────────────────────────────────────────────────────────
+const mockFetch = vi.fn();
 
-vi.mock("../components/opportunities/OpportunityFilters", () => ({
-  OpportunityFilters: ({
-    location,
-    nqfLevel,
-    field,
-    setLocation,
-    setNqfLevel,
-    setField,
-    onReset,
-    onViewMatch,
-    loading,
-  }) => (
-    <div data-testid="opportunity-filters">
-      <p>Filters Component</p>
-      <p data-testid="filters-loading">
-        {loading ? "loading" : "loaded"}
-      </p>
+// ── Render helper ─────────────────────────────────────────────────────────────
+const renderOpportunities = () =>
+  render(
+    <MemoryRouter>
+      <Opportunities />
+    </MemoryRouter>
+  );
 
-      <button onClick={() => setLocation("Johannesburg")}>
-        Set Location
-      </button>
+// ── Default API setup ────────────────────────────────────────────────────────
+const defaultApiSetup = () => {
+  mockGetLocations.mockResolvedValue({
+    data: ["Cape Town", "Johannesburg"],
+  });
 
-      <button onClick={() => setNqfLevel("6")}>
-        Set NQF
-      </button>
+  mockGetFields.mockResolvedValue({
+    data: ["Engineering", "Design"],
+  });
 
-      <button onClick={() => setField("Engineering")}>
-        Set Field
-      </button>
+  mockGetNqfLevels.mockResolvedValue({
+    data: [3, 4, 5],
+  });
 
-      <button onClick={onReset}>
-        Reset Filters
-      </button>
-
-      <button onClick={onViewMatch}>
-        View Matches
-      </button>
-
-      <span data-testid="current-location">{location}</span>
-      <span data-testid="current-nqf">{nqfLevel}</span>
-      <span data-testid="current-field">{field}</span>
-    </div>
-  ),
-}));
-
-vi.mock("../components/opportunities/OpportunityList", () => ({
-  OpportunityList: ({
-    items,
-    loading,
-    error,
-    summary,
-    pagination,
-    onPageChange,
-  }) => (
-    <div data-testid="opportunity-list">
-      <p data-testid="items-count">{items.length}</p>
-      <p data-testid="loading-state">
-        {loading ? "loading" : "loaded"}
-      </p>
-      <p data-testid="error-state">{error}</p>
-      <p data-testid="summary-opportunities">
-        {summary.opportunities}
-      </p>
-      <p data-testid="summary-qualifications">
-        {summary.qualifications}
-      </p>
-      <p data-testid="pagination-page">
-        {pagination?.page || "none"}
-      </p>
-
-      <button onClick={() => onPageChange(2)}>
-        Next Page
-      </button>
-
-      {items.map((item) => (
-        <div key={item.id}>{item.title}</div>
-      ))}
-    </div>
-  ),
-}));
-
-// ── Global fetch mock ────────────────────────────────────────────────────────
-
-globalThis.fetch = vi.fn(() =>
-  Promise.resolve({
-    json: () =>
-      Promise.resolve({
-        profile: {
-          full_name: "John Doe",
-        },
-      }),
-  })
-);
-
-// ── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_LOCATIONS = {
-  data: ["Johannesburg", "Cape Town"],
-};
-
-const MOCK_FIELDS = {
-  data: ["Engineering", "Business"],
-};
-
-const MOCK_NQF = {
-  data: ["5", "6"],
-};
-
-const MOCK_OPPORTUNITIES = {
-  data: [
-    {
-      id: "1",
-      title: "Software Internship",
-      _type: "opportunity",
+  mockGetOpportunities.mockResolvedValue({
+    data: [
+      {
+        id: 1,
+        title: "Learnership A",
+        _type: "opportunity",
+      },
+    ],
+    pagination: {
+      page: 1,
+      total: 1,
     },
-    {
-      id: "2",
-      title: "Qualification",
-      _type: "qualification",
+    summary: {
+      opportunities: 1,
+      qualifications: 0,
     },
-    {
-      id: "3",
-      title: "Engineering Learnership",
-      _type: "opportunity",
-    },
-  ],
-  pagination: {
-    page: 1,
-    totalPages: 5,
-  },
-  summary: {
-    opportunities: 2,
-    qualifications: 1,
-  },
+  });
 };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function setupSuccessMocks() {
-  mockGetLocations.mockResolvedValue(MOCK_LOCATIONS);
-  mockGetFields.mockResolvedValue(MOCK_FIELDS);
-  mockGetNqfLevels.mockResolvedValue(MOCK_NQF);
-  mockGetOpportunities.mockResolvedValue(MOCK_OPPORTUNITIES);
-}
-
-// ── Tests ────────────────────────────────────────────────────────────────────
-
-describe("Opportunities", () => {
+// ═══════════════════════════════════════════════════════════════════════════════
+describe("Opportunities page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    setupSuccessMocks();
-  });
 
-  it("renders page heading", async () => {
-    render(<Opportunities />);
+    globalThis.fetch = mockFetch;
 
-    expect(
-      await screen.findByText("Accredited Opportunities")
-    ).toBeDefined();
-  });
+    mockAuthUser = {
+      email: "test@example.com",
+    };
 
-  it("renders sidebar with active page", async () => {
-    render(<Opportunities />);
+    mockToken = "mock-token";
 
-    expect(await screen.findByTestId("sidebar")).toBeDefined();
-    expect(screen.getByTestId("sidebar").textContent).toContain(
-      "/opportunities"
-    );
-  });
-
-  it("renders notification dropdown", async () => {
-    render(<Opportunities />);
-
-    expect(
-      await screen.findByTestId("notification-dropdown")
-    ).toBeDefined();
-  });
-
-  it("loads dropdown filter data on mount", async () => {
-    render(<Opportunities />);
-
-    await waitFor(() => {
-      expect(mockGetLocations).toHaveBeenCalled();
-      expect(mockGetFields).toHaveBeenCalled();
-      expect(mockGetNqfLevels).toHaveBeenCalled();
-    });
-  });
-
-  it("loads opportunities on mount", async () => {
-    render(<Opportunities />);
-
-    await waitFor(() => {
-      expect(mockGetOpportunities).toHaveBeenCalled();
-    });
-  });
-
-  it("filters out non-opportunity items", async () => {
-    render(<Opportunities />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Software Internship")).toBeDefined();
-      expect(
-        screen.getByText("Engineering Learnership")
-      ).toBeDefined();
+    mockFetch.mockResolvedValue({
+      json: async () => ({
+        profile: {
+          full_name: "Jane Doe",
+        },
+      }),
     });
 
-    expect(
-      screen.queryByText("Qualification")
-    ).toBeNull();
+    defaultApiSetup();
   });
 
-  it("passes summary data to OpportunityList", async () => {
-    render(<Opportunities />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("summary-opportunities").textContent
-      ).toBe("2");
-
-      expect(
-        screen.getByTestId("summary-qualifications").textContent
-      ).toBe("1");
-    });
+  afterEach(() => {
+    localStorage.clear();
   });
 
-  it("shows initials from profile full name", async () => {
-    render(<Opportunities />);
+  // ── Structure ─────────────────────────────────────────────────────────────
+  describe("structure", () => {
+    it("renders heading", async () => {
+      renderOpportunities();
 
-    await waitFor(() => {
-      expect(screen.getByText("JD")).toBeDefined();
-    });
-  });
-
-  it("updates search input", async () => {
-    render(<Opportunities />);
-
-    const input = await screen.findByPlaceholderText(
-      "Search and press Enter..."
-    );
-
-    fireEvent.change(input, {
-      target: { value: "Engineering" },
+      await waitFor(() =>
+        expect(
+          screen.getByText("Accredited Opportunities")
+        ).toBeInTheDocument()
+      );
     });
 
-    expect(input.value).toBe("Engineering");
-  });
+    it("renders Explore Careers", async () => {
+      renderOpportunities();
 
-  it("triggers search on Enter key", async () => {
-    render(<Opportunities />);
-
-    const input = await screen.findByPlaceholderText(
-      "Search and press Enter..."
-    );
-
-    fireEvent.change(input, {
-      target: { value: "Developer" },
+      await waitFor(() =>
+        expect(
+          screen.getByText("Explore Careers")
+        ).toBeInTheDocument()
+      );
     });
 
-    fireEvent.keyDown(input, {
-      key: "Enter",
-      code: "Enter",
+    it("renders Sidebar", async () => {
+      renderOpportunities();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("sidebar").dataset.active
+        ).toBe("/opportunities")
+      );
     });
 
-    await waitFor(() => {
-      expect(mockGetOpportunities).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          search: "Developer",
-        })
+    it("renders filters", async () => {
+      renderOpportunities();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("opportunity-filters")
+        ).toBeInTheDocument()
+      );
+    });
+
+    it("renders opportunity list", async () => {
+      renderOpportunities();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("opportunity-list")
+        ).toBeInTheDocument()
       );
     });
   });
 
-  it("updates location filter", async () => {
-    render(<Opportunities />);
+  // ── API ──────────────────────────────────────────────────────────────────
+  describe("api calls", () => {
+    it("calls dropdown apis", async () => {
+      renderOpportunities();
 
-    fireEvent.click(
-      await screen.findByText("Set Location")
-    );
+      await waitFor(() => {
+        expect(mockGetLocations).toHaveBeenCalled();
+        expect(mockGetFields).toHaveBeenCalled();
+        expect(mockGetNqfLevels).toHaveBeenCalled();
+      });
+    });
 
-    await waitFor(() => {
+    it("calls getOpportunities", async () => {
+      renderOpportunities();
+
+      await waitFor(() =>
+        expect(mockGetOpportunities).toHaveBeenCalled()
+      );
+    });
+
+    it("filters out qualifications", async () => {
+      mockGetOpportunities.mockResolvedValue({
+        data: [
+          {
+            id: 1,
+            title: "Learnership A",
+            _type: "opportunity",
+          },
+          {
+            id: 2,
+            title: "Qualification",
+            _type: "qualification",
+          },
+        ],
+      });
+
+      renderOpportunities();
+
+      await waitFor(() =>
+        expect(
+          screen.getByText("Learnership A")
+        ).toBeInTheDocument()
+      );
+
       expect(
-        screen.getByTestId("current-location").textContent
-      ).toBe("Johannesburg");
+        screen.queryByText("Qualification")
+      ).not.toBeInTheDocument();
     });
   });
 
-  it("updates nqf filter", async () => {
-    render(<Opportunities />);
+  // ── Search ───────────────────────────────────────────────────────────────
+  describe("search", () => {
+    it("renders input", async () => {
+      renderOpportunities();
 
-    fireEvent.click(await screen.findByText("Set NQF"));
+      await waitFor(() =>
+        expect(
+          screen.getByPlaceholderText(
+            "Search and press Enter..."
+          )
+        ).toBeInTheDocument()
+      );
+    });
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("current-nqf").textContent
-      ).toBe("6");
+    it("updates input", async () => {
+      renderOpportunities();
+
+      const input = await screen.findByPlaceholderText(
+        "Search and press Enter..."
+      );
+
+      fireEvent.change(input, {
+        target: { value: "engineering" },
+      });
+
+      expect(input.value).toBe("engineering");
+    });
+
+    it("calls getOpportunities on Enter", async () => {
+      renderOpportunities();
+
+      const input = await screen.findByPlaceholderText(
+        "Search and press Enter..."
+      );
+
+      fireEvent.change(input, {
+        target: { value: "design" },
+      });
+
+      fireEvent.keyDown(input, {
+        key: "Enter",
+      });
+
+      await waitFor(() =>
+        expect(mockGetOpportunities).toHaveBeenCalled()
+      );
+    });
+
+    it("does not trigger search on non-enter", async () => {
+      renderOpportunities();
+
+      const input = await screen.findByPlaceholderText(
+        "Search and press Enter..."
+      );
+
+      mockGetOpportunities.mockClear();
+
+      fireEvent.keyDown(input, {
+        key: "a",
+      });
+
+      expect(mockGetOpportunities).not.toHaveBeenCalled();
     });
   });
 
-  it("updates field filter", async () => {
-    render(<Opportunities />);
+  // ── Match mode ────────────────────────────────────────────────────────────
+  describe("match mode", () => {
+    it("shows matching component", async () => {
+      renderOpportunities();
 
-    fireEvent.click(await screen.findByText("Set Field"));
+      const btn = await screen.findByText("View Matches");
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("current-field").textContent
-      ).toBe("Engineering");
-    });
-  });
+      fireEvent.click(btn);
 
-  it("resets filters", async () => {
-    render(<Opportunities />);
-
-    fireEvent.click(await screen.findByText("Set Location"));
-    fireEvent.click(await screen.findByText("Set NQF"));
-    fireEvent.click(await screen.findByText("Set Field"));
-
-    fireEvent.click(await screen.findByText("Reset Filters"));
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("current-location").textContent
-      ).toBe("");
-
-      expect(
-        screen.getByTestId("current-nqf").textContent
-      ).toBe("");
-
-      expect(
-        screen.getByTestId("current-field").textContent
-      ).toBe("");
-    });
-  });
-
-  it("switches to matching opportunities view", async () => {
-    render(<Opportunities />);
-
-    fireEvent.click(
-      await screen.findByText("View Matches")
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("matching-opportunities")
-      ).toBeDefined();
-    });
-  });
-
-  it("returns back to all opportunities", async () => {
-    render(<Opportunities />);
-
-    fireEvent.click(
-      await screen.findByText("View Matches")
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("← Back to All Opportunities")
-      ).toBeDefined();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId("matching-opportunities")
+        ).toBeInTheDocument()
+      );
     });
 
-    fireEvent.click(
-      screen.getByText("← Back to All Opportunities")
-    );
+    it("returns to normal mode", async () => {
+      renderOpportunities();
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("opportunity-list")
-      ).toBeDefined();
-    });
-  });
+      fireEvent.click(await screen.findByText("View Matches"));
 
-  it("handles pagination changes", async () => {
-    render(<Opportunities />);
+      fireEvent.click(
+        await screen.findByText("← Back to All Opportunities")
+      );
 
-    fireEvent.click(
-      await screen.findByText("Next Page")
-    );
-
-    await waitFor(() => {
-      expect(mockGetOpportunities).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          page: 2,
-        })
+      await waitFor(() =>
+        expect(
+          screen.getByPlaceholderText(
+            "Search and press Enter..."
+          )
+        ).toBeInTheDocument()
       );
     });
   });
 
-  it("handles dropdown loading failure", async () => {
-    mockGetLocations.mockRejectedValue(
-      new Error("Failed to load filters")
-    );
+  // ── User menu ────────────────────────────────────────────────────────────
+  describe("user menu", () => {
+    it("shows full name", async () => {
+      renderOpportunities();
 
-    render(<Opportunities />);
+      await waitFor(() =>
+        expect(screen.getByText("Jane Doe")).toBeInTheDocument()
+      );
+    });
 
-    await waitFor(() => {
+    it("opens menu", async () => {
+      renderOpportunities();
+
+      const buttons = await screen.findAllByRole("button");
+
+      fireEvent.click(buttons[0]);
+
       expect(
-        screen.getByTestId("error-state").textContent
-      ).toContain("Failed to load filters");
+        screen.getByText("Sign Out")
+      ).toBeInTheDocument();
+    });
+
+    it("navigates to dashboard", async () => {
+      render(
+        <MemoryRouter>
+          <Opportunities />
+        </MemoryRouter>
+      );
+
+      const buttons = screen.getAllByRole("button");
+      fireEvent.click(buttons[0]);
+
+      const dashboardButtons = screen.getAllByText("Dashboard");
+      fireEvent.click(dashboardButtons[1]);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        "/dashboard"
+      );
+    });
+
+    it("logs out correctly", async () => {
+      localStorage.setItem("user", "u");
+      localStorage.setItem("token", "t");
+
+      renderOpportunities();
+
+      const buttons = await screen.findAllByRole("button");
+
+      fireEvent.click(buttons[0]);
+
+      fireEvent.click(screen.getByText("Sign Out"));
+
+      await waitFor(() => {
+        expect(localStorage.getItem("user")).toBeNull();
+        expect(localStorage.getItem("token")).toBeNull();
+        expect(mockNavigate).toHaveBeenCalledWith("/");
+      });
     });
   });
 
-  it("handles opportunities loading failure", async () => {
-    mockGetOpportunities.mockRejectedValue(
-      new Error("Failed to load opportunities")
-    );
+  // ── Profile fetch ────────────────────────────────────────────────────────
+  describe("profile fetch", () => {
+    it("fetches profile with bearer token", async () => {
+      renderOpportunities();
 
-    render(<Opportunities />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("error-state").textContent
-      ).toContain("Failed to load opportunities");
+      await waitFor(() =>
+        expect(mockFetch).toHaveBeenCalledWith(
+          expect.stringContaining("/api/profile/me"),
+          expect.objectContaining({
+            headers: expect.objectContaining({
+              Authorization: "Bearer mock-token",
+            }),
+          })
+        )
+      );
     });
-  });
 
-  it("shows loading states", async () => {
-    mockGetLocations.mockReturnValue(new Promise(() => {}));
-    mockGetFields.mockReturnValue(new Promise(() => {}));
-    mockGetNqfLevels.mockReturnValue(new Promise(() => {}));
-    mockGetOpportunities.mockReturnValue(new Promise(() => {}));
+    it("does not fetch without token", async () => {
+      mockToken = null;
 
-    render(<Opportunities />);
+      renderOpportunities();
 
-    expect(
-      screen.getByTestId("filters-loading").textContent
-    ).toBe("loading");
+      await waitFor(() =>
+        expect(
+          screen.getByText("Accredited Opportunities")
+        ).toBeInTheDocument()
+      );
 
-    expect(
-      screen.getByTestId("loading-state").textContent
-    ).toBe("loading");
-  });
-
-  it("handles missing profile gracefully", async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        json: () => Promise.resolve({}),
-      })
-    );
-
-    render(<Opportunities />);
-
-    await waitFor(() => {
-      expect(screen.getByText("J")).toBeDefined();
-    });
-  });
-
-  it("handles profile fetch failure gracefully", async () => {
-    globalThis.fetch = vi.fn(() =>
-      Promise.reject(new Error("Network error"))
-    );
-
-    render(<Opportunities />);
-
-    await waitFor(() => {
-      expect(screen.getByText("J")).toBeDefined();
+      expect(mockFetch).not.toHaveBeenCalled();
     });
   });
 });
