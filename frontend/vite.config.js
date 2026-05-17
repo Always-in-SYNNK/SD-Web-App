@@ -28,6 +28,7 @@ export default defineConfig({
         "src/components/**/*.{js,jsx}",
         "src/services/**/*.{js,jsx}",
         "src/lib/**/*.js",
+        "src/routes/**/*.{js,jsx}",
       ],
       exclude: [],
     },

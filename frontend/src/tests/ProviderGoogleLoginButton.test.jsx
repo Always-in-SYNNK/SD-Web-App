@@ -192,4 +192,46 @@ describe("ProviderGoogleLoginButton", () => {
       "Google sign-in failed. Please try again."
     );
   });
+
+  it("calls onError when signInProvider returns failure", async () => {
+    const onError = vi.fn();
+
+    mockCheckProviderUser.mockResolvedValue({ exists: true });
+    mockSignInProvider.mockResolvedValue({ success: false, message: "Sign in failed" });
+
+    render(
+      <ProviderGoogleLoginButton
+        onLoadingChange={vi.fn()}
+        onError={onError}
+        onVerificationRequired={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Provider Success"));
+
+    await waitFor(() => {
+      expect(onError).toHaveBeenCalledWith("Sign in failed");
+    });
+  });
+
+  it("calls onError when signUpProvider returns failure", async () => {
+    const onError = vi.fn();
+
+    mockCheckProviderUser.mockResolvedValue({ exists: false });
+    mockSignUpProvider.mockResolvedValue({ success: false, message: "Signup failed" });
+
+    render(
+      <ProviderGoogleLoginButton
+        onLoadingChange={vi.fn()}
+        onError={onError}
+        onVerificationRequired={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByText("Provider Success"));
+
+    await waitFor(() => {
+      expect(onError).toHaveBeenCalledWith("Signup failed");
+    });
+  });
 });

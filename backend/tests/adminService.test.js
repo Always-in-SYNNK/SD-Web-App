@@ -8,9 +8,14 @@ jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
   },
 }));
 
-const { getMyApplicationStatus, createApplication, fetchApplications, rejectApplication, approveApplication } = await import(
-  "../src/services/adminService.js"
-);
+const {
+  getMyApplicationStatus,
+  createApplication,
+  fetchApplications,
+  rejectApplication,
+  approveApplication,
+  getAdminStats,
+} = await import("../src/services/adminService.js");
 
 describe("adminService", () => {
   afterEach(() => {
@@ -231,4 +236,216 @@ describe("adminService", () => {
       await expect(rejectApplication("app1")).rejects.toThrow();
     });
   });
+
+  describe("getAdminStats", () => {
+    test("returns all admin stats successfully", async () => {
+      mockFrom
+        // approved
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 12,
+              error: null,
+            }),
+          }),
+        })
+
+        // pending
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 5,
+              error: null,
+            }),
+          }),
+        })
+
+        // rejected
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 2,
+              error: null,
+            }),
+          }),
+        })
+
+        // today
+        .mockReturnValueOnce({
+          select: () => ({
+            gte: async () => ({
+              count: 3,
+              error: null,
+            }),
+          }),
+        });
+
+      const result = await getAdminStats();
+
+      expect(result).toEqual({
+        approved: 12,
+        pending: 5,
+        rejected: 2,
+        today: 3,
+      });
+    });
+
+    test("returns 0 for missing counts", async () => {
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: null,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: null,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: null,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            gte: async () => ({
+              count: null,
+              error: null,
+            }),
+          }),
+        });
+
+      const result = await getAdminStats();
+
+      expect(result).toEqual({
+        approved: 0,
+        pending: 0,
+        rejected: 0,
+        today: 0,
+      });
+    });
+
+    test("throws when approved query fails", async () => {
+      mockFrom.mockReturnValueOnce({
+        select: () => ({
+          eq: async () => ({
+            count: null,
+            error: new Error("Approved query failed"),
+          }),
+        }),
+      });
+
+      await expect(getAdminStats()).rejects.toThrow(
+        "Approved query failed"
+      );
+    });
+
+    test("throws when pending query fails", async () => {
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 1,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: null,
+              error: new Error("Pending query failed"),
+            }),
+          }),
+        });
+
+      await expect(getAdminStats()).rejects.toThrow(
+        "Pending query failed"
+      );
+    });
+
+    test("throws when rejected query fails", async () => {
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 1,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 1,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: null,
+              error: new Error("Rejected query failed"),
+            }),
+          }),
+        });
+
+      await expect(getAdminStats()).rejects.toThrow(
+        "Rejected query failed"
+      );
+    });
+
+    test("throws when today query fails", async () => {
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 1,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 1,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: async () => ({
+              count: 1,
+              error: null,
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            gte: async () => ({
+              count: null,
+              error: new Error("Today query failed"),
+            }),
+          }),
+        });
+
+      await expect(getAdminStats()).rejects.toThrow(
+        "Today query failed"
+      );
+    });
+  });
+
+  
 });

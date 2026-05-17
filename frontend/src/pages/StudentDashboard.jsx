@@ -2,16 +2,15 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/useAuth";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { UploadBanner } from "../components/dashboard/UploadBanner";
 import { QualificationList } from "../components/dashboard/QualificationList";
-import { OpportunityCard } from "../components/dashboard/OpportunityCard";
-import { VerificationCard } from "../components/dashboard/VerificationCard";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
+import { CVCard } from "../components/dashboard/CVCard";
 
 export default function StudentDashboard() {
   const { token, user } = useAuth();
   const API = import.meta.env.VITE_API_URL;
   const [profile, setProfile] = useState(null);
+  const [cvUrl, setCvUrl] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -26,6 +25,21 @@ export default function StudentDashboard() {
       }
     };
     if (token) fetchProfile();
+  }, [token]);
+
+  useEffect(() => {
+    const fetchCv = async () => {
+      try {
+        const res = await fetch(`${API}/api/profile/me/cv/signed-url`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.signed_url) setCvUrl(data.signed_url);
+      } catch (err) {
+        console.error("Failed to fetch CV:", err);
+      }
+    };
+    if (token) fetchCv();
   }, [token]);
 
   const initials = profile?.full_name
@@ -44,7 +58,6 @@ export default function StudentDashboard() {
           </section>
           <section className="flex items-center gap-3">
             <NotificationDropdown />
-            <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
             <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
               {initials}
             </figure>
@@ -53,12 +66,8 @@ export default function StudentDashboard() {
 
         <section className="p-12">
           <DashboardHeader profile={profile} />
-          <UploadBanner />
-          <QualificationList />
-          <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <OpportunityCard />
-            <VerificationCard />
-          </section>
+          <QualificationList qualifications={profile?.qualifications ?? []} />
+          <CVCard cvUrl={cvUrl} />
         </section>
       </section>
 

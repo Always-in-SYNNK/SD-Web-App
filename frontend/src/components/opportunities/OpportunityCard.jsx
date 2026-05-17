@@ -2,6 +2,15 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { applyToOpportunity } from "../../services/myApplicationService";
 
+const STATUS_STYLES = {
+  approved: "bg-green-100 text-green-800",
+  pending:  "bg-yellow-100 text-yellow-800",
+  rejected: "bg-red-100 text-red-800",
+  draft:    "bg-gray-100 text-gray-500",
+  offered:  "bg-blue-100 text-blue-800",
+  accepted: "bg-purple-100 text-purple-800",
+};
+
 export function OpportunityCard({
   id,
   title,
@@ -10,12 +19,17 @@ export function OpportunityCard({
   duration,
   stipend,
   closing_date,
+  status,
   isApplied = false,
   isAdmin = false,
+  isProvider = false,
   onEdit,
   onDelete,
-  onApprove,  // new
-  onReject,   // new
+  onApprove,
+  onReject,
+  disableApprove = false,
+  disableReject = false,
+  disableDelete = false,
 }) {
   const navigate = useNavigate();
 
@@ -52,23 +66,40 @@ export function OpportunityCard({
     }
   };
 
+  const statusPill = status && (
+    <span
+      className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize ${
+        STATUS_STYLES[status] ?? STATUS_STYLES.draft
+      }`}
+    >
+      {status}
+    </span>
+  );
+
   return (
     <article
-      onClick={() => navigate(`/opportunities/${id}`)}
-      className="bg-white p-6 rounded-xl flex flex-col md:flex-row gap-6 items-center relative group border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300 cursor-pointer"
+      onClick={() => !isProvider && navigate(`/opportunities/${id}`)}
+      className={`bg-white p-6 rounded-xl flex flex-col md:flex-row gap-6 items-center relative group border border-gray-100 hover:shadow-lg hover:border-blue-100 transition-all duration-300 ${
+        isProvider ? "cursor-default" : "cursor-pointer"
+      }`}
     >
       <figure className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">
         🎓
       </figure>
 
       <section className="flex-1 space-y-1 text-center md:text-left">
-        <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#035b9d] transition-colors">
-          {title}
-        </h3>
+        <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+          <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#035b9d] transition-colors">
+            {title}
+          </h3>
+          {isProvider && statusPill}
+        </div>
 
-        <p className="text-gray-500 text-sm mt-1 line-clamp-2">
-          {description}
-        </p>
+        {description && (
+          <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+            {description}
+          </p>
+        )}
 
         <section className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-gray-400 pt-2 text-xs">
           {location && <strong>📍 {location}</strong>}
@@ -79,27 +110,72 @@ export function OpportunityCard({
       </section>
 
       <nav className="flex flex-row md:flex-col gap-3 shrink-0">
-        {isAdmin ? (
+        {isProvider ? (
           <>
-            {/* Approve/Reject — pending tab only */}
+            {status === "draft" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/opportunities/edit/${id}`);
+                }}
+                className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                Edit Draft
+              </button>
+            )}
+
+            {status === "approved" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/opportunity/${id}/applications`);
+                }}
+                className="px-4 py-2 bg-[#035b9d] text-white rounded-lg text-sm font-medium hover:bg-[#024f8a] transition-colors"
+              >
+                View Applications
+              </button>
+            )}
+
+            {status === "rejected" && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/opportunities/edit/${id}`);
+                }}
+                className="px-4 py-2 border border-gray-300 text-[#404850] rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Revise &amp; Resubmit
+              </button>
+            )}
+
+            {status === "pending" && (
+              <span className="px-4 py-2 bg-yellow-50 text-yellow-600 rounded-lg text-sm font-medium border border-yellow-200">
+                Under Review
+              </span>
+            )}
+          </>
+        ) : isAdmin ? (
+          <>
             {onApprove && (
               <button
+                disabled={disableApprove}
                 onClick={(e) => { e.stopPropagation(); onApprove(id); }}
-                className="px-5 py-2 bg-green-100 text-green-700 rounded-lg font-bold text-sm hover:bg-green-200 transition"
+                className="px-5 py-2 bg-green-100 text-green-700 rounded-lg font-bold text-sm hover:bg-green-200 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-100"
+                title={disableApprove ? "You cannot approve your own opportunity." : undefined}
               >
                 Approve
               </button>
             )}
             {onReject && (
               <button
+                disabled={disableReject}
                 onClick={(e) => { e.stopPropagation(); onReject(id); }}
-                className="px-5 py-2 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm hover:bg-orange-200 transition"
+                className="px-5 py-2 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm hover:bg-orange-200 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-100"
+                title={disableReject ? "You cannot reject your own opportunity." : undefined}
               >
                 Reject
               </button>
             )}
-
-            {/* Edit/Delete — approved tab only */}
             {onEdit && (
               <button
                 onClick={(e) => { e.stopPropagation(); onEdit(id); }}
@@ -110,8 +186,10 @@ export function OpportunityCard({
             )}
             {onDelete && (
               <button
+                disabled={disableDelete}
                 onClick={(e) => { e.stopPropagation(); onDelete(id); }}
                 className="px-5 py-2 bg-red-100 text-red-600 rounded-lg font-bold text-sm hover:bg-red-200 transition"
+                title={disableDelete ? "You cannot delete your own opportunity." : undefined}
               >
                 Delete
               </button>

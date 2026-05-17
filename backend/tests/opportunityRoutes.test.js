@@ -29,6 +29,7 @@ jest.unstable_mockModule(
 const providerAuthMiddleware = jest.fn((req, res, next) => next());
 const requireAuth = jest.fn((req, res, next) => next());
 const requireAdmin = jest.fn((req, res, next) => next());
+const preventSelfModeration = jest.fn((req, res, next) => next());
 
 jest.unstable_mockModule(
   "../src/middleware/providerAuthMiddleware.js",
@@ -48,6 +49,13 @@ jest.unstable_mockModule(
   "../src/middleware/requireAdmin.js",
   () => ({
     requireAdmin,
+  })
+);
+
+jest.unstable_mockModule(
+  "../src/middleware/preventSelfModeration.js",
+  () => ({
+    preventSelfModeration,
   })
 );
 
@@ -152,6 +160,7 @@ describe("opportunityRoutes", () => {
 
     expect(requireAuth).toHaveBeenCalled();
     expect(requireAdmin).toHaveBeenCalled();
+    expect(preventSelfModeration).toHaveBeenCalled();
     expect(mockControllers.approveOpportunity).toHaveBeenCalled();
   });
 
@@ -160,6 +169,7 @@ describe("opportunityRoutes", () => {
 
     expect(requireAuth).toHaveBeenCalled();
     expect(requireAdmin).toHaveBeenCalled();
+    expect(preventSelfModeration).toHaveBeenCalled();
     expect(mockControllers.rejectOpportunity).toHaveBeenCalled();
   });
 
@@ -168,6 +178,7 @@ describe("opportunityRoutes", () => {
 
     expect(requireAuth).toHaveBeenCalled();
     expect(requireAdmin).toHaveBeenCalled();
+    expect(preventSelfModeration).toHaveBeenCalled();
     expect(mockControllers.deleteOpportunity).toHaveBeenCalled();
   });
 });
