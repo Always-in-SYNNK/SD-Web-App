@@ -94,11 +94,6 @@ describe("Topbar", () => {
       expect(screen.getByText("🔔")).toBeInTheDocument();
     });
 
-    it("renders help button", () => {
-      renderAt("/pipeline");
-      expect(screen.getByText("❓")).toBeInTheDocument();
-    });
-
     it("does NOT render user avatar when not logged in", () => {
       renderAt("/pipeline");
       // No figure with initial

@@ -2,23 +2,23 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/useAuth";
-
+import { ProviderNotificationDropdown } from "../notifications/ProviderNotificationDropdown"
 // Page label map — add new routes here as you build them
 const PAGE_LABELS = {
-  "/pipeline":           "Validation Pipeline",
-  "/post-opportunity":   "Post New Opportunity",
+  "/pipeline": "Validation Pipeline",
+  "/post-opportunity": "Post New Opportunity",
   "/admin-applications": "Admin Applications",
-  "/admin-console":      "Admin Console",
+  "/admin-console": "Admin Console",
 };
 
 const Topbar = ({ user: providerUser, onLogout }) => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user: authUser } = useAuth();
 
-  const [fullName,   setFullName]   = useState("");
-  const [orgName,    setOrgName]    = useState("");
-  const [showMenu,   setShowMenu]   = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
   const [isProvider, setIsProvider] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -62,13 +62,13 @@ const Topbar = ({ user: providerUser, onLogout }) => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const displayName  = fullName || "User";
-  const subtitle     = isProvider ? orgName || "Employer" : "Applicant";
-  const avatar       = displayName.charAt(0).toUpperCase();
+  const displayName = fullName || "User";
+  const subtitle = isProvider ? orgName || "Employer" : "Applicant";
+  const avatar = displayName.charAt(0).toUpperCase();
 
   // ── active page label (dynamic) ─────────────────────────────────────────
-  const currentPath  = location.pathname;
-  const activeLabel  = PAGE_LABELS[currentPath] || null;
+  const currentPath = location.pathname;
+  const activeLabel = PAGE_LABELS[currentPath] || null;
 
   const logout = async () => {
     if (onLogout) onLogout();
@@ -80,7 +80,7 @@ const Topbar = ({ user: providerUser, onLogout }) => {
       try {
         window.google.accounts.id.disableAutoSelect?.();
         window.google.accounts.id.cancel?.();
-      } catch {/* ignore */}
+      } catch {/* ignore */ }
     }
     navigate("/");
   };
@@ -101,11 +101,10 @@ const Topbar = ({ user: providerUser, onLogout }) => {
         <button
           type="button"
           onClick={() => navigate("/pipeline")}
-          className={`transition-colors ${
-            currentPath === "/pipeline"
+          className={`transition-colors ${currentPath === "/pipeline"
               ? "text-[#035b9d] font-bold border-b-2 border-[#035b9d] pb-0.5"
               : "text-gray-400 hover:text-[#035b9d]"
-          }`}
+            }`}
         >
           Dashboard
         </button>
@@ -128,8 +127,7 @@ const Topbar = ({ user: providerUser, onLogout }) => {
     return (
       <NavShell>
         <section className="flex items-center gap-3 shrink-0">
-          <button className="p-2 hover:bg-gray-100 rounded-full">🔔</button>
-          <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
+          <ProviderNotificationDropdown />
           <button
             onClick={() => navigate("/prov-login")}
             className="px-4 py-2 bg-[#035b9d] text-white rounded-lg text-sm font-semibold hover:bg-[#024a82] transition-colors"
@@ -146,8 +144,7 @@ const Topbar = ({ user: providerUser, onLogout }) => {
     <NavShell>
       <section className="flex items-center gap-3 shrink-0">
         {/* Notifications */}
-        <button className="p-2 hover:bg-gray-100 rounded-full text-base">🔔</button>
-        <button className="p-2 hover:bg-gray-100 rounded-full text-base">❓</button>
+        <ProviderNotificationDropdown />
 
         {/* Divider */}
         <div className="w-px h-5 bg-gray-200" />

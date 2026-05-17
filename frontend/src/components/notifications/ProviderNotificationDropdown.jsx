@@ -1,9 +1,9 @@
+// src/components/ProviderNotificationDropdown.jsx
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
 
-
-export function NotificationDropdown() {
+export function ProviderNotificationDropdown() {
   const { token } = useAuth() ?? {};
   const API = import.meta.env.VITE_API_URL;
   const [open, setOpen] = useState(false);
@@ -12,18 +12,17 @@ export function NotificationDropdown() {
   const [loading, setLoading] = useState(true);
   const ref = useRef(null);
 
-  //badge number on bell (counts unread notifications)
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // fetch notifications (API call)
+  // Fetch notifications
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`${API}/api/notifications`, { //calls GET/api/notifications
+        const res = await fetch(`${API}/api/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        setNotifications(data.notifications || []); //saves response
+        setNotifications(data.notifications || []);
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       } finally {
@@ -31,26 +30,23 @@ export function NotificationDropdown() {
       }
     };
     if (token) fetchNotifications();
-  }, [token]);
+  }, [token, API]);
 
-  // close on outside click
+  // Close on outside click
   useEffect(() => {
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false); //set open is false when another part of screen is clicked
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
-    //adds event listener
     document.addEventListener("mousedown", handleClick);
-    //prevent memory leaks
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   const markRead = async (id) => {
     try {
-      await fetch(`${API}/api/notifications/${id}`, { //requests PATCH/api/notifications/:id to mark as read
+      await fetch(`${API}/api/notifications/${id}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
-      //update frontend state
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
@@ -59,14 +55,11 @@ export function NotificationDropdown() {
     }
   };
 
-  //finds all unread notifications and callsmarkRead for each of them
-  //Promise.all - marks as read in parallel
   const markAllRead = async () => {
     const unread = notifications.filter((n) => !n.is_read);
     await Promise.all(unread.map((n) => markRead(n.id)));
   };
-  
-  //convert timestamp to human readable format
+
   const formatTime = (dateStr) => {
     const diff = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diff / 60000);
@@ -77,10 +70,8 @@ export function NotificationDropdown() {
     return `${days} day${days !== 1 ? "s" : ""} ago`;
   };
 
-//UI rendering
-return (
+  return (
     <section className="relative" ref={ref}>
-      {/* Bell button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
         className="relative p-2 hover:bg-gray-100 rounded-full transition"
@@ -93,11 +84,8 @@ return (
         )}
       </button>
 
-      {/* Dropdown */}
       {open && (
         <article className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-
-          {/* Header */}
           <header className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <h3 className="font-bold text-[#1b1c1c] text-sm">Notifications</h3>
             {unreadCount > 0 && (
@@ -110,7 +98,6 @@ return (
             )}
           </header>
 
-          {/* List */}
           <ul className="max-h-80 overflow-y-auto divide-y divide-gray-50">
             {loading ? (
               <li className="px-4 py-8 text-center text-gray-400 text-sm">
@@ -121,7 +108,7 @@ return (
                 No notifications yet
               </li>
             ) : (
-              notifications.slice(0,10).map((n) => (
+              notifications.slice(0, 10).map((n) => (
                 <li
                   key={n.id}
                   onClick={() => !n.is_read && markRead(n.id)}
@@ -130,13 +117,20 @@ return (
                   }`}
                 >
                   <figure className="mt-1.5 shrink-0">
-                    {!n.is_read
-                      ? <mark className="w-2 h-2 rounded-full bg-[#035b9d] block not-italic" />
-                      : <mark className="w-2 h-2 rounded-full bg-transparent block not-italic" />
-                    }
+                    {!n.is_read ? (
+                      <mark className="w-2 h-2 rounded-full bg-[#035b9d] block not-italic" />
+                    ) : (
+                      <mark className="w-2 h-2 rounded-full bg-transparent block not-italic" />
+                    )}
                   </figure>
                   <section className="flex-1 min-w-0">
-                    <strong className={`text-sm ${!n.is_read ? "font-bold text-[#1b1c1c]" : "font-medium text-gray-500"}`}>
+                    <strong
+                      className={`text-sm ${
+                        !n.is_read
+                          ? "font-bold text-[#1b1c1c]"
+                          : "font-medium text-gray-500"
+                      }`}
+                    >
                       {n.title}
                     </strong>
                     <p className="text-xs text-gray-400 mt-0.5 leading-relaxed line-clamp-2">
@@ -154,10 +148,12 @@ return (
             )}
           </ul>
 
-          {/* Footer */}
           <footer className="px-4 py-3 border-t border-gray-100 text-center">
             <button
-              onClick={() => { setOpen(false); navigate("/notifications"); }}
+              onClick={() => {
+                setOpen(false);
+                navigate("/provider/notifications"); // adjust to your provider notifications page
+              }}
               className="text-xs text-[#035b9d] font-semibold hover:underline"
             >
               View all notifications
