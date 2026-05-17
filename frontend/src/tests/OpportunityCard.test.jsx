@@ -52,7 +52,9 @@ describe("OpportunityCard", () => {
     expect(screen.getByText(/Build stuff/i)).toBeInTheDocument();
     expect(screen.getByText(/Joburg/i)).toBeInTheDocument();
     expect(screen.getByText(/12 months/i)).toBeInTheDocument();
-    expect(screen.getByText(/R5 000\/month/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/R5[,\s]000\/month/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/Closes/i)).toBeInTheDocument();
   });
 
