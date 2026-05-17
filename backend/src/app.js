@@ -8,7 +8,7 @@ import cors from "cors";
 import session from "express-session";
 import path from "path";
 
-import applicationRoutes from "./routes/applicationRoutes.js";
+//import applicationRoutes from "./routes/applicationRoutes.js";
 import employerApplicationRoutes from "./routes/employerApplicationRoutes.js";
 import applicantAuthRoutes from "./routes/applicantAuthRoutes.js";
 import providerAuthRoutes from "./routes/providerAuthRoutes.js";
@@ -48,7 +48,7 @@ app.use(session({
 }));
 
 // ─── Application Routes ───────────────────────────────────────────────────────
-app.use('/api/applications', applicationRoutes);
+//app.use('/api/applications', applicationRoutes);
 
 // ─── Skills Routes ───────────────────────────────────────────────────────
 app.use('/api/skills', skillsRoutes);

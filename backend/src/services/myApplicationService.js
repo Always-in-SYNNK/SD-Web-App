@@ -79,7 +79,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     nqfScore = Math.max(0, 1 - (applicantNqf - opportunity.nqf_level) / 10);
   }
 
-  const totalScore = 100*(skillScore * 0.6 + locationScore * 0.2 + nqfScore * 0.2);
+  const totalScore = Math.round(100*(skillScore * 0.6 + locationScore * 0.2 + nqfScore * 0.2));
 
   // 7. Insert application with match_score
   const { data: inserted, error: insertError } = await supabase
