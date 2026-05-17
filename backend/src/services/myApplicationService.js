@@ -1,5 +1,6 @@
 import { supabase } from "../config/supabaseClient.js";
 import { createNotification, notifyApplicationStatusChange } from "./notificationService.js";
+import { getApplicantSkills } from "./skillsService.js";
 
 export async function applyToOpportunity({ userId, opportunityId }) {
   // 1. Get profile
@@ -13,10 +14,10 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     throw new Error("Profile not found");
   }
 
-  // 2. Get applicant profile
+  // 2. Get applicant profile (including location and nqf_level for scoring)
   const { data: applicantProfile, error: applicantError } = await supabase
     .from("applicant_profiles")
-    .select("id")
+    .select("id, location, nqf_level")
     .eq("profile_id", profile.id)
     .single();
 
@@ -25,8 +26,10 @@ export async function applyToOpportunity({ userId, opportunityId }) {
   }
 
   const applicantId = applicantProfile.id;
+  const applicantLocation = applicantProfile.location;
+  const applicantNqf = applicantProfile.nqf_level;
 
-  // 3. Prevent duplicates (optional but recommended)
+  // 3. Prevent duplicate applications
   const { data: existing } = await supabase
     .from("applications")
     .select("id")
@@ -38,51 +41,78 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     throw new Error("Already applied");
   }
 
-  // 4. Insert
-  const { data, error } = await supabase
-    .from("applications")
-    .insert([
-      {
-        applicant_id: applicantId,
-        opportunity_id: opportunityId,
-        status: "received",
-      },
-    ])
-    .select()
-    .single();
-
-  if (error) throw new Error(error.message);
-
-
-  const application_id = data.id;
-  // 5. Get opportunity title
-  const { data: opportunityData, error: opportunityError } = await supabase
+  // 4. Fetch opportunity details for scoring
+  const { data: opportunity, error: oppError } = await supabase
     .from("opportunities")
-    .select("title")
+    .select(`
+      id,
+      title,
+      field,
+      nqf_level,
+      location,
+      opportunity_skills ( skills_id )
+    `)
     .eq("id", opportunityId)
     .single();
 
-  if (opportunityError) {
-    // Log error but don't fail the application - notification is secondary
-    console.error("Could not fetch opportunity title:", opportunityError);
+  if (oppError || !opportunity) {
+    throw new Error("Opportunity not found");
   }
 
-  // 6. Create notification (with await!)
+  // 5. Fetch applicant's skill IDs
+  const applicantSkills = await getApplicantSkills(applicantId);
+  const applicantSkillIds = applicantSkills.map(skill => skill.id);
+
+  // 6. Calculate match score (same logic as matchingOpportunity)
+  const oppSkillIds = opportunity.opportunity_skills?.map(os => os.skills_id) || [];
+  const matchedSkills = oppSkillIds.filter(id => applicantSkillIds.includes(id));
+  const skillMatchCount = matchedSkills.length;
+  const totalOppSkills = oppSkillIds.length;
+  const skillScore = totalOppSkills === 0 ? 0 : skillMatchCount / totalOppSkills;
+
+  let locationScore = 0;
+  if (opportunity.location === applicantLocation) locationScore = 1;
+  else if (opportunity.location === "Remote") locationScore = 0.5;
+
+  let nqfScore = 0;
+  if (opportunity.nqf_level && applicantNqf) {
+    nqfScore = Math.max(0, 1 - (applicantNqf - opportunity.nqf_level) / 10);
+  }
+
+  const totalScore = Math.round(100*(skillScore * 0.6 + locationScore * 0.2 + nqfScore * 0.2));
+
+  // 7. Insert application with match_score
+  const { data: inserted, error: insertError } = await supabase
+    .from("applications")
+    .insert([{
+      applicant_id: applicantId,
+      opportunity_id: opportunityId,
+      status: "received",
+      match_score: totalScore,
+    }])
+    .select()
+    .single();
+
+  if (insertError) throw new Error(insertError.message);
+
+  const applicationId = inserted.id;
+
+  // 8. Send notification including the score
   try {
     await createNotification({
       applicantId: applicantId,
-      type: "application_status_change", // Use consistent type as in your notificationService
+      type: "application_status_change",
       title: "Application received",
-      message: `Your application to "${opportunityData?.title || 'opportunity'}" was successfully received`,
-      applicationId: application_id,
+      message: `Your application to "${opportunity.title}" was successfully received. Your match score: ${(totalScore).toFixed(1)}%.`,
+      applicationId: applicationId,
       opportunityId: opportunityId,
+      metadata: { match_score: totalScore, skill_match_count: skillMatchCount }
     });
   } catch (notificationError) {
-    // Log but don't throw - application was already created
     console.error("Failed to create notification:", notificationError);
   }
 
-  return data;
+  return inserted;
 }
 
 export async function getApplicationsForUser(userId) {

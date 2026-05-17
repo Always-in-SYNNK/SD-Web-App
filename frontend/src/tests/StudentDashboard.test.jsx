@@ -25,20 +25,8 @@ vi.mock("../components/dashboard/DashboardHeader", () => ({
   ),
 }));
 
-vi.mock("../components/dashboard/UploadBanner", () => ({
-  UploadBanner: () => <div data-testid="upload-banner" />,
-}));
-
 vi.mock("../components/dashboard/QualificationList", () => ({
   QualificationList: () => <div data-testid="qualification-list" />,
-}));
-
-vi.mock("../components/dashboard/OpportunityCard", () => ({
-  OpportunityCard: () => <div data-testid="opportunity-card" />,
-}));
-
-vi.mock("../components/dashboard/VerificationCard", () => ({
-  VerificationCard: () => <div data-testid="verification-card" />,
 }));
 
 vi.mock("../components/notifications/notificationDropdown", () => ({
@@ -57,9 +45,18 @@ const MOCK_PROFILE = {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function setupFetchMocks({ profile = MOCK_PROFILE } = {}) {
-  mockFetch.mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve({ profile }),
+  mockFetch.mockImplementation((url) => {
+    if (url.includes("/api/profile/me/cv/signed-url")) {
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ signed_url: null }),
+      });
+    }
+
+    return Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ profile }),
+    });
   });
 }
 
@@ -109,29 +106,38 @@ describe("StudentDashboard", () => {
     await waitFor(() => expect(screen.getByTestId("dashboard-header")).toBeDefined());
   });
 
-  it("renders the upload banner", async () => {
-    setupFetchMocks();
-    renderPage();
-    await waitFor(() => expect(screen.getByTestId("upload-banner")).toBeDefined());
-  });
-
   it("renders the qualification list", async () => {
     setupFetchMocks();
     renderPage();
     await waitFor(() => expect(screen.getByTestId("qualification-list")).toBeDefined());
   });
 
-  it("renders the opportunity card", async () => {
+  it("renders the CV card upload link when no CV is available", async () => {
     setupFetchMocks();
     renderPage();
-    await waitFor(() => expect(screen.getByTestId("opportunity-card")).toBeDefined());
+    await waitFor(() => expect(screen.getByText(/Upload CV/i)).toBeDefined());
+    expect(screen.getByRole("link", { name: /Upload CV/i })).toHaveAttribute("href", "/profile/edit");
   });
 
-  it("renders the verification card", async () => {
-    setupFetchMocks();
+  it("renders the CV card view link when CV signed URL is available", async () => {
+    mockFetch.mockImplementation((url) => {
+      if (url.includes("/api/profile/me/cv/signed-url")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ signed_url: "https://example.com/cv.pdf" }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ profile: MOCK_PROFILE }),
+      });
+    });
+
     renderPage();
-    await waitFor(() => expect(screen.getByTestId("verification-card")).toBeDefined());
+    await waitFor(() => expect(screen.getByText(/View CV/i)).toBeDefined());
+    expect(screen.getByRole("link", { name: /View CV/i })).toHaveAttribute("href", "https://example.com/cv.pdf");
   });
+
 
   it("renders the notification dropdown", async () => {
     setupFetchMocks();

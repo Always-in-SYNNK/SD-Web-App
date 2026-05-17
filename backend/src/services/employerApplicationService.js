@@ -24,6 +24,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
             id,
             status,
             created_at,
+            match_score,
             applicant_profiles!inner (
                 id,
                 bio,
@@ -47,6 +48,7 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
         applicationId: app.id,
         status: app.status,
         appliedAt: app.created_at,
+        matchScore: app.match_score,
         applicant: {
             id: app.applicant_profiles.profile_id,
             applicantProfileId: app.applicant_profiles.id,
@@ -60,13 +62,28 @@ export async function getApplicationsByOpportunity(opportunityId, providerProfil
     }));
 }
 
+/**
+ * Update application status (Shortlist or Reject)
+ * 
+ * HOW IT WORKS:
+ * 1. Find the application
+ * 2. Check if the employer owns the job (security)
+ * 3. Update the status in database
+ * 
+ * @param {string} applicationId - The application ID
+ * @param {string} newStatus - 'shortlisted' or 'rejected'
+ * @param {string} providerProfileId - The employer's profile ID
+ */
+
 export async function updateApplicationStatus(applicationId, newStatus, providerProfileId) {
+    
+    // Only allow valid statuses    
     const validStatuses = ['shortlisted', 'rejected'];
     if (!validStatuses.includes(newStatus)) {
         throw new Error(`Invalid status. Must be: ${validStatuses.join(', ')}`);
     }
     
-    // Verify provider owns this application's opportunity
+    // STEP 1: FIND THE APPLICATION
     const { data: application, error: appError } = await supabase
         .from('applications')
         .select(`
@@ -81,12 +98,14 @@ export async function updateApplicationStatus(applicationId, newStatus, provider
     if (appError || !application) {
         throw new Error('Application not found');
     }
-    
+
+    // STEP 2: VERIFY OWNERSHIP
+    // The employer must own the job this application is for
     if (application.opportunities.provider_id !== providerProfileId) {
         throw new Error('Unauthorized: You do not own this opportunity');
     }
     
-    // Update status
+    // STEP 3: UPDATE THE STATUS
     const { data: updated, error: updateError } = await supabase
         .from('applications')
         .update({ status: newStatus })
@@ -96,9 +115,18 @@ export async function updateApplicationStatus(applicationId, newStatus, provider
     
     if (updateError) throw updateError;
     
+    // STEP 4: Create Notification
+    try {
+        await notifyApplicationStatusChange(application.applicant_id, applicationId, application.opportunity_id, newStatus);
+    } catch (notificationError) {
+        console.error("Failed to create notification:", notificationError);
+    }
+
+
     return {
         applicationId: updated.id,
-        status: updated.status
+        status: updated.status,
+        updatedAt: updated.updated_at
     };
 }
 

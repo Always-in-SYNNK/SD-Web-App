@@ -5,6 +5,7 @@ import {
   getAdminApplications,
   approveApplication,
   rejectApplication,
+  getAdminStats
 } from "../controllers/adminController.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { requireAdmin } from "../middleware/requireAdmin.js";
@@ -17,6 +18,7 @@ router.get("/me/application-status", requireAuth, getMyAdminApplicationStatus);
 
 // ADMIN views applications
 router.get("/applications", requireAuth, requireAdmin, getAdminApplications);
+router.get("/admin-stats", requireAuth, requireAdmin, getAdminStats);
 
 // ADMIN actions
 router.patch("/:id/approve", requireAuth, requireAdmin, approveApplication);

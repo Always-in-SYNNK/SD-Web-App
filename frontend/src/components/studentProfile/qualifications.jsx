@@ -3,11 +3,20 @@ import { useAuth } from "../../context/useAuth";
 
 const NQF_LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const FIELDS = [
-  "Agriculture", "Arts & Culture", "Business & Management", "Communication",
-  "Construction", "Education", "Engineering", "Finance", "Health Sciences",
-  "Hospitality", "Information Technology", "Law", "Manufacturing",
-  "Public Administration", "Science", "Social Sciences", "Transport",
+  "Human and Social Studies",
+  "Physical, Mathematical, Computer and Life Sciences",
+  "Law, Military Science and Security",
+  "Culture and Arts",
+  "Manufacturing, Engineering and Technology",
+  "Services",
+  "Health Sciences and Social Services",
+  "Business, Commerce and Management Studies",
+  "Physical Planning and Construction",
+  "Agriculture and Nature Conservation",
+  "Education, Training and Development",
+  "Communication Studies and Language",
 ];
+
 const STATUS_OPTIONS = [
   { value: "completed", label: "Completed" },
   { value: "in_progress", label: "In Progress" },

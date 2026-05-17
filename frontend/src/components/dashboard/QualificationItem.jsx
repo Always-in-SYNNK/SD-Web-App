@@ -18,7 +18,6 @@ export function QualificationItem({ icon, title, org, date, accent }) {
           </aside>
         </section>
       </section>
-      <button className="text-gray-400 hover:text-[#035b9d] text-xl">⋮</button>
     </article>
   );
 }

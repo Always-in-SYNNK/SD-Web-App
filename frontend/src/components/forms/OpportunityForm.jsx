@@ -172,6 +172,8 @@ const OpportunityForm = () => {
     setSelectedSkills((prev) => prev.filter((s) => s.id !== skillId));
   };
 
+  const getSkillLabel = (skill) => skill?.title ?? skill?.name ?? "";
+
   // Save skills to an opportunity that already has an id
   const persistSkills = async (opportunityId) => {
     const { data, error } = await saveOpportunitySkills(
@@ -464,6 +466,7 @@ const OpportunityForm = () => {
                   <option value="1 Month">1 Month</option>
                   <option value="3 Months">3 Months</option>
                   <option value="6 Months">6 Months</option>
+                  <option value="9 Months">9 Months</option>
                   <option value="12 Months">12 Months</option>
                   <option value="18 Months">18 Months</option>
                 </select>

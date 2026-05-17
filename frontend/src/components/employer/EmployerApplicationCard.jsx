@@ -29,7 +29,15 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
     const [cvUrl, setCvUrl] = useState(null);
 
     const config = STATUS_CONFIG[application.status] || STATUS_CONFIG.received;
-    const { applicant, status, appliedAt } = application;
+    const { applicant, status, appliedAt, matchScore } = application;
+
+    // Normalize match score to a 0-100 integer percentage for display.
+    const matchPercent = (() => {
+        if (matchScore === undefined || matchScore === null) return null;
+        const n = Number(matchScore);
+        if (Number.isNaN(n)) return null;
+        return n <= 1 ? Math.round(n * 100) : Math.round(n);
+    })();
 
     const formatDate = (date) => new Date(date).toLocaleDateString('en-ZA', {
         day: 'numeric', month: 'short', year: 'numeric'
@@ -98,11 +106,18 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
                         <figure className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 font-bold text-lg">
                             {applicant.name?.charAt(0) || 'A'}
                         </figure>
-                        <section>
-                            <h3 className="font-bold text-lg text-gray-900">
-                                {applicant.name}{applicant.surname ? ` ${applicant.surname}` : ''}
-                            </h3>
-                            <p className="text-sm text-gray-500">{applicant.email}</p>
+                        <section className="flex flex-wrap items-center gap-3">
+                            <section>
+                                <h3 className="font-bold text-lg text-gray-900">
+                                    {applicant.name}{applicant.surname ? ` ${applicant.surname}` : ''}
+                                </h3>
+                                <p className="text-sm text-gray-500">{applicant.email}</p>
+                            </section>
+                            {matchPercent !== null && (
+                                <p className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-sm font-semibold">
+                                    Match: <span className="text-blue-900">{matchPercent}%</span>
+                                </p>
+                            )}
                         </section>
                     </section>
                     <section className="text-right">
@@ -110,6 +125,7 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
                             {config.icon} {config.label}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">Applied {formatDate(appliedAt)}</p>
+                        
                     </section>
                 </section>
             </header>
@@ -155,7 +171,7 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
                                             key={skill.id ?? skill.skills_id}
                                             className="px-3 py-1 bg-blue-50 text-[#035b9d] font-semibold rounded-full text-xs"
                                         >
-                                            {skill.name ?? skill.skill_name}
+                                            {skill.title ?? skill.skill_title ?? skill.name}
                                         </span>
                                     ))}
                                 </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import EmployerApplicationCard from '../components/employer/EmployerApplicationCard';
 import * as employerApplicationService from '../services/employerApplicationService';
 
@@ -66,6 +66,38 @@ describe('EmployerApplicationCard', () => {
       />
     );
     expect(screen.getByText('john@example.com')).toBeDefined();
+  });
+
+  it('should display match percentage for decimal scores', () => {
+    const matchedApp = { ...mockApplication, matchScore: 0.86 };
+
+    render(
+      <EmployerApplicationCard
+        application={matchedApp}
+        onShortlist={mockOnShortlist}
+        onOffer={mockOnOffer}
+        onReject={mockOnReject}
+      />
+    );
+
+    expect(
+      screen.getByText((_, element) => element?.textContent === 'Match: 86%')
+    ).toBeDefined();
+  });
+
+  it('should hide match percentage for invalid scores', () => {
+    const invalidMatchApp = { ...mockApplication, matchScore: 'not-a-number' };
+
+    render(
+      <EmployerApplicationCard
+        application={invalidMatchApp}
+        onShortlist={mockOnShortlist}
+        onOffer={mockOnOffer}
+        onReject={mockOnReject}
+      />
+    );
+
+    expect(screen.queryByText(/Match:/i)).toBeNull();
   });
 
   it('should display location when provided', () => {
@@ -213,6 +245,21 @@ describe('EmployerApplicationCard', () => {
       />
     );
     expect(screen.getByText('❌ Rejected')).toBeDefined();
+  });
+
+  it('should fall back to received status config for unknown status', () => {
+    const unknownStatusApp = { ...mockApplication, status: 'archived' };
+
+    render(
+      <EmployerApplicationCard
+        application={unknownStatusApp}
+        onShortlist={mockOnShortlist}
+        onOffer={mockOnOffer}
+        onReject={mockOnReject}
+      />
+    );
+
+    expect(screen.getByText('⏳ Pending Review')).toBeDefined();
   });
 
   it('should not show action buttons for accepted status', () => {
@@ -374,6 +421,111 @@ describe('EmployerApplicationCard', () => {
     
     // Now bio should be visible
     expect(screen.getByText('Experienced React developer')).toBeDefined();
+  });
+
+  it('should not fetch details when applicantProfileId is missing', () => {
+    const appWithoutProfileId = {
+      ...mockApplication,
+      applicant: { ...mockApplication.applicant, applicantProfileId: null }
+    };
+
+    render(
+      <EmployerApplicationCard
+        application={appWithoutProfileId}
+        onShortlist={mockOnShortlist}
+        onOffer={mockOnOffer}
+        onReject={mockOnReject}
+      />
+    );
+
+    fireEvent.click(screen.getByText('John Doe'));
+
+    expect(employerApplicationService.getApplicationDetails).not.toHaveBeenCalled();
+  });
+
+  it('should show loading state while fetching applicant details', async () => {
+    let resolveDetails;
+    const pendingDetails = new Promise((resolve) => {
+      resolveDetails = resolve;
+    });
+
+    employerApplicationService.getApplicationDetails.mockReturnValueOnce(pendingDetails);
+
+    const appWithProfileId = {
+      ...mockApplication,
+      applicant: { ...mockApplication.applicant, applicantProfileId: 'profile-123' }
+    };
+
+    render(
+      <EmployerApplicationCard
+        application={appWithProfileId}
+        onShortlist={mockOnShortlist}
+        onOffer={mockOnOffer}
+        onReject={mockOnReject}
+        token="test-token"
+      />
+    );
+
+    fireEvent.click(screen.getByText('John Doe'));
+
+    expect(await screen.findByText(/Loading profile details/i)).toBeDefined();
+
+    resolveDetails({ success: true, applicantSkills: [], qualifications: [] });
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Loading profile details/i)).toBeNull();
+    });
+  });
+
+  it('should render fetched skills, qualifications, and CV link', async () => {
+    employerApplicationService.getApplicationDetails.mockResolvedValueOnce({
+      success: true,
+      applicantSkills: [{ id: 1, title: 'React' }],
+      qualifications: [
+        {
+          id: 'q1',
+          title: 'BSc Computer Science',
+          field: 'Computer Science',
+          nqf_level: 7,
+          status: 'completed',
+        },
+      ],
+    });
+    employerApplicationService.getApplicationCvSignedUrl.mockResolvedValueOnce({
+      success: true,
+      signed_url: 'https://signed-url.com/cv.pdf',
+    });
+
+    const appWithProfileId = {
+      ...mockApplication,
+      applicant: { ...mockApplication.applicant, applicantProfileId: 'profile-123' }
+    };
+
+    render(
+      <EmployerApplicationCard
+        application={appWithProfileId}
+        onShortlist={mockOnShortlist}
+        onOffer={mockOnOffer}
+        onReject={mockOnReject}
+        token="test-token"
+      />
+    );
+
+    fireEvent.click(screen.getByText('John Doe'));
+
+    expect(await screen.findByText('React')).toBeDefined();
+    expect(screen.getByText('BSc Computer Science')).toBeDefined();
+
+    const qualificationsSection = screen.getByText('Qualifications').closest('section');
+    expect(qualificationsSection).not.toBeNull();
+    expect(
+      within(qualificationsSection).getByText(
+        (_, element) => element?.textContent?.trim() === 'NQF 7'
+      )
+    ).toBeDefined();
+
+    const cvLink = await screen.findByRole('link', { name: /CV \/ Resume/i });
+    expect(cvLink).toHaveAttribute('href', 'https://signed-url.com/cv.pdf');
   });
 
   it('should fetch and display cv uploads section', async () => {

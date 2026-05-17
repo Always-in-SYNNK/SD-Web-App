@@ -57,7 +57,7 @@ describe("PersonalInfoSection", () => {
 
   it("renders location placeholder text", () => {
     renderSection();
-    expect(screen.getByPlaceholderText("e.g. Cape Town, Western Cape")).toBeDefined();
+    expect(screen.getByRole("combobox")).toBeDefined();
   });
 
   // ── Pre-populated values ───────────────────────────────────────────────────
@@ -79,8 +79,9 @@ describe("PersonalInfoSection", () => {
   });
 
   it("displays existing location value", () => {
-    renderSection({ ...DEFAULT_FORM, location: "Cape Town" });
-    expect(screen.getByDisplayValue("Cape Town")).toBeDefined();
+    renderSection({ ...DEFAULT_FORM, location: "Western Cape" });
+    const select = screen.getByRole("combobox");
+    expect(select.value).toBe("Western Cape");
   });
 
   // ── User input ─────────────────────────────────────────────────────────────
@@ -132,10 +133,9 @@ describe("PersonalInfoSection", () => {
       formData = updater(formData);
     });
     renderSection(formData, setFormData);
-    const inputs = screen.getAllByRole("textbox");
-    const locationInput = inputs[inputs.length - 1];
-    fireEvent.change(locationInput, { target: { value: "Johannesburg" } });
-    expect(formData.location).toBe("Johannesburg");
+    const select = screen.getByRole("combobox");
+    fireEvent.change(select, { target: { value: "Gauteng" } });
+    expect(formData.location).toBe("Gauteng");
   });
 
   it("does not mutate previous formData state", () => {

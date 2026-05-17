@@ -13,13 +13,29 @@ export default function OpportunityDetail() {
   const [applied, setApplied] = useState(false);
   const [applying, setApplying] = useState(false);
   const [skills, setSkills] = useState([]);
+  const [provider, setProvider] = useState(null);
+
+  useEffect(() => {
+    if (!opportunity?.provider_id) return;
+    
+    const fetchProvider = async () => {
+      const { data, error } = await supabase
+        .from("provider_profiles")
+        .select("*")
+        .eq("id", opportunity.provider_id);
+
+      //console.log("PROVIDER DATA:", data, error);
+      if (!error && data?.length) setProvider(data[0]);
+    };
+
+    fetchProvider();
+  }, [opportunity?.provider_id]);
 
   useEffect(() => {
     const fetchSkills = async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/skills/opportunity/${id}`);
         const data = await res.json();
-        //console.log("OPPORTUNITY SKILLS:", data); 
         if (data.success) setSkills(data.opportunitySkills || []);
       } catch (err) {
         console.error("Failed to fetch opportunity skills:", err);
@@ -39,6 +55,7 @@ export default function OpportunityDetail() {
       if (error) {
         setError(error.message);
       } else {
+        //console.log("OPPORTUNITY DATA:", data);
         setOpportunity(data);
       }
       setLoading(false);
@@ -182,13 +199,53 @@ export default function OpportunityDetail() {
           </section>
         </header>
 
+        {provider && (
+          <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6">
+            <h2 className="text-xl font-bold mb-4">Provider Details</h2>
+            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {provider.organisation_name && (
+                <div>
+                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Organisation</dt>
+                  <dd className="font-bold text-gray-900">{provider.organisation_name}</dd>
+                </div>
+              )}
+              {provider.organisation_type && (
+                <div>
+                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Type</dt>
+                  <dd className="font-bold text-gray-900">{provider.organisation_type}</dd>
+                </div>
+              )}
+              {provider.contact_person && (
+                <div>
+                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Contact Person</dt>
+                  <dd className="font-bold text-gray-900">{provider.contact_person}</dd>
+                </div>
+              )}
+              {provider.phone_number && (
+                <div>
+                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Phone</dt>
+                  <dd className="font-bold text-gray-900">{provider.phone_number}</dd>
+                </div>
+              )}
+              {provider.description && (
+                <div className="md:col-span-2">
+                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">About</dt>
+                  <dd className="text-gray-600 leading-relaxed">{provider.description}</dd>
+                </div>
+              )}
+            </dl>
+          </section>
+        )}
+
         {/* Info cards */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <section className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           {[
             { label: "Stipend", value: formattedStipend },
             { label: "Duration", value: opportunity.duration || "Not specified" },
             { label: "Location", value: opportunity.location || "Not specified" },
             { label: "Closing Date", value: formattedDate },
+            { label: "Field", value: opportunity.field || "Not specified" },
+            { label: "Required NQF Level", value: opportunity.nqf_level ? `NQF Level ${opportunity.nqf_level}` : "Not specified" },
           ].map(({ label, value }) => (
             <article key={label} className="bg-white rounded-xl border border-gray-100 p-5">
               <strong className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">
@@ -198,6 +255,8 @@ export default function OpportunityDetail() {
             </article>
           ))}
         </section>
+
+        
 
         {/* Description */}
         <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6">
@@ -214,12 +273,14 @@ export default function OpportunityDetail() {
                   key={skill.id}
                   className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm"
                 >
-                  {skill.name}
+                  {skill.title}
                 </span>
               ))}
             </div>
           </section>
         )}
+
+        
 
         {/* Apply */}
         <section className="bg-[#035b9d] rounded-xl p-8 flex items-center justify-between">

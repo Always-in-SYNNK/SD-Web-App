@@ -22,9 +22,8 @@ vi.mock('../components/layout/Sidebar', () => ({ default: () => <aside>Sidebar</
 vi.mock('../components/layout/Topbar', () => ({ default: () => <header>Topbar</header> }));
 vi.mock('../components/dashboard/StatsCard', () => ({ default: () => <article>StatsCard</article> }));
 
-// ✅ Fix: Remove unused 'id' parameter, just use 'title'
-vi.mock('../components/dashboard/JobCard', () => ({ 
-  default: ({ title }) => <article>Job: {title}</article> 
+vi.mock('../components/opportunities/OpportunityCard', () => ({
+  OpportunityCard: ({ title }) => <article>Job: {title}</article>,
 }));
 
 describe('ValidationPipeline', () => {

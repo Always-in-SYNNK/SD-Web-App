@@ -179,17 +179,21 @@ describe("OpportunityForm", () => {
 
   it('can add and remove skills', async () => {
     service.getSkillsByField.mockResolvedValue({
-      data: [{ id: 1, name: 'React' }],
+      data: [{ id: 1, title: 'React' }],
       error: null,
     });
 
     renderForm();
 
     const fieldSelect = screen.getByLabelText(/Field \/ Sector/i);
-    await userEvent.selectOptions(fieldSelect, 'Manufacturing, Engineering and Technology');
+
+    await userEvent.selectOptions(
+      fieldSelect,
+      'Manufacturing, Engineering and Technology'
+    );
 
     await waitFor(() => {
-      expect(screen.getByText(/React/i)).toBeDefined();
+      expect(screen.getByText(/React/i)).toBeInTheDocument();
     });
   });
 
@@ -319,5 +323,312 @@ describe("OpportunityForm", () => {
     renderForm();
 
     expect(screen.getByPlaceholderText(/5000/i)).toBeInTheDocument();
+  });
+
+  it("shows loading state while editing data is being fetched", async () => {
+    vi.doMock("react-router-dom", async () => {
+      const actual = await vi.importActual("react-router-dom");
+      return {
+        ...actual,
+        useParams: () => ({ id: "123" }),
+      };
+    });
+
+    vi.resetModules();
+
+    const { default: EditingForm } = await import(
+      "../components/forms/OpportunityForm"
+    );
+
+    service.getOpportunityById.mockImplementation(
+      () => new Promise(() => {})
+    );
+
+    render(
+      <MemoryRouter>
+        <EditingForm />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Loading draft/i)).toBeInTheDocument();
+  });
+
+  it("loads existing opportunity data in edit mode", async () => {
+    vi.doMock("react-router-dom", async () => {
+      const actual = await vi.importActual("react-router-dom");
+      return {
+        ...actual,
+        useParams: () => ({ id: "123" }),
+      };
+    });
+
+    vi.resetModules();
+
+    const { default: EditingForm } = await import(
+      "../components/forms/OpportunityForm"
+    );
+
+    service.getOpportunityById.mockResolvedValue({
+      data: {
+        title: "Existing Opportunity",
+        description: "Existing description",
+        field: "Services",
+      },
+      error: null,
+    });
+
+    service.getOpportunitySkills.mockResolvedValue({
+      data: [{ id: 1, title: "React" }],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <EditingForm />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByDisplayValue("Existing Opportunity")
+    ).toBeInTheDocument();
+
+    expect(screen.getByText(/React/i)).toBeInTheDocument();
+  });
+
+  it("renders prefilled skills when API returns name instead of title", async () => {
+    vi.doMock("react-router-dom", async () => {
+      const actual = await vi.importActual("react-router-dom");
+      return {
+        ...actual,
+        useParams: () => ({ id: "123" }),
+      };
+    });
+
+    vi.resetModules();
+
+    const { default: EditingForm } = await import(
+      "../components/forms/OpportunityForm"
+    );
+
+    service.getOpportunityById.mockResolvedValue({
+      data: {
+        title: "Existing Opportunity",
+        description: "Existing description",
+        field: "Services",
+      },
+      error: null,
+    });
+
+    service.getOpportunitySkills.mockResolvedValue({
+      data: [{ id: 1, name: "Collect arterial blood samples" }],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <EditingForm />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByDisplayValue("Existing Opportunity")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/Collect arterial blood samples/i)
+    ).toBeInTheDocument();
+  });
+
+  it("shows error when edit prefill fails", async () => {
+    vi.doMock("react-router-dom", async () => {
+      const actual = await vi.importActual("react-router-dom");
+      return {
+        ...actual,
+        useParams: () => ({ id: "123" }),
+      };
+    });
+
+    vi.resetModules();
+
+    const { default: EditingForm } = await import(
+      "../components/forms/OpportunityForm"
+    );
+
+    service.getOpportunityById.mockResolvedValue({
+      data: null,
+      error: new Error("Failed"),
+    });
+
+    service.getOpportunitySkills.mockResolvedValue({
+      data: [],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <EditingForm />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText(/Could not load opportunity/i)
+    ).toBeInTheDocument();
+  });
+  
+  it("can add a skill and remove it", async () => {
+    service.getSkillsByField.mockResolvedValue({
+      data: [{ id: 1, title: "React" }],
+      error: null,
+    });
+
+    renderForm();
+
+    const fieldSelect = screen.getByLabelText(/Field \/ Sector/i);
+
+    await userEvent.selectOptions(
+      fieldSelect,
+      "Manufacturing, Engineering and Technology"
+    );
+
+    const addButton = await screen.findByRole("button", {
+      name: /React \+/i,
+    });
+
+    await userEvent.click(addButton);
+
+    expect(screen.getByText("React")).toBeInTheDocument();
+
+    const removeBtn = screen.getByLabelText(/Remove React/i);
+
+    await userEvent.click(removeBtn);
+
+    expect(screen.queryByText("React")).not.toBeInTheDocument();
+  });
+  
+  it("disables already selected skills", async () => {
+    service.getSkillsByField.mockResolvedValue({
+      data: [{ id: 1, title: "React" }],
+      error: null,
+    });
+
+    renderForm();
+
+    const fieldSelect = screen.getByLabelText(/Field \/ Sector/i);
+
+    await userEvent.selectOptions(
+      fieldSelect,
+      "Manufacturing, Engineering and Technology"
+    );
+
+    const skillButton = await screen.findByRole("button", {
+      name: /React \+/i,
+    });
+
+    await userEvent.click(skillButton);
+
+    expect(
+      screen.getByRole("button", { name: /React ✓/i })
+    ).toBeDisabled();
+  });
+  
+  it("shows no skills found message", async () => {
+    service.getSkillsByField.mockResolvedValue({
+      data: [],
+      error: null,
+    });
+
+    renderForm();
+
+    const fieldSelect = screen.getByLabelText(/Field \/ Sector/i);
+
+    await userEvent.selectOptions(
+      fieldSelect,
+      "Manufacturing, Engineering and Technology"
+    );
+
+    expect(
+      await screen.findByText(/No skills found for this field/i)
+    ).toBeInTheDocument();
+  });
+
+  it("handles saveOpportunitySkills failure after publish", async () => {
+    service.publishOpportunity.mockResolvedValue({
+      data: { id: "123" },
+      error: null,
+    });
+
+    service.saveOpportunitySkills.mockResolvedValue({
+      data: null,
+      error: new Error("Skill save failed"),
+    });
+
+    renderForm();
+
+    await userEvent.type(
+      screen.getByPlaceholderText(/Software Engineering Learnership/i),
+      "Test Opportunity"
+    );
+
+    await userEvent.click(
+      screen.getByRole("button", {
+        name: /publish opportunity/i,
+      })
+    );
+
+    expect(
+      await screen.findByText(/Skill save failed/i)
+    ).toBeInTheDocument();
+  });
+
+  it("updates opportunity when editing draft", async () => {
+    vi.doMock("react-router-dom", async () => {
+      const actual = await vi.importActual("react-router-dom");
+      return {
+        ...actual,
+        useParams: () => ({ id: "123" }),
+      };
+    });
+
+    vi.resetModules();
+
+    const { default: EditingForm } = await import(
+      "../components/forms/OpportunityForm"
+    );
+
+    service.getOpportunityById.mockResolvedValue({
+      data: {
+        title: "Existing",
+      },
+      error: null,
+    });
+
+    service.getOpportunitySkills.mockResolvedValue({
+      data: [],
+      error: null,
+    });
+
+    service.updateOpportunity.mockResolvedValue({
+      data: { id: "123" },
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <EditingForm />
+      </MemoryRouter>
+    );
+
+    await userEvent.click(
+      await screen.findByText(/save as draft/i)
+    );
+
+    await waitFor(() => {
+      expect(service.updateOpportunity).toHaveBeenCalledWith(
+        "123",
+        expect.objectContaining({
+          status: "draft",
+        })
+      );
+    });
   });
 });
