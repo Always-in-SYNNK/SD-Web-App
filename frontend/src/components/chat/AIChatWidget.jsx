@@ -46,9 +46,11 @@ export default function AIChatWidget() {
       // Use the token from useAuth instead of localStorage
       const authToken = token || localStorage.getItem("token");
       
-      console.log("🔵 Fetching: /api/chat/ask");
+      // CHANGED THIS LINE - Full URL instead of relative path
+      console.log("🔵 Fetching: https://sd-web-app-ivao.onrender.com/api/chat/ask");
       
-      const response = await fetch("/api/chat/ask", {
+      // CHANGED THIS LINE - Full URL instead of relative path
+      const response = await fetch("https://sd-web-app-ivao.onrender.com/api/chat/ask", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
