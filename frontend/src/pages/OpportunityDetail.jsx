@@ -242,8 +242,6 @@ export default function OpportunityDetail() {
         {/* Provider Details */}
         {provider && (
           <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6 relative overflow-hidden">
-            <div/>
-
             <h2 className="text-xl font-bold text-[#1b1c1c] mb-6">About the Provider</h2>
 
             {/* Name + type + location header row */}

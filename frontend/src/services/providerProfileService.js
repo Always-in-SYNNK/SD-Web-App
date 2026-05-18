@@ -51,25 +51,24 @@ function normalizeProfilePayload(payload) {
 	return payload?.profile ?? payload?.data ?? payload;
 }
 
-function buildProviderProfilePath(providerProfileId) {
-	const id = providerProfileId ?? "me";
-	return `/api/profile/provider/${encodeURIComponent(id)}`;
+function buildProviderProfilePath() {
+	return "/api/profile/provider/me";
 }
 
 export async function fetchProviderProfileByUserId(userId) {
 	return normalizeProfilePayload(
-        await apiFetch(buildProviderProfilePath(userId))
+        await apiFetch(buildProviderProfilePath())
     );
 }
 
-export async function fetchProviderProfile(providerProfileId) {
+export async function fetchProviderProfile() {
 	return normalizeProfilePayload(
-        await apiFetch(buildProviderProfilePath(providerProfileId)));
+        await apiFetch(buildProviderProfilePath()));
 }
 
 export async function editProviderProfile(userId, updates) {
 	return normalizeProfilePayload(
-		await apiFetch(buildProviderProfilePath(userId), {
+		await apiFetch(buildProviderProfilePath(), {
 			method: "PUT",
 			body: JSON.stringify(updates ?? {}),
 		})

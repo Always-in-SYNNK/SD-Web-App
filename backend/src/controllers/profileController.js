@@ -154,9 +154,9 @@ export async function getApplicantProfileById(req, res, next) {
 // PROVIDER PROFILE 
 export async function getProviderProfile(req, res) {
   try {
-    const userId = req.user.id;
+    const providerProfileId = req.user.id;
 
-    const profile = await fetchProviderProfileByUserId(userId);
+    const profile = await fetchProviderProfileByUserId(providerProfileId);
 
     if (!profile) {
       return res.status(404).json({
@@ -176,10 +176,10 @@ export async function getProviderProfile(req, res) {
 
 export async function updateProviderProfile(req, res) {
   try {
-    const userId = req.user.id;
+    const providerProfileId = req.user.id;
 
     const updatedProfile = await editProviderProfile(
-      userId,
+      providerProfileId,
       req.body
     );
 

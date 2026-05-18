@@ -23,7 +23,7 @@ export default function ViewProviderProfile() {
 
   useEffect(() => {
     if (!user) return;
-    fetchProviderProfile(user.id)
+    fetchProviderProfile()
       .then(setProfile)
       .catch((err) => console.error("Failed to load provider profile:", err))
       .finally(() => setLoading(false));
@@ -33,10 +33,6 @@ export default function ViewProviderProfile() {
   const focusFields     = providerProfile?.focus_fields ?? [];
   const location    = providerProfile?.location;
   const websiteUrl  = providerProfile?.website_url;
-
-  const initials = profile?.full_name
-    ? profile.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
-    : "PR";
 
   const orgTypeBadge =
     ORG_TYPE_COLORS[providerProfile?.organisation_type] ?? "bg-gray-100 text-gray-600";
@@ -95,7 +91,7 @@ export default function ViewProviderProfile() {
 
               <div className="space-y-6">
 
-                 <div className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-[#1b1c1c]">Profile completion</span>
                   <span className={`text-sm font-bold ${percentage === 100 ? "text-green-600" : "text-[#035b9d]"}`}>

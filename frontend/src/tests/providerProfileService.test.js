@@ -108,7 +108,7 @@ describe("providerProfileService", () => {
 
     expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining(
-            "/api/profile/provider/provider-123"
+        "/api/profile/provider/me"
         ),
         expect.objectContaining({
             credentials: "include",
@@ -142,9 +142,7 @@ describe("providerProfileService", () => {
       }),
     });
 
-    await expect(
-      fetchProviderProfile("provider-123")
-    ).rejects.toThrow("Server error");
+    await expect(fetchProviderProfile()).rejects.toThrow("Server error");
   });
 
   it("fetches provider profile by user id successfully", async () => {
@@ -170,7 +168,7 @@ describe("providerProfileService", () => {
 
     expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining(
-            "/api/profile/provider/provider-123"
+        "/api/profile/provider/me"
         ),
         expect.objectContaining({
             credentials: "include",

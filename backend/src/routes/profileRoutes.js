@@ -29,7 +29,7 @@ router.post("/me/qualifications", authMiddleware, addMyQualification);
 router.delete("/me/qualifications/:id", authMiddleware, deleteMyQualification);
 
 //provider profile routes
-router.get("/provider/:providerProfileId", providerAuthMiddleware, getProviderProfile);
-router.put("/provider/:providerProfileId", providerAuthMiddleware, updateProviderProfile);
+router.get("/provider/me", providerAuthMiddleware, getProviderProfile);
+router.put("/provider/me", providerAuthMiddleware, updateProviderProfile);
 
 export default router;

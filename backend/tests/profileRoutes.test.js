@@ -103,17 +103,17 @@ describe("profileRoutes", () => {
     expect(res.status).toBeDefined();
   });
 
-  test("GET /api/profile/provider/:providerProfileId route exists", async () => {
+  test("GET /api/profile/provider/me route exists", async () => {
     const res = await request(app)
-      .get("/api/profile/provider/provider-123");
+      .get("/api/profile/provider/me");
 
     expect(mockProviderAuthMiddleware).toHaveBeenCalled();
     expect(res.status).toBeDefined();
   });
 
-  test("PUT /api/profile/provider/:providerProfileId route exists", async () => {
+  test("PUT /api/profile/provider/me route exists", async () => {
     const res = await request(app)
-      .put("/api/profile/provider/provider-123")
+      .put("/api/profile/provider/me")
       .send({
         organisation_name: "Updated Org",
       });

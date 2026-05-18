@@ -385,8 +385,6 @@ function normalizeProviderProfile(profile) {
 
 async function fetchProviderProfileRecord(identity) {
 
-    console.log("FETCH IDENTITY:", identity);
-
     const { data, error } = await supabase
         .from("profiles")
         .select(`
@@ -409,7 +407,6 @@ async function fetchProviderProfileRecord(identity) {
         .or(`id.eq.${identity},user_id.eq.${identity}`)
         .single();
 
-    console.log("SUPABASE ERROR:", error);    
     if (error) throw error;
 
     return normalizeProviderProfile(data);
