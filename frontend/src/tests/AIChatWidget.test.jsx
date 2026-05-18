@@ -263,7 +263,7 @@ describe("AIChatWidget", () => {
       fireEvent.click(screen.getByRole("button", { name: /send/i }));
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith("/api/chat/ask", {
+        expect(mockFetch).toHaveBeenCalledWith("https://sd-web-app-ivao.onrender.com/api/chat/ask", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -302,7 +302,7 @@ describe("AIChatWidget", () => {
       fireEvent.click(screen.getByRole("button", { name: /send/i }));
 
       await waitFor(() => {
-        expect(mockFetch).toHaveBeenCalledWith("/api/chat/ask", {
+        expect(mockFetch).toHaveBeenCalledWith("https://sd-web-app-ivao.onrender.com/api/chat/ask", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
