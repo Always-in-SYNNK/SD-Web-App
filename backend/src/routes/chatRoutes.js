@@ -1,6 +1,6 @@
 import { Router } from "express";
 import OpenAI from "openai";
-import authMiddleware from "../middleware/authMiddleware.js";
+// Remove this line: import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -20,7 +20,8 @@ if (process.env.OPENAI_API_KEY) {
 }
 
 // POST /api/chat/ask - Send a question and get AI response
-router.post("/ask", authMiddleware, async (req, res) => {
+// ✅ REMOVED authMiddleware - now public endpoint
+router.post("/ask", async (req, res) => {
   console.log("🔵 Chat request received");
   console.log("🔵 Request body:", req.body);
   
