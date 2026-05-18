@@ -115,7 +115,7 @@ describe('ProviderRegistration', () => {
     ).toBeInTheDocument();
 
     expect(screen.getByText(/Company Name/i)).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: /industry/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /organisation type/i })).toBeInTheDocument();
   });
 
   it('shows validation errors on empty submit', async () => {
@@ -140,7 +140,7 @@ describe('ProviderRegistration', () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(/industry selection is required/i)
+      screen.getByText(/organisation type selection is required/i)
     ).toBeInTheDocument();
 
     expect(
@@ -210,8 +210,8 @@ describe('ProviderRegistration', () => {
       name: /company name/i,
     });
 
-    const industrySelect = screen.getByRole('combobox', {
-      name: /industry/i,
+    const organisationTypeSelect = screen.getByRole('combobox', {
+      name: /organisation type/i,
     });
 
     const contactInput = screen.getByPlaceholderText('John Doe');
@@ -225,8 +225,8 @@ describe('ProviderRegistration', () => {
     await userEvent.type(companyInput, 'Test Company');
 
     await userEvent.selectOptions(
-      industrySelect,
-      'Technology & IT'
+      organisationTypeSelect,
+      'Private Company'
     );
 
     await userEvent.type(contactInput, 'John Doe');
@@ -284,8 +284,8 @@ describe('ProviderRegistration', () => {
       name: /company name/i,
     });
 
-    const industrySelect = screen.getByRole('combobox', {
-      name: /industry/i,
+    const organisationTypeSelect = screen.getByRole('combobox', {
+      name: /organisation type/i,
     });
 
     const contactInput = screen.getByPlaceholderText('John Doe');
@@ -299,8 +299,8 @@ describe('ProviderRegistration', () => {
     await userEvent.type(companyInput, 'Test Company');
 
     await userEvent.selectOptions(
-      industrySelect,
-      'Technology & IT'
+      organisationTypeSelect,
+      'Private Company'
     );
 
     await userEvent.type(contactInput, 'John Doe');
@@ -384,8 +384,8 @@ describe('ProviderRegistration', () => {
       name: /company name/i,
     });
 
-    const industrySelect = screen.getByRole('combobox', {
-      name: /industry/i,
+    const organisationTypeSelect = screen.getByRole('combobox', {
+      name: /organisation type/i,
     });
 
     const contactInput = screen.getByPlaceholderText('John Doe');
@@ -399,8 +399,8 @@ describe('ProviderRegistration', () => {
     await userEvent.type(companyInput, 'Test Company');
 
     await userEvent.selectOptions(
-      industrySelect,
-      'Technology & IT'
+      organisationTypeSelect,
+      'Private Company'
     );
 
     await userEvent.type(contactInput, 'John Doe');

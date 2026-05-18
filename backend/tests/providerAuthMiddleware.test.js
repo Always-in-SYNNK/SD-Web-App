@@ -92,7 +92,7 @@ describe("providerAuthMiddleware", () => {
 
     expect(next).toHaveBeenCalled();
     expect(req.user).toEqual({
-      id: "profile-1",
+      id: "user-1",
       email: "prov@test.com",
       role: "provider",
       profileId: "provider-profile-1",

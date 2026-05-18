@@ -21,8 +21,10 @@ import Qualifications from "./pages/Qualifications";
 import MyApplications from "./pages/MyApplications";
 import CompleteProfile from "./pages/CreateStudentProfile";
 import EditProfile from "./pages/EditStudentProfile";
-import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
+import ViewProviderProfile from "./pages/ViewProviderProfile";
+import EditProviderProfile from "./pages/EditProviderProfile";
+import EmployerApplications from './pages/EmployerApplications';
 import Notifications from "./pages/Notifications";
 import QualificationDetail from "./pages/QualificationDetail";
 import AnalyticsPage from "./pages/AnalyticsPage";
@@ -129,8 +131,7 @@ export default function App() {
               <ProtectedRoute requiredRole="provider">
                 <EmployerApplications />
               </ProtectedRoute>
-            } />
-            
+            } />           
             <Route path="/pipeline" element={
               <ProtectedRoute requiredRole="provider">
                  <ValidationPipeline />
@@ -144,6 +145,16 @@ export default function App() {
             <Route path="/opportunities/edit/:id" element={
               <ProtectedRoute requiredRole="provider">
                 <PostOpportunity />
+              </ProtectedRoute>
+            } />
+            <Route path="/provider/profile"      element={
+              <ProtectedRoute requiredRole="provider">
+                <ViewProviderProfile />
+              </ProtectedRoute> 
+            } />
+            <Route path="/provider/profile/edit" element={
+              <ProtectedRoute requiredRole="provider">
+                <EditProviderProfile />
               </ProtectedRoute>
             } />
             <Route path="/provider-registration" element={
