@@ -1,12 +1,12 @@
 import { supabase } from "../config/supabaseClient.js";
-import { createNotification, notifyApplicationStatusChange } from "./notificationService.js";
+import { createNotification, notifyApplicationStatusChange, createProviderNotification } from "./notificationService.js";
 import { getApplicantSkills } from "./skillsService.js";
 
 export async function applyToOpportunity({ userId, opportunityId }) {
   // 1. Get profile
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, full_name")
     .eq("user_id", userId)
     .single();
 
@@ -17,7 +17,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
   // 2. Get applicant profile (including location and nqf_level for scoring)
   const { data: applicantProfile, error: applicantError } = await supabase
     .from("applicant_profiles")
-    .select("id, location, nqf_level")
+    .select("id, location, nqf_level, surname")
     .eq("profile_id", profile.id)
     .single();
 
@@ -28,6 +28,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
   const applicantId = applicantProfile.id;
   const applicantLocation = applicantProfile.location;
   const applicantNqf = applicantProfile.nqf_level;
+  const applicantSurname = applicantProfile.surname;
 
   // 3. Prevent duplicate applications
   const { data: existing } = await supabase
@@ -47,6 +48,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     .select(`
       id,
       title,
+      provider_id,
       field,
       nqf_level,
       location,
@@ -79,7 +81,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     nqfScore = Math.max(0, 1 - (applicantNqf - opportunity.nqf_level) / 10);
   }
 
-  const totalScore = Math.round(100*(skillScore * 0.6 + locationScore * 0.2 + nqfScore * 0.2));
+  const totalScore = Math.round(100 * (skillScore * 0.6 + locationScore * 0.2 + nqfScore * 0.2));
 
   // 7. Insert application with match_score
   const { data: inserted, error: insertError } = await supabase
@@ -94,7 +96,7 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     .single();
 
   if (insertError) throw new Error(insertError.message);
-
+  //console.log("Insert Application: ", inserted);
   const applicationId = inserted.id;
 
   // 8. Send notification including the score
@@ -110,6 +112,20 @@ export async function applyToOpportunity({ userId, opportunityId }) {
     });
   } catch (notificationError) {
     console.error("Failed to create notification:", notificationError);
+  }
+
+  try {
+    await createProviderNotification({
+      providerId: opportunity.provider_id,
+      type: "application_status_change",
+      title: "Application received",
+      message: `You have received an application from ${applicantProfile.surname} for the "${opportunity.title}" opportunity. The applicant's match score is ${(totalScore).toFixed(1)}%.`,
+      applicationId: applicationId,
+      opportunityId: opportunityId,
+      metadata: { match_score: totalScore, skill_match_count: skillMatchCount }
+    });
+  } catch (notificationProviderError) {
+    console.error("Failed to create provider notification:", notificationProviderError);
   }
 
   return inserted;
@@ -264,12 +280,47 @@ export async function acceptOffer({ userId, applicationId }) {
     throw new Error(updateError.message);
   }
 
+  // 6. Notify applicant
   try {
-    await notifyApplicationStatusChange(applicant.id, applicationId, application.opportunity_id, "accepted");
+    await notifyApplicationStatusChange({
+      applicantId: applicant.id,
+      applicationId: applicationId,
+      opportunityId: application.opportunity_id,
+      newStatus: "accepted"
+    });
   } catch (notificationError) {
-    console.error("Failed to create notification:", notificationError);
+    console.error("Failed to create applicant notification:", notificationError);
   }
 
+  // 7. Notify provider
+  try {
+    const { data: opportunity, error: oppError } = await supabase
+      .from("opportunities")
+      .select("provider_id, title")
+      .eq("id", application.opportunity_id)
+      .single();
+
+    if (oppError) throw oppError;
+
+    const { data: applicantProfile } = await supabase
+      .from("applicant_profiles")
+      .select("surname")
+      .eq("id", applicant.id)
+      .single();
+    const surname = applicantProfile?.surname || "An applicant";
+
+    await createProviderNotification({
+      providerId: opportunity.provider_id,
+      type: "application_status_change",
+      title: "Offer Accepted",
+      message: `${surname} has accepted the offer for "${opportunity.title}". Please reach out to finalise the placement.`,
+      applicationId: applicationId,
+      opportunityId: application.opportunity_id,
+      metadata: { status: "accepted" }
+    });
+  } catch (providerNotifError) {
+    console.error("Failed to create provider notification:", providerNotifError);
+  }
 
   return data;
 }

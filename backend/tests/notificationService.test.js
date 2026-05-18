@@ -50,7 +50,7 @@ describe("notificationService", () => {
       .mockReturnValueOnce({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+            maybeSingle: jest.fn().mockResolvedValue({
               data: fakeApplicantProfile,
               error: null,
             }),
@@ -94,7 +94,7 @@ describe("notificationService", () => {
       .mockReturnValueOnce({
         select: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
+            maybeSingle: jest.fn().mockResolvedValue({
               data: fakeApplicantProfile,
               error: null,
             }),
