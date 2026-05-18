@@ -82,8 +82,6 @@ import { supabase } from "./config/supabaseClient.js";
 app.get("/verify-email", async (req, res) => {
   const { token } = req.query;
 
-  console.log("=== VERIFICATION LINK CLICKED ===");
-  console.log("Token:", token);
 
   if (!token) {
     return res.redirect("http://localhost:5173/auth-error?message=missing-token");
@@ -111,8 +109,6 @@ app.get("/verify-email", async (req, res) => {
       .eq("verification_token", token);
 
     req.session.pendingVerificationEmail = pending.email;
-
-    console.log("✅ Email verified for:", pending.email);
 
     return res.send(`
       <!DOCTYPE html>
