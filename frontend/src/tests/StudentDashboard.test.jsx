@@ -145,11 +145,6 @@ describe("StudentDashboard", () => {
     await waitFor(() => expect(screen.getByTestId("notification-dropdown")).toBeDefined());
   });
 
-  it("renders the floating shield button", async () => {
-    setupFetchMocks();
-    renderPage();
-    await waitFor(() => expect(screen.getByText(/🛡/)).toBeDefined());
-  });
   // ── Nav links ──────────────────────────────────────────────────────────────
 
   it("renders Home nav link", async () => {

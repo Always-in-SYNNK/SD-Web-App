@@ -14,8 +14,6 @@ import { supabase } from "../config/supabaseClient.js";
  */
 export async function getApplicationAnalytics(req, res) {
     try {
-        console.log('[AnalyticsController] Provider analytics requested');
-        
         // Get provider profile ID from authenticated user
         const providerProfileId = req.user?.profileId || req.user?.id;
 
@@ -52,10 +50,8 @@ export async function getApplicationAnalytics(req, res) {
  */
 export async function getAdminApplicationAnalytics(req, res) {
     try {
-        console.log('[AnalyticsController] Admin analytics requested');
-        
         // Check if user is admin
-       /* const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';
+        /* const isAdmin = req.user?.isAdmin || req.user?.role === 'admin';
         
         if (!isAdmin) {
             return res.status(403).json({
