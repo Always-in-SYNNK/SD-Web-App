@@ -1,9 +1,9 @@
 import nodemailer from "nodemailer";
 
 // Check if email is configured on startup
-console.log('📧 Email Service Loading...');
-console.log('📧 EMAIL_USER configured:', !!process.env.EMAIL_USER);
-console.log('📧 EMAIL_PASS configured:', !!process.env.EMAIL_PASS);
+// console.log('📧 Email Service Loading...');
+// console.log('📧 EMAIL_USER configured:', !!process.env.EMAIL_USER);
+// console.log('📧 EMAIL_PASS configured:', !!process.env.EMAIL_PASS);
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    debug: true,
-    logger: true
+    debug: false,
+    logger: false
 });
 
 // Verify transporter connection on startup
@@ -20,7 +20,7 @@ transporter.verify((error, success) => {
     if (error) {
         console.error('❌ Email transporter verification failed:', error.message);
     } else {
-        console.log('✅ Email transporter ready to send emails');
+        // console.log('✅ Email transporter ready to send emails');
     }
 });
 
@@ -73,7 +73,7 @@ async function sendVerificationEmail(to, verificationToken, name) {
             subject: 'Verify Your Email - SA Learnerships Portal',
             html: htmlContent
         });
-        console.log(`✅ Verification email sent to ${to}`);
+        // console.log(`✅ Verification email sent to ${to}`);
         return { success: true };
     } catch (error) {
         console.error('❌ Failed to send email:', error.message);
@@ -83,9 +83,9 @@ async function sendVerificationEmail(to, verificationToken, name) {
 
 export async function sendEmailNotification({ to, name, type, title, message, metadata }) {
     // Debug logging
-    console.log(`📧 Attempting to send email to: ${to}`);
-    console.log(`📧 Email subject: ${title}`);
-    console.log(`📧 Email type: ${type}`);
+    // console.log(`📧 Attempting to send email to: ${to}`);
+    // console.log(`📧 Email subject: ${title}`);
+    // console.log(`📧 Email type: ${type}`);
     
     // Check if email is configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -164,12 +164,12 @@ export async function sendEmailNotification({ to, name, type, title, message, me
             subject: title,
             html: htmlContent
         });
-        console.log(`✅ Notification email sent to ${to}: ${title}`);
-        console.log(`📧 Message ID: ${result.messageId}`);
+        // console.log(`✅ Notification email sent to ${to}: ${title}`);
+        // console.log(`📧 Message ID: ${result.messageId}`);
         return { success: true, messageId: result.messageId };
     } catch (error) {
         console.error('❌ Failed to send notification email:', error.message);
-        console.error('❌ Error details:', error);
+        // console.error('❌ Error details:', error);
         return { success: false, error: error.message };
     }
 }
