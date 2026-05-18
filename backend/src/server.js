@@ -22,9 +22,7 @@ app.listen(PORT, () => {
   // Runs daily at 9:00 AM
   cron.schedule("0 9 * * *", async () => {
     try {
-      console.log("🔔 Running scheduled notification check...");
       await triggerUpcomingClosingDateNotifications(3); // Check for opportunities closing in 3 days
-      console.log("✅ Notification check completed");
     } catch (error) {
       console.error("❌ Error in scheduled notification task:", error);
     }

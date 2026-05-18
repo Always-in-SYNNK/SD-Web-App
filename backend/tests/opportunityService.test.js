@@ -643,6 +643,7 @@ describe("opportunityService", () => {
           const query = {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
+            ilike: jest.fn().mockReturnThis(),
             in: jest.fn().mockReturnThis(),
             or: jest.fn().mockReturnThis(),
             then(resolve) {
@@ -654,7 +655,8 @@ describe("opportunityService", () => {
                     location: "Gauteng",
                     nqf_level: 7,
                     field: "IT",
-                    opportunity_skills: [{ skills_id: 1 }, { skills_id: 2 }],
+                    // Only one required skill and it matches the applicant (id:2)
+                    opportunity_skills: [{ skills_id: 2 }],
                   },
                   {
                     id: 102,
@@ -662,7 +664,8 @@ describe("opportunityService", () => {
                     location: "Remote",
                     nqf_level: 8,
                     field: "IT",
-                    opportunity_skills: [{ skills_id: 2 }, { skills_id: 3 }],
+                    // One matching skill as well
+                    opportunity_skills: [{ skills_id: 2 }],
                   },
                   {
                     id: 103,

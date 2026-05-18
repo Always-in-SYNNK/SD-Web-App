@@ -315,7 +315,9 @@ export const deleteOpportunityById = async (id) => {
 };
 
 export async function matchingOpportunity(userId) {
-  //1. Get profile ID from userID
+  console.log("User ID:", userId);
+
+  // 1. Get profile ID from userID
   const { data: profile, profileError } = await supabase
     .from("profiles")
     .select("id")
@@ -323,7 +325,7 @@ export async function matchingOpportunity(userId) {
     .single();
   if (profileError) throw profileError;
 
-  //2. Get applicant profile (location, NQF Level)
+  // 2. Get applicant profile (location, NQF Level)
   const { data: applicantProfile, applicantError } = await supabase
     .from("applicant_profiles")
     .select("id, location, nqf_level")
@@ -333,50 +335,140 @@ export async function matchingOpportunity(userId) {
 
   const applicantLocation = applicantProfile.location;
   const applicantNqf = applicantProfile.nqf_level;
+  console.log("Applicant ID:", applicantProfile.id);
+  console.log("Applicant Location:", applicantLocation);
+  console.log("Applicant NQF:", applicantNqf);
 
-  // 3. Get distinct fields the applicant has skills in (as array of strings)
-  const { data: fields, fieldsError } = await supabase.rpc("get_applicant_skill_fields_array", { applicant_id_param: applicantProfile.id });
+  // 3. Get distinct fields the applicant has skills in
+  const { data: fields, fieldsError } = await supabase.rpc("get_applicant_skill_fields_array",
+    { applicant_id_param: applicantProfile.id }
+  );
   if (fieldsError) throw fieldsError;
-  // Convert fields to array if it's a string
-  const fieldArray = Array.isArray(fields) ? fields : [fields];
 
-  // 4. Get detailed applicant skills (with IDs and fields)
-  const applicantSkills = await getApplicantSkills(applicantProfile.id);
-  //console.log("User Skills:", applicantSkills);
-
-  // Ensure we have an array
-  if (!applicantSkills || applicantSkills.length === 0) {
-    return [];  // No skills = no matching opportunities
+  let rawFieldArray = [];
+  if (fields && Array.isArray(fields)) {
+    rawFieldArray = fields;
+  } else if (fields && typeof fields === 'string') {
+    rawFieldArray = [fields];
   }
 
-  const applicantSkillIds = applicantSkills.map(skill => skill.id);
+  const cleanFieldForMatching = (field) => {
+    if (!field) return '';
+    let cleaned = field.replace(/^Field \d+ - /, '');
+    cleaned = cleaned.replace(/^Field - /, '');
+    cleaned = cleaned.trim();
+    return cleaned;
+  };
 
-  const nqfLevels = Array.from({ length: applicantNqf }, (_, i) => i + 1);
+  const fieldArray = rawFieldArray.map(cleanFieldForMatching).filter(f => f !== '');
+  console.log("Cleaned fields:", fieldArray);
 
-  // 5. Build opportunity query
-  let query = supabase
-    .from("opportunities")
-    .select(`*, opportunity_skills(skills_id)`)
-    .eq("status", "approved")
-    .in("field", fieldArray)
-    .in("nqf_level", nqfLevels)
-    .or(`location.eq.${applicantLocation},location.eq.Remote`);
+  // 4. Get detailed applicant skills
+  const applicantSkills = await getApplicantSkills(applicantProfile.id);
 
-  const { data: opportunities, queryError } = await query;
-  if (queryError) throw queryError;
-
-  if (!opportunities || opportunities.length === 0) {
-    console.log("No opportunities found matching criteria");
+  if (!applicantSkills || applicantSkills.length === 0) {
+    console.log("No skills found for applicant");
     return [];
   }
 
-  //6. Filter opportunities that have at least one matching skill
-  const matched = opportunities.filter(opp => {
-    const oppSkillIds = opp.opportunity_skills?.map(os => os.skills_id) || [];
-    return oppSkillIds.some(id => applicantSkillIds.includes(id));
+  const applicantSkillIds = applicantSkills.map(skill => skill.id);
+  console.log("Applicant skill IDs:", applicantSkillIds.length);
+
+  // 5. Build NQF levels array
+  const nqfLevels = [];
+  if (applicantNqf && applicantNqf > 0) {
+    for (let i = 1; i <= applicantNqf; i++) {
+      nqfLevels.push(i);
+    }
+    if (applicantNqf < 10) {
+      nqfLevels.push(applicantNqf + 1);
+    }
+  }
+  console.log("NQF Levels:", nqfLevels);
+
+  if (fieldArray.length === 0) {
+    console.log("No fields found for applicant, cannot match opportunities");
+    return [];
+  }
+
+  // FIX: Build OR conditions properly with escaped field names
+  // Use a different approach - try each field individually
+  let opportunities = [];
+
+  // Try to find opportunities for each field
+  for (const field of fieldArray) {
+    console.log(`Searching for field: "${field}"`);
+
+    let query = supabase
+      .from("opportunities")
+      .select(`*, opportunity_skills(skills_id)`)
+      .eq("status", "approved")
+      .ilike("field", `%${field}%`);
+
+    const { data: fieldMatches, error: fieldError } = await query;
+    if (!fieldError && fieldMatches && fieldMatches.length > 0) {
+      console.log(`Found ${fieldMatches.length} opportunities for field "${field}"`);
+      opportunities.push(...fieldMatches);
+    }
+  }
+
+  // Remove duplicates based on opportunity ID
+  const uniqueOpportunities = [];
+  const seenIds = new Set();
+  for (const opp of opportunities) {
+    if (!seenIds.has(opp.id)) {
+      seenIds.add(opp.id);
+      uniqueOpportunities.push(opp);
+    }
+  }
+
+  opportunities = uniqueOpportunities;
+  console.log(`Total unique opportunities from all fields: ${opportunities.length}`);
+
+  if (opportunities.length === 0) {
+    console.log("No opportunities found with matching fields");
+    return [];
+  }
+
+  // Apply NQF and location filters in JavaScript instead of SQL
+  const filteredByNqfAndLocation = opportunities.filter(opp => {
+    // Check NQF level (if specified)
+    let nqfMatch = true;
+    if (opp.nqf_level && nqfLevels.length > 0) {
+      nqfMatch = nqfLevels.includes(opp.nqf_level);
+    }
+
+    // Check location
+    let locationMatch = true;
+    if (applicantLocation) {
+      locationMatch = (opp.location === applicantLocation || opp.location === "Remote");
+    }
+
+    return nqfMatch && locationMatch;
   });
 
-  // 7. Calculate a score for each opportunity (more matches = higher score)
+  console.log(`After NQF and location filter: ${filteredByNqfAndLocation.length}`);
+
+  if (filteredByNqfAndLocation.length === 0) {
+    console.log("No opportunities after NQF/location filter, returning all field matches");
+    // Fall back to all opportunities that matched fields
+    return opportunities;
+  }
+
+  // Filter by skill match
+  const matched = filteredByNqfAndLocation.filter(opp => {
+    const oppSkillIds = opp.opportunity_skills?.map(os => os.skills_id) || [];
+    const hasMatchingSkill = oppSkillIds.some(id => applicantSkillIds.includes(id));
+    return hasMatchingSkill;
+  });
+
+  console.log(`Found ${matched.length} opportunities with matching skills`);
+
+  if (matched.length === 0) {
+    return [];
+  }
+
+  // Calculate scores
   const scored = matched.map(opp => {
     const oppSkillIds = opp.opportunity_skills?.map(os => os.skills_id) || [];
     const matchedSkills = oppSkillIds.filter(id => applicantSkillIds.includes(id));
@@ -384,27 +476,46 @@ export async function matchingOpportunity(userId) {
     const totalOppSkills = oppSkillIds.length;
     const skillScore = totalOppSkills === 0 ? 0 : skillMatchCount / totalOppSkills;
 
-    // Additional score factors (you can adjust weights)
     let locationScore = 0;
     if (opp.location === applicantLocation) locationScore = 1;
     else if (opp.location === "Remote") locationScore = 0.5;
+    else locationScore = 0.2;
 
     let nqfScore = 0;
     if (opp.nqf_level && applicantNqf) {
-      nqfScore = Math.max(0, 1 - (applicantNqf - opp.nqf_level) / 10); // higher if close or equal
+      const nqfDiff = Math.abs(applicantNqf - opp.nqf_level);
+      nqfScore = Math.max(0, 1 - (nqfDiff / 10));
+    } else if (!opp.nqf_level) {
+      nqfScore = 0.5;
     }
 
-    const totalScore = skillScore * 0.6 + locationScore * 0.2 + nqfScore * 0.2;
+    const totalScore = (skillScore * 0.6) + (locationScore * 0.2) + (nqfScore * 0.2);
 
-    return { ...opp, score: totalScore, skillMatchCount };
+    return {
+      ...opp,
+      score: totalScore,
+      skillMatchCount
+    };
   });
 
-  // 8. Sort by score descending
   scored.sort((a, b) => b.score - a.score);
-  
-  return scored;
 
+  const MATCH_THRESHOLD = 0.7; // Lower threshold to see matches
+  const filtered = scored.filter(o => o.score >= MATCH_THRESHOLD);
 
+  console.log(`Found ${filtered.length} opportunities with score >= ${MATCH_THRESHOLD * 100}%`);
+
+  if (filtered.length > 0) {
+    console.log("Top matches:", filtered.slice(0, 3).map(o => ({
+      title: o.title,
+      field: o.field,
+      score: o.score,
+      location: o.location,
+      nqf_level: o.nqf_level
+    })));
+  }
+
+  return filtered;
 }
 // ✅ NEW FUNCTION at the end of the file
 export const getOpportunityById = async (id) => {
@@ -413,7 +524,7 @@ export const getOpportunityById = async (id) => {
     .select("id, title, description, provider_id, status, created_at, location, stipend, duration, closing_date, nqf_level, field")
     .eq("id", id)
     .single();
-    
+
   if (error) {
     // Return null only for "not found" case; throw on real DB errors
     if (error.message && error.message.includes('No rows found')) {
@@ -421,6 +532,6 @@ export const getOpportunityById = async (id) => {
     }
     throw new Error(`Failed to fetch opportunity: ${error.message}`);
   }
-  
+
   return data;
 };
