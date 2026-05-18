@@ -32,6 +32,11 @@ const mockAuthMiddleware = jest.fn((req, res, next) => {
   next();
 });
 
+const mockProviderAuthMiddleware = jest.fn((req, res, next) => {
+  req.user = { id: "provider-user-123" };
+  next();
+});
+
 const mockUploadSingle = jest.fn(() => (req, res, next) => {
   req.file = {
     originalname: "cv.pdf",
@@ -43,6 +48,10 @@ const mockUploadSingle = jest.fn(() => (req, res, next) => {
 
 jest.unstable_mockModule("../src/middleware/authMiddleware.js", () => ({
   default: mockAuthMiddleware,
+}));
+
+jest.unstable_mockModule("../src/middleware/providerAuthMiddleware.js", () => ({
+  default: mockProviderAuthMiddleware,
 }));
 
 jest.unstable_mockModule("../src/middleware/uploadMiddleware.js", () => ({
@@ -91,6 +100,25 @@ describe("profileRoutes", () => {
     const res = await request(app).get("/api/profile/me/qualifications");
     
     expect(mockAuthMiddleware).toHaveBeenCalled();
+    expect(res.status).toBeDefined();
+  });
+
+  test("GET /api/profile/provider/:providerProfileId route exists", async () => {
+    const res = await request(app)
+      .get("/api/profile/provider/provider-123");
+
+    expect(mockProviderAuthMiddleware).toHaveBeenCalled();
+    expect(res.status).toBeDefined();
+  });
+
+  test("PUT /api/profile/provider/:providerProfileId route exists", async () => {
+    const res = await request(app)
+      .put("/api/profile/provider/provider-123")
+      .send({
+        organisation_name: "Updated Org",
+      });
+
+    expect(mockProviderAuthMiddleware).toHaveBeenCalled();
     expect(res.status).toBeDefined();
   });
 });

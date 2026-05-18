@@ -148,8 +148,12 @@ describe("OpportunityForm", () => {
   });
 
   it('displays loading state while publishing', async () => {
+    let resolvePublish;
+
     service.publishOpportunity.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ data: { id: '123' }, error: null }), 100))
+      () => new Promise((resolve) => {
+        resolvePublish = resolve;
+      })
     );
 
     renderForm();
@@ -162,10 +166,11 @@ describe("OpportunityForm", () => {
     const publishBtn = screen.getByRole('button', { name: /publish opportunity/i });
     await userEvent.click(publishBtn);
 
-    // Button text should change to Publishing...
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /publishing/i })).toBeDefined();
-    });
+    expect(
+      await screen.findByRole('button', { name: /publishing/i })
+    ).toBeDisabled();
+
+    resolvePublish({ data: { id: '123' }, error: null });
   });
 
   it('loads opportunity data when editing', async () => {
