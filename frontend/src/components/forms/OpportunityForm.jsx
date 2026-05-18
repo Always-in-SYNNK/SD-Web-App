@@ -124,7 +124,10 @@ const OpportunityForm = () => {
           return;
         }
         if (data && data.length > 0) {
-          setSelectedSkills(data);
+          // Normalize skill shape to always have `id` and `title`
+          setSelectedSkills(
+            data.map((s) => ({ id: s.id, title: s.title ?? s.name }))
+          );
         }
       } catch (err) {
         console.error("Failed to fetch opportunity skills:", err);
@@ -151,7 +154,10 @@ const OpportunityForm = () => {
           setAvailableSkills([]);
           return;
         }
-        setAvailableSkills(data || []);
+        // Normalize skills returned by service to ensure consistent shape
+        setAvailableSkills(
+          (data || []).map((s) => ({ id: s.id, title: s.title ?? s.name }))
+        );
       } catch (err) {
         console.error("Failed to fetch skills:", err);
       } finally {
@@ -370,12 +376,12 @@ const OpportunityForm = () => {
                       key={skill.id}
                       className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm flex items-center gap-2"
                     >
-                      {getSkillLabel(skill)}
+                      {skill.title}
                       <button
                         type="button"
                         onClick={() => removeSkill(skill.id)}
                         className="text-blue-300 hover:text-blue-600 text-xs leading-none"
-                        aria-label={`Remove ${getSkillLabel(skill)}`}
+                        aria-label={`Remove ${skill.title}`}
                       >
                         ✕
                       </button>
@@ -411,7 +417,7 @@ const OpportunityForm = () => {
                               : "bg-[#e3e2e2] text-[#404850] hover:bg-green-100 hover:text-green-700"
                           }`}
                         >
-                          {getSkillLabel(skill)} {already ? "✓" : "+"}
+                          {skill.title} {already ? "✓" : "+"}
                         </button>
                       );
                     })}
