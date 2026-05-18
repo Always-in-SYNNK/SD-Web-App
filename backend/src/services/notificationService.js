@@ -2,31 +2,53 @@ import { supabase } from "../config/supabaseClient.js";
 import { sendEmailNotification } from "./emailService.js";
 
 export async function getNotificationsByUserId(userId) {
-    const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("user_id", userId)
-        .single();
-    
-    if (profileError) throw profileError;
+  // 1. Get profile
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("user_id", userId)
+    .single();
 
-    const { data: applicantProfile, error: applicantError } = await supabase
-        .from("applicant_profiles")
-        .select("id")
-        .eq("profile_id", profile.id)
-        .single();
+  if (profileError) {
+    // 3. Then try provider
+    const { data: providerProfile, error: providerError } = await supabase
+      .from("provider_profiles")
+      .select("id")
+      .eq("profile_id", userId)
+      .maybeSingle();
 
-    if (applicantError) throw applicantError;
+    if (providerError) throw providerError;
+    if (!providerProfile) {
+      // No applicant and no provider – user may be admin or incomplete
+      return [];
+    }
+
     const { data: notifications, error } = await supabase
-        .from("applicant_notifications")
-        .select("id, type, title, message, is_read, created_at, application_id, opportunity_id")
-        .eq("applicant_id", applicantProfile.id)
-        .order("created_at", { ascending: false });
-
+      .from("provider_notifications")
+      .select("id, type, title, message, is_read, created_at, application_id, opportunity_id")
+      .eq("provider_id", providerProfile.id)   // ✅ fixed typo
+      .order("created_at", { ascending: false });
     if (error) throw error;
-
     return notifications || [];
+  }
+  // 2. Try applicant first
+  const { data: applicantProfile, error: applicantError } = await supabase
+    .from("applicant_profiles")
+    .select("id")
+    .eq("profile_id", profile.id)
+    .maybeSingle();
+  if (applicantError) throw applicantError;
+
+  const { data: notifications, error } = await supabase
+    .from("applicant_notifications")
+    .select("id, type, title, message, is_read, created_at, application_id, opportunity_id")
+    .eq("applicant_id", applicantProfile.id)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return notifications || [];
 }
+
+
 
 export async function readNotification(notificationId, userId) {
     const { data: profile, error: profileError } = await supabase
@@ -63,17 +85,87 @@ export async function readNotification(notificationId, userId) {
 
 async function getOpportunityTitle(opportunityId) {
     if (!opportunityId) return null;
-    
+
     const { data, error } = await supabase
         .from("opportunities")
         .select("title")
         .eq("id", opportunityId)
         .single();
-    
+
     if (error) return null;
     return data?.title;
 }
 
+export async function createProviderNotification({
+    providerId, type, title, message, applicationId, opportunityId,
+}) {
+    const { data, error } = await supabase
+        .from("provider_notifications")
+        .insert({
+            provider_id: providerId,
+            type,
+            title,
+            message,
+            is_read: false,
+            application_id: applicationId,
+            opportunity_id: opportunityId,
+        })
+        .select()
+        .single();
+    if (error) throw error;
+
+    try {
+        const { data: application } = await supabase
+            .from("applications")
+            .select("applicant_id")
+            .eq("id", applicationId)
+            .single();
+
+        if (application) {
+            console.log("createProviderNoti: application exists - ", application.applicant_id);
+            const { data: applicant } = await supabase
+                .from("applicant_profiles")
+                .select("surname")
+                .eq("id", application.applicant_id)
+                .single();
+            console.log("applicant_profile full name: ", applicant.full_name);
+            const { data: provider } = await supabase
+                .from("provider_profiles")
+                .select("profile_id")
+                .eq("id", providerId)
+                .single();
+            console.log("provider: ", provider);
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("full_name, email")
+                .eq("id", provider.profile_id)
+                .single();
+            console.log("profile: ", profile);
+            if (profile && profile.email) {
+                const opportunityTitle = await getOpportunityTitle(opportunityId);
+
+                let emailMessage = message;
+                if (opportunityTitle) {
+                    emailMessage = message;
+                }
+
+                await sendEmailNotification({
+                    to: profile.email,
+                    name: profile.full_name,
+                    type: type,
+                    title: title,
+                    message: emailMessage,
+                    metadata: { provider_id: providerId, opportunity_id: opportunityId, opportunity_title: opportunityTitle }
+                });
+            }
+        }
+    } catch (emailError) {
+        console.error("Failed to send email notification:", emailError);
+    }
+
+    console.log(data);
+    return data;
+}
 export async function createNotification({
     applicantId,
     type,
@@ -114,12 +206,12 @@ export async function createNotification({
 
             if (profile && profile.email) {
                 const opportunityTitle = await getOpportunityTitle(opportunityId);
-                
+
                 let emailMessage = message;
                 if (opportunityTitle) {
                     emailMessage = message;
                 }
-                
+
                 await sendEmailNotification({
                     to: profile.email,
                     name: profile.full_name,
@@ -166,16 +258,16 @@ export async function notifyApplicationStatusChange({
 
     // Get opportunity title - supports BOTH approaches
     let finalOpportunityTitle = null;
-    
+
     // Method 1: Use passed title (YOUR approach - more efficient)
     if (opportunityTitle) {
         finalOpportunityTitle = opportunityTitle;
-    } 
+    }
     // Method 2: Fetch from database (TEAMMATE's approach - fallback)
     else if (opportunityId) {
         const { data: opportunityData, error: opportunityError } = await supabase
             .from("opportunities")
-            .select("title")
+            .select("title, provider_id")
             .eq("id", opportunityId)
             .single();
 
@@ -188,9 +280,11 @@ export async function notifyApplicationStatusChange({
 
     const title = titleMap[normalized] || "Application status updated";
     const messageTemplate = messageMap[normalized] || `Your application status changed to ${newStatus}.`;
-    const message = finalOpportunityTitle 
+    const message = finalOpportunityTitle
         ? messageTemplate.replace("%s", finalOpportunityTitle)
         : messageTemplate.replace("%s", "the position");
+    
+    
 
     return createNotification({
         applicantId,

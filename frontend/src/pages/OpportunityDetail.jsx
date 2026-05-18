@@ -17,14 +17,13 @@ export default function OpportunityDetail() {
 
   useEffect(() => {
     if (!opportunity?.provider_id) return;
-    
+
     const fetchProvider = async () => {
       const { data, error } = await supabase
         .from("provider_profiles")
         .select("*")
         .eq("id", opportunity.provider_id);
 
-      //console.log("PROVIDER DATA:", data, error);
       if (!error && data?.length) setProvider(data[0]);
     };
 
@@ -55,7 +54,6 @@ export default function OpportunityDetail() {
       if (error) {
         setError(error.message);
       } else {
-        //console.log("OPPORTUNITY DATA:", data);
         setOpportunity(data);
       }
       setLoading(false);
@@ -88,9 +86,7 @@ export default function OpportunityDetail() {
   const handleApply = async (event) => {
     event.stopPropagation();
 
-    if (applied || applying) {
-      return;
-    }
+    if (applied || applying) return;
 
     try {
       setApplying(true);
@@ -98,20 +94,19 @@ export default function OpportunityDetail() {
       setApplied(true);
     } catch (err) {
       const message = err?.response?.data?.error || "Failed to apply";
-
       if (String(message).toLowerCase().includes("already applied")) {
         setApplied(true);
       }
-
       alert(message);
     } finally {
       setApplying(false);
     }
   };
 
-  const applyButtonLabel = applied ? "Applied" : applying ? "Applying..." : "Apply Now";
+  const applyButtonLabel = applied ? "Applied ✓" : applying ? "Applying..." : "Apply Now";
+
   const applyButtonClasses = applied
-    ? "px-8 py-3 bg-green-500 text-white rounded-full font-bold text-sm hover:opacity-90 transition shrink-0 disabled:opacity-100"
+    ? "px-8 py-3 bg-green-500 text-white rounded-full font-bold text-sm transition shrink-0 disabled:opacity-100"
     : "px-8 py-3 bg-[#035b9d] text-white rounded-full font-bold text-sm hover:opacity-90 transition shrink-0 disabled:opacity-60";
 
   if (loading) {
@@ -156,12 +151,15 @@ export default function OpportunityDetail() {
       })
     : "No closing date";
 
+  // Normalise focus_fields — DB may return null or an array
+  const focusFields = Array.isArray(provider?.focus_fields) ? provider.focus_fields : [];
+
   return (
     <main className="flex min-h-screen bg-[#faf9f8]">
       <Sidebar activePage="/opportunities" />
       <section className="ml-64 min-h-screen w-full p-12">
 
-        {/* Back button */}
+        {/* Back */}
         <button
           onClick={() => navigate("/opportunities")}
           className="flex items-center gap-2 text-gray-500 hover:text-[#035b9d] text-sm font-medium mb-8 transition-colors"
@@ -181,9 +179,9 @@ export default function OpportunityDetail() {
                   {opportunity.title}
                 </h1>
                 <section className="flex flex-wrap gap-4 text-sm text-gray-500">
-                  {opportunity.location && <strong>📍 {opportunity.location}</strong>}
-                  {opportunity.duration && <strong>🕐 {opportunity.duration}</strong>}
-                  {opportunity.stipend && <strong>💰 {formattedStipend}</strong>}
+                  {opportunity.location && <span>📍 {opportunity.location}</span>}
+                  {opportunity.duration && <span>🕐 {opportunity.duration}</span>}
+                  {opportunity.stipend && <span>💰 {formattedStipend}</span>}
                   <time>📅 Closes {formattedDate}</time>
                 </section>
               </section>
@@ -199,71 +197,32 @@ export default function OpportunityDetail() {
           </section>
         </header>
 
-        {provider && (
-          <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6">
-            <h2 className="text-xl font-bold mb-4">Provider Details</h2>
-            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {provider.organisation_name && (
-                <div>
-                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Organisation</dt>
-                  <dd className="font-bold text-gray-900">{provider.organisation_name}</dd>
-                </div>
-              )}
-              {provider.organisation_type && (
-                <div>
-                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Type</dt>
-                  <dd className="font-bold text-gray-900">{provider.organisation_type}</dd>
-                </div>
-              )}
-              {provider.contact_person && (
-                <div>
-                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Contact Person</dt>
-                  <dd className="font-bold text-gray-900">{provider.contact_person}</dd>
-                </div>
-              )}
-              {provider.phone_number && (
-                <div>
-                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Phone</dt>
-                  <dd className="font-bold text-gray-900">{provider.phone_number}</dd>
-                </div>
-              )}
-              {provider.description && (
-                <div className="md:col-span-2">
-                  <dt className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">About</dt>
-                  <dd className="text-gray-600 leading-relaxed">{provider.description}</dd>
-                </div>
-              )}
-            </dl>
-          </section>
-        )}
-
         {/* Info cards */}
         <section className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           {[
-            { label: "Stipend", value: formattedStipend },
-            { label: "Duration", value: opportunity.duration || "Not specified" },
-            { label: "Location", value: opportunity.location || "Not specified" },
-            { label: "Closing Date", value: formattedDate },
-            { label: "Field", value: opportunity.field || "Not specified" },
-            { label: "Required NQF Level", value: opportunity.nqf_level ? `NQF Level ${opportunity.nqf_level}` : "Not specified" },
+            { label: "Stipend",            value: formattedStipend },
+            { label: "Duration",           value: opportunity.duration   || "Not specified" },
+            { label: "Location",           value: opportunity.location   || "Not specified" },
+            { label: "Closing Date",       value: formattedDate },
+            { label: "Field",              value: opportunity.field      || "Not specified" },
+            { label: "Required NQF Level", value: opportunity.nqf_level  ? `NQF Level ${opportunity.nqf_level}` : "Not specified" },
           ].map(({ label, value }) => (
             <article key={label} className="bg-white rounded-xl border border-gray-100 p-5">
               <strong className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">
                 {label}
               </strong>
-              <strong className="font-bold text-gray-900">{value}</strong>
+              <span className="font-bold text-gray-900">{value}</span>
             </article>
           ))}
         </section>
 
-        
-
-        {/* Description */}
+        {/* About this opportunity */}
         <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6">
           <h2 className="text-xl font-bold mb-4">About this opportunity</h2>
           <p className="text-gray-600 leading-relaxed">{opportunity.description}</p>
         </section>
 
+        {/* Required skills */}
         {skills.length > 0 && (
           <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6">
             <h2 className="text-xl font-bold mb-4">Required Skills</h2>
@@ -280,9 +239,78 @@ export default function OpportunityDetail() {
           </section>
         )}
 
-        
+        {/* Provider Details */}
+        {provider && (
+          <section className="bg-white rounded-xl border border-gray-100 p-8 mb-6 relative overflow-hidden">
+            <h2 className="text-xl font-bold text-[#1b1c1c] mb-6">About the Provider</h2>
 
-        {/* Apply */}
+            {/* Name + type + location header row */}
+            <div className="flex flex-wrap items-start gap-4 mb-6">
+              <figure className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center text-2xl shrink-0">
+                🏢
+              </figure>
+              <div>
+                {provider.organisation_name && (
+                  <p className="text-lg font-extrabold text-[#1b1c1c] leading-tight">
+                    {provider.organisation_name}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2 mt-1.5">
+                  {provider.organisation_type && (
+                    <span className="text-xs font-semibold px-3 py-1 bg-blue-50 text-[#035b9d] rounded-full">
+                      {provider.organisation_type}
+                    </span>
+                  )}
+                  {provider.location && (
+                    <span className="text-xs font-semibold px-3 py-1 bg-gray-100 text-gray-600 rounded-full">
+                      📍 {provider.location}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Website link — pushed to the right */}
+              {provider.website_url && (
+                <a
+                  href={provider.website_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ml-auto shrink-0 inline-flex items-center gap-2 px-5 py-2.5 border border-[#035b9d] text-[#035b9d] rounded-full text-sm font-bold hover:bg-[#035b9d] hover:text-white transition-colors"
+                >
+                  🌐 Visit Website
+                </a>
+              )}
+            </div>
+
+            {/* Description */}
+            {provider.description && (
+              <p className="text-gray-600 leading-relaxed mb-6">
+                {provider.description}
+              </p>
+            )}
+
+            {/* Focus fields */}
+            {focusFields.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                  Fields of Focus
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {focusFields.map((field) => (
+                    <span
+                      key={field}
+                      className="px-4 py-2 bg-blue-50 text-[#035b9d] font-semibold rounded-full text-sm"
+                    >
+                      {field}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Apply CTA */}
         <section className="bg-[#035b9d] rounded-xl p-8 flex items-center justify-between">
           <article>
             <h3 className="text-white font-bold text-xl mb-1">Ready to apply?</h3>

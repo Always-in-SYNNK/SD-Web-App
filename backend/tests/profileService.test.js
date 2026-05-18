@@ -31,6 +31,8 @@ const {
     getApplicantCVSignedUrl,
     addApplicantQualificationByUserId,
     getApplicantProfileByProfileId,
+    fetchProviderProfileByUserId,
+    editProviderProfile,
 } = await import("../src/services/profileService.js");
 
 const { getApplicantSkills } = await import("../src/services/skillsService.js");
@@ -709,6 +711,341 @@ describe("profileService", () => {
 
             const result = await getApplicantProfileByProfileId("applicant-1");
             expect(result.qualifications).toEqual([]);
+        });
+    });
+
+    describe("fetchProviderProfileByUserId", () => {
+        test("returns normalized provider profile", async () => {
+            const mockProviderProfile = {
+                id: "profile-1",
+                user_id: "user-1",
+                full_name: "Tech Corp",
+                email: "tech@example.com",
+                role: "provider",
+                provider_profiles: [
+                    {
+                        id: "provider-1",
+                        organisation_name: "Tech Corp",
+                        organisation_type: "Private Company",
+                        focus_fields: ["Business, Commerce and Management Studies"],
+                        description: "Training provider",
+                        location: "Johannesburg",
+                        website_url: "https://techcorp.com",
+                    },
+                ],
+            };
+
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: mockProviderProfile,
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            const result = await fetchProviderProfileByUserId("user-1");
+
+            expect(result).toEqual({
+                ...mockProviderProfile,
+                provider_profiles: {
+                    id: "provider-1",
+                    organisation_name: "Tech Corp",
+                    organisation_type: "Private Company",
+                    focus_fields: ["Business, Commerce and Management Studies"],
+                    description: "Training provider",
+                    location: "Johannesburg",
+                    website_url: "https://techcorp.com",
+                },
+            });
+
+            expect(mockFrom).toHaveBeenCalledWith("profiles");
+        });
+
+        test("returns null provider_profiles when none exist", async () => {
+            const mockProviderProfile = {
+                id: "profile-1",
+                user_id: "user-1",
+                full_name: "Tech Corp",
+                email: "tech@example.com",
+                role: "provider",
+                provider_profiles: [],
+            };
+
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: mockProviderProfile,
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            const result = await fetchProviderProfileByUserId("user-1");
+
+            expect(result.provider_profiles).toBeNull();
+        });
+
+        test("throws when supabase query fails", async () => {
+            const error = new Error("Provider lookup failed");
+
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: null,
+                                error,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            await expect(
+                fetchProviderProfileByUserId("user-1")
+            ).rejects.toThrow("Provider lookup failed");
+        });
+    });
+
+    describe("editProviderProfile", () => {
+        test("successfully updates provider profile", async () => {
+            const existingProfile = {
+                id: "profile-1",
+                user_id: "user-1",
+                full_name: "Old Name",
+                email: "provider@example.com",
+                role: "provider",
+                provider_profiles: {
+                    id: "provider-1",
+                    organisation_name: "Old Org",
+                },
+            };
+
+            const updatedProfile = {
+                ...existingProfile,
+                full_name: "New Name",
+                provider_profiles: {
+                    id: "provider-1",
+                    organisation_name: "New Org",
+                    organisation_type: "Private Company",
+                    focus_fields: ["Services"],
+                    description: "Updated description",
+                    location: "Cape Town",
+                    website_url: "https://neworg.com",
+                },
+            };
+
+            // Initial fetchProviderProfileRecord
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: {
+                                    ...existingProfile,
+                                    provider_profiles: [existingProfile.provider_profiles],
+                                },
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            // profiles update
+            mockFrom.mockReturnValueOnce({
+                update: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockResolvedValue({
+                        error: null,
+                    }),
+                }),
+            });
+
+            // provider_profiles upsert
+            mockFrom.mockReturnValueOnce({
+                upsert: jest.fn().mockResolvedValue({
+                    error: null,
+                }),
+            });
+
+            // Final fetchProviderProfileRecord
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: {
+                                    ...updatedProfile,
+                                    provider_profiles: [updatedProfile.provider_profiles],
+                                },
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            const updates = {
+                full_name: "New Name",
+                organisation_name: "New Org",
+                organisation_type: "Private Company",
+                focus_fields: ["Services"],
+                description: "Updated description",
+                location: "Cape Town",
+                website_url: "https://neworg.com",
+            };
+
+            const result = await editProviderProfile("user-1", updates);
+
+            expect(result).toEqual(updatedProfile);
+        });
+
+        test("throws when focus_fields is not an array", async () => {
+            const existingProfile = {
+                id: "profile-1",
+                provider_profiles: {},
+            };
+
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: existingProfile,
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            await expect(
+                editProviderProfile("user-1", {
+                    focus_fields: "Services",
+                })
+            ).rejects.toThrow("focus_fields must be an array");
+        });
+
+        test("throws when invalid focus fields are provided", async () => {
+            const existingProfile = {
+                id: "profile-1",
+                provider_profiles: {},
+            };
+
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: existingProfile,
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            await expect(
+                editProviderProfile("user-1", {
+                    focus_fields: ["Fake Field"],
+                })
+            ).rejects.toThrow("Invalid focus fields provided");
+        });
+
+        test("throws when provider profile does not exist", async () => {
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: null,
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            await expect(
+                editProviderProfile("user-1", {
+                    organisation_name: "Updated Org",
+                })
+            ).rejects.toThrow("Provider profile not found");
+        });
+
+        test("throws when profile update fails", async () => {
+            const existingProfile = {
+                id: "profile-1",
+                provider_profiles: {},
+            };
+
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: existingProfile,
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            mockFrom.mockReturnValueOnce({
+                update: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockResolvedValue({
+                        error: new Error("Profile update failed"),
+                    }),
+                }),
+            });
+
+            await expect(
+                editProviderProfile("user-1", {
+                    full_name: "Updated Name",
+                })
+            ).rejects.toThrow("Profile update failed");
+        });
+
+        test("throws when provider upsert fails", async () => {
+            const existingProfile = {
+                id: "profile-1",
+                provider_profiles: {},
+            };
+
+            mockFrom.mockReturnValueOnce({
+                select: jest.fn().mockReturnValue({
+                    eq: jest.fn().mockReturnValue({
+                        or: jest.fn().mockReturnValue({
+                            single: jest.fn().mockResolvedValue({
+                                data: existingProfile,
+                                error: null,
+                            }),
+                        }),
+                    }),
+                }),
+            });
+
+            mockFrom.mockReturnValueOnce({
+                upsert: jest.fn().mockResolvedValue({
+                    error: new Error("Provider upsert failed"),
+                }),
+            });
+
+            await expect(
+                editProviderProfile("user-1", {
+                    organisation_name: "Updated Org",
+                })
+            ).rejects.toThrow("Provider upsert failed");
         });
     });
 });

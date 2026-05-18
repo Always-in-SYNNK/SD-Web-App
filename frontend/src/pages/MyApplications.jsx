@@ -4,6 +4,7 @@ import { useAuth } from "../context/useAuth";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { ApplicationList } from "../components/applications/myApplicationList";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
+import { useNavigate } from "react-router-dom";
 import {
   acceptOffer,
   fetchMyApplications,
