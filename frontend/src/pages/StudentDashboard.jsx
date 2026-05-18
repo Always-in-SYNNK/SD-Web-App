@@ -58,9 +58,24 @@ export default function StudentDashboard() {
           </section>
           <section className="flex items-center gap-3">
             <NotificationDropdown />
-            <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
-              {initials}
-            </figure>
+              <section className="relative" data-user-menu>
+                  <button
+                    type="button"
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="flex items-center gap-2"
+                    >
+                    <section className="text-right hidden sm:block">
+                      <p className="text-sm font-semibold text-gray-700 leading-tight truncate max-w-[160px]">
+                        {profile?.full_name || user?.email || "User"}
+                      </p>
+                      <p className="text-xs text-gray-400 leading-tight">Applicant</p>
+                    </section>
+
+                    <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs shrink-0">
+                    {initials}
+                    </figure>
+                  </button>
+                </section>
           </section>
         </nav>
 
@@ -71,9 +86,6 @@ export default function StudentDashboard() {
         </section>
       </section>
 
-      <button className="fixed bottom-8 right-8 w-16 h-16 bg-[#035b9d] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-40 text-2xl">
-        🛡️
-      </button>
     </main>
   );
 }
