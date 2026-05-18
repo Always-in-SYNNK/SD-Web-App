@@ -82,6 +82,7 @@ async function providerAuthMiddleware(req, res, next) {
 
                         req.user = {
                             ...decoded,
+                            id: profile.user_id,
                             profileId: providerProfile.id,
                         };
 
@@ -136,7 +137,7 @@ async function providerAuthMiddleware(req, res, next) {
         
         // Attach user info to request
         req.user = {
-            id: profile.id,
+            id: profile.user_id,
             email: req.session.user.email,
             role: 'provider',
             profileId: providerProfile.id

@@ -124,7 +124,10 @@ const OpportunityForm = () => {
           return;
         }
         if (data && data.length > 0) {
-          setSelectedSkills(data);
+          // Normalize skill shape to always have `id` and `title`
+          setSelectedSkills(
+            data.map((s) => ({ id: s.id, title: s.title ?? s.name }))
+          );
         }
       } catch (err) {
         console.error("Failed to fetch opportunity skills:", err);
@@ -151,7 +154,10 @@ const OpportunityForm = () => {
           setAvailableSkills([]);
           return;
         }
-        setAvailableSkills(data || []);
+        // Normalize skills returned by service to ensure consistent shape
+        setAvailableSkills(
+          (data || []).map((s) => ({ id: s.id, title: s.title ?? s.name }))
+        );
       } catch (err) {
         console.error("Failed to fetch skills:", err);
       } finally {
@@ -171,6 +177,8 @@ const OpportunityForm = () => {
   const removeSkill = (skillId) => {
     setSelectedSkills((prev) => prev.filter((s) => s.id !== skillId));
   };
+
+  const getSkillLabel = (skill) => skill?.title ?? skill?.name ?? "";
 
   // Save skills to an opportunity that already has an id
   const persistSkills = async (opportunityId) => {

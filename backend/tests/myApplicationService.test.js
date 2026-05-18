@@ -14,6 +14,7 @@ jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
 jest.unstable_mockModule("../src/services/notificationService.js", () => ({
   createNotification: mockCreateNotification,
   notifyApplicationStatusChange: mockNotifyApplicationStatusChange,
+  createProviderNotification: jest.fn(),
 }));
 
 //import AFTER mock
@@ -21,7 +22,8 @@ const {
   applyToOpportunity,
   getApplicationsForUser,
   deleteApplicationForUser,
-  acceptOffer
+  acceptOffer,
+  
 } = await import("../src/services/myApplicationService.js");
 
 
@@ -315,10 +317,12 @@ describe("myApplicationService", () => {
 
     expect(result.status).toBe("accepted");
     expect(mockNotifyApplicationStatusChange).toHaveBeenCalledWith(
-      applicantId,
-      applicationId,
-      opportunityId,
-      "accepted"
+      expect.objectContaining({
+        applicantId,
+        applicationId,
+        opportunityId,
+        newStatus: "accepted",
+      })
     );
   });
 

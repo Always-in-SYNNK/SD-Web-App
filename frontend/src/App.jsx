@@ -21,12 +21,15 @@ import Qualifications from "./pages/Qualifications";
 import MyApplications from "./pages/MyApplications";
 import CompleteProfile from "./pages/CreateStudentProfile";
 import EditProfile from "./pages/EditStudentProfile";
-import EmployerApplications from './pages/EmployerApplications';
 import ViewStudentProfile from "./pages/ViewStudentProfile";
+import ViewProviderProfile from "./pages/ViewProviderProfile";
+import EditProviderProfile from "./pages/EditProviderProfile";
+import EmployerApplications from './pages/EmployerApplications';
 import Notifications from "./pages/Notifications";
 import QualificationDetail from "./pages/QualificationDetail";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import AdminAnalytics from "./pages/AdminAnalytics";
+import AIChatWidget from "./components/chat/AIChatWidget";
 
 export default function App() {
   const clientId =
@@ -41,14 +44,12 @@ export default function App() {
             {/* Home */}
             <Route path="/" element={<Home />} />
        
-
             {/* Authentication routes */}
             <Route path="/app-login" element={<ApplicantLogin />} />
             <Route path="/prov-login" element={<ProviderLogin />} />
             <Route path="/auth-error" element={<AuthError />} />
             <Route path="/unauthorized" element={<AuthDenied />} />
             
-
             {/* Applicant routes */}
             <Route path="/onboarding" element={
                 <ProtectedRoute requiredRole="applicant">
@@ -76,7 +77,7 @@ export default function App() {
                 <OpportunityDetail />
               </ProtectedRoute>
             } />    
-            <Route path ="/qualifications" element={
+            <Route path="/qualifications" element={
               <ProtectedRoute requiredRole="applicant">
                 <Qualifications />
               </ProtectedRoute>
@@ -125,15 +126,12 @@ export default function App() {
               </ProtectedRoute>
             } />
                      
-
-
-            {/* Provider/Employer routes */}
-             <Route path="/opportunity/:opportunityId/applications" element={
+            {/* Employer routes */}
+            <Route path="/opportunity/:opportunityId/applications" element={
               <ProtectedRoute requiredRole="provider">
                 <EmployerApplications />
               </ProtectedRoute>
-            } />
-            
+            } />           
             <Route path="/pipeline" element={
               <ProtectedRoute requiredRole="provider">
                  <ValidationPipeline />
@@ -149,6 +147,16 @@ export default function App() {
                 <PostOpportunity />
               </ProtectedRoute>
             } />
+            <Route path="/provider/profile"      element={
+              <ProtectedRoute requiredRole="provider">
+                <ViewProviderProfile />
+              </ProtectedRoute> 
+            } />
+            <Route path="/provider/profile/edit" element={
+              <ProtectedRoute requiredRole="provider">
+                <EditProviderProfile />
+              </ProtectedRoute>
+            } />
             <Route path="/provider-registration" element={
                 <ProviderRegistration />
             } />
@@ -157,16 +165,13 @@ export default function App() {
                 <AnalyticsPage />
               </ProtectedRoute>
             } />
-            
           </Routes>
+          
+          {/* AI Chat Widget - appears on every page for logged-in users */}
+          <AIChatWidget />
+          
         </BrowserRouter>
       </AuthProvider>
     </GoogleOAuthProvider>
   );
 }
-
-/*<Route path="/analytics" element={
-  <ProtectedRoute requiredRole={["provider", "admin"]}>
-    <AnalyticsPage />
-  </ProtectedRoute>
-} />*/

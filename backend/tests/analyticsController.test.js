@@ -8,10 +8,19 @@ const mockAnalyticsService = {
     getProviderPlacementRatesBySector: jest.fn(),
 };
 
+const mockFrom = jest.fn();
+
 jest.unstable_mockModule("../src/services/analyticsService.js", () => mockAnalyticsService);
+
+jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
+    supabase: {
+        from: mockFrom,
+    },
+}));
 
 const {
     getApplicationAnalytics,
+    getAdminApplicationAnalytics,
     getTrendAnalytics,
     exportAnalytics,
     getPlacementRates,
@@ -252,5 +261,206 @@ describe("Analytics Controller", () => {
                 error: expect.stringContaining("Authentication required"),
             });
         });
+    });
+
+    describe("getAdminApplicationAnalytics", () => {
+        test("should return admin analytics successfully", async () => {
+            const mockOpportunities = [
+                {
+                    id: "opp-1",
+                    title: "Developer",
+                    location: "Remote",
+                    status: "approved",
+                    provider_id: "provider-1",
+                },
+            ];
+
+            const mockApplications = [
+                {
+                    id: "app-1",
+                    status: "received",
+                    opportunity_id: "opp-1",
+                },
+                {
+                    id: "app-2",
+                    status: "accepted",
+                    opportunity_id: "opp-1",
+                },
+            ];
+
+            mockFrom
+                .mockReturnValueOnce({
+                    select: () => ({
+                        eq: jest.fn().mockResolvedValue({
+                            data: mockOpportunities,
+                            error: null,
+                        }),
+                    }),
+                })
+                .mockReturnValueOnce({
+                    select: () => ({
+                        in: jest.fn().mockResolvedValue({
+                            data: mockApplications,
+                            error: null,
+                        }),
+                    }),
+                });
+
+            await getAdminApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: [
+                    expect.objectContaining({
+                        opportunityTitle: "Developer",
+                        count: 2,
+                        statusBreakdown: expect.objectContaining({
+                            received: 1,
+                            accepted: 1,
+                        }),
+                    }),
+                ],
+                totals: {
+                    totalApplications: 2,
+                    activeOpportunities: 1,
+                    averagePerOpportunity: 2,
+                    totalProviders: 1,
+                },
+            });
+        });
+
+        test("should return empty analytics when no opportunities exist", async () => {
+            mockFrom.mockReturnValueOnce({
+                select: () => ({
+                    eq: jest.fn().mockResolvedValue({
+                        data: [],
+                        error: null,
+                    }),
+                }),
+            });
+
+            await getAdminApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(200);
+
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: true,
+                data: [],
+                totals: {
+                    totalApplications: 0,
+                    activeOpportunities: 0,
+                    averagePerOpportunity: 0,
+                    totalProviders: 0,
+                },
+            });
+        });
+
+        test("should handle opportunities fetch failure", async () => {
+            mockFrom.mockReturnValueOnce({
+                select: () => ({
+                    eq: jest.fn().mockResolvedValue({
+                        data: null,
+                        error: { message: "Opportunity query failed" },
+                    }),
+                }),
+            });
+
+            await getAdminApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(500);
+
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: expect.stringContaining("Failed to fetch opportunities"),
+            });
+        });
+
+        test("should handle applications fetch failure", async () => {
+            mockFrom
+                .mockReturnValueOnce({
+                    select: () => ({
+                        eq: jest.fn().mockResolvedValue({
+                            data: [
+                                {
+                                    id: "opp-1",
+                                    title: "Developer",
+                                    location: "Remote",
+                                    status: "approved",
+                                    provider_id: "provider-1",
+                                },
+                            ],
+                            error: null,
+                        }),
+                    }),
+                })
+                .mockReturnValueOnce({
+                    select: () => ({
+                        in: jest.fn().mockResolvedValue({
+                            data: null,
+                            error: { message: "Applications failed" },
+                        }),
+                    }),
+                });
+
+            await getAdminApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(500);
+
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: expect.stringContaining("Failed to fetch applications"),
+            });
+        });
+
+        test("should handle unexpected errors", async () => {
+            mockFrom.mockImplementation(() => {
+                throw new Error("Unexpected failure");
+            });
+
+            await getAdminApplicationAnalytics(mockRequest, mockResponse);
+
+            expect(mockResponse.status).toHaveBeenCalledWith(500);
+
+            expect(mockResponse.json).toHaveBeenCalledWith({
+                success: false,
+                error: "Unexpected failure",
+            });
+        });
+    });
+
+    test("getTrendAnalytics handles service failure", async () => {
+        getApplicationTrends.mockRejectedValue(new Error("Trend failure"));
+
+        await getTrendAnalytics(mockRequest, mockResponse);
+
+        expect(mockResponse.status).toHaveBeenCalledWith(500);
+    });
+
+    test("exportAnalytics handles service failure", async () => {
+        exportAnalyticsData.mockRejectedValue(new Error("Export failure"));
+
+        await exportAnalytics(mockRequest, mockResponse);
+
+        expect(mockResponse.status).toHaveBeenCalledWith(500);
+    });
+
+    test("getPlacementRates handles service failure", async () => {
+        getPlacementRatesBySector.mockRejectedValue(new Error("Placement failure"));
+
+        await getPlacementRates(mockRequest, mockResponse);
+
+        expect(mockResponse.status).toHaveBeenCalledWith(500);
+    });
+
+    test("getProviderPlacementRates handles service failure", async () => {
+        getProviderPlacementRatesBySector.mockRejectedValue(
+            new Error("Provider placement failure")
+        );
+
+        await getProviderPlacementRates(mockRequest, mockResponse);
+
+        expect(mockResponse.status).toHaveBeenCalledWith(500);
     });
 });

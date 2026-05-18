@@ -3,10 +3,6 @@ import axios from "axios";
 const API_URL = import.meta.env.VITE_API_URL;
 const API = `${API_URL}/api/opportunities`;
 
-const getSessionConfig = () => ({
-  withCredentials: true,
-});
-
 const getAuthConfig = () => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -173,7 +169,10 @@ export const getOpportunitySkills = async (opportunityId) => {
     );
     const skills = res?.data?.opportunitySkills ?? [];
     return {
-      data: skills.map((s) => ({ id: s.id ?? s.skills_id, name: s.name ?? s.skill_name })),
+      data: skills.map((s) => ({
+        id: s.id ?? s.skills_id,
+        title: s.title ?? s.name ?? s.skill_name,
+      })),
       error: null,
     };
   } catch (err) {

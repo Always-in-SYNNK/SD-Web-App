@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { fetchProviderProfileByUserId } from "../src/services/profileService.js";
 
 const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
@@ -25,6 +26,8 @@ const mockService = {
     deleteApplicantCVIfExists: jest.fn(),
     addApplicantQualificationByUserId: jest.fn(),
     getApplicantCVSignedUrl: jest.fn(),
+    fetchProviderProfileByUserId: jest.fn(),
+    editProviderProfile: jest.fn(),
 };
 
 jest.unstable_mockModule("../src/services/profileService.js", () => mockService);
@@ -39,6 +42,8 @@ const {
     deleteMyQualification,
     getSignedCVUrl,
     getApplicantProfileById,
+    getProviderProfile,
+    updateProviderProfile,
 } = await import("../src/controllers/profileController.js");
 
 // Helper to create response object
@@ -352,6 +357,94 @@ describe("profileController", () => {
             await getApplicantProfileById(req, res, next);
 
             expect(next).toHaveBeenCalledWith(error);
+        });
+    });
+
+    describe("getProviderProfile", () => {
+        test("returns provider profile successfully", async () => {
+            const providerProfile = {
+                id: "provider-123",
+                organisation_name: "Tech Corp",
+                organisation_type: "Technology",
+            };
+
+            mockService.fetchProviderProfileByUserId.mockResolvedValue(providerProfile);
+
+            await getProviderProfile(req, res);
+
+            expect(mockService.fetchProviderProfileByUserId)
+                .toHaveBeenCalledWith("user-123");
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            expect(res.json).toHaveBeenCalledWith(providerProfile);
+        });
+
+        test("returns 404 when provider profile is not found", async () => {
+            mockService.fetchProviderProfileByUserId.mockResolvedValue(null);
+
+            await getProviderProfile(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(404);
+
+            expect(res.json).toHaveBeenCalledWith({
+                error: "Provider profile not found",
+            });
+        });
+
+        test("returns 500 when service throws error", async () => {
+            const error = new Error("Database failed");
+
+            mockService.fetchProviderProfileByUserId.mockRejectedValue(error);
+
+            await getProviderProfile(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+
+            expect(res.json).toHaveBeenCalledWith({
+                error: "Internal server error",
+            });
+        });
+    });
+
+    describe("updateProviderProfile", () => {
+        test("updates provider profile successfully", async () => {
+            req.body = {
+                organisation_name: "Updated Corp",
+                description: "New description",
+            };
+
+            const updatedProfile = {
+                id: "provider-123",
+                ...req.body,
+            };
+
+            mockService.editProviderProfile.mockResolvedValue(updatedProfile);
+
+            await updateProviderProfile(req, res);
+
+            expect(mockService.editProviderProfile).toHaveBeenCalledWith(
+                "user-123",
+                req.body
+            );
+
+            expect(res.status).toHaveBeenCalledWith(200);
+
+            expect(res.json).toHaveBeenCalledWith(updatedProfile);
+        });
+
+        test("returns 500 when update fails", async () => {
+            const error = new Error("Update failed");
+
+            mockService.editProviderProfile.mockRejectedValue(error);
+
+            await updateProviderProfile(req, res);
+
+            expect(res.status).toHaveBeenCalledWith(500);
+
+            expect(res.json).toHaveBeenCalledWith({
+                error: "Failed to update profile",
+            });
         });
     });
 });

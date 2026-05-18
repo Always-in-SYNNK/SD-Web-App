@@ -148,8 +148,12 @@ describe("OpportunityForm", () => {
   });
 
   it('displays loading state while publishing', async () => {
+    let resolvePublish;
+
     service.publishOpportunity.mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve({ data: { id: '123' }, error: null }), 100))
+      () => new Promise((resolve) => {
+        resolvePublish = resolve;
+      })
     );
 
     renderForm();
@@ -162,10 +166,11 @@ describe("OpportunityForm", () => {
     const publishBtn = screen.getByRole('button', { name: /publish opportunity/i });
     await userEvent.click(publishBtn);
 
-    // Button text should change to Publishing...
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /publishing/i })).toBeDefined();
-    });
+    expect(
+      await screen.findByRole('button', { name: /publishing/i })
+    ).toBeDisabled();
+
+    resolvePublish({ data: { id: '123' }, error: null });
   });
 
   it('loads opportunity data when editing', async () => {
@@ -393,6 +398,50 @@ describe("OpportunityForm", () => {
     ).toBeInTheDocument();
 
     expect(screen.getByText(/React/i)).toBeInTheDocument();
+  });
+
+  it("renders prefilled skills when API returns name instead of title", async () => {
+    vi.doMock("react-router-dom", async () => {
+      const actual = await vi.importActual("react-router-dom");
+      return {
+        ...actual,
+        useParams: () => ({ id: "123" }),
+      };
+    });
+
+    vi.resetModules();
+
+    const { default: EditingForm } = await import(
+      "../components/forms/OpportunityForm"
+    );
+
+    service.getOpportunityById.mockResolvedValue({
+      data: {
+        title: "Existing Opportunity",
+        description: "Existing description",
+        field: "Services",
+      },
+      error: null,
+    });
+
+    service.getOpportunitySkills.mockResolvedValue({
+      data: [{ id: 1, name: "Collect arterial blood samples" }],
+      error: null,
+    });
+
+    render(
+      <MemoryRouter>
+        <EditingForm />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByDisplayValue("Existing Opportunity")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(/Collect arterial blood samples/i)
+    ).toBeInTheDocument();
   });
 
   it("shows error when edit prefill fails", async () => {
