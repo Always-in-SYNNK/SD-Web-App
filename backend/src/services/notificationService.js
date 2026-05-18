@@ -142,7 +142,6 @@ export async function createProviderNotification({
                 .single();
             console.log("profile: ", profile);
             if (profile && profile.email) {
-                console.log("provider profile exists");
                 const opportunityTitle = await getOpportunityTitle(opportunityId);
 
                 let emailMessage = message;
@@ -164,6 +163,7 @@ export async function createProviderNotification({
         console.error("Failed to send email notification:", emailError);
     }
 
+    console.log(data);
     return data;
 }
 export async function createNotification({
@@ -267,7 +267,7 @@ export async function notifyApplicationStatusChange({
     else if (opportunityId) {
         const { data: opportunityData, error: opportunityError } = await supabase
             .from("opportunities")
-            .select("title")
+            .select("title, provider_id")
             .eq("id", opportunityId)
             .single();
 
@@ -283,6 +283,8 @@ export async function notifyApplicationStatusChange({
     const message = finalOpportunityTitle
         ? messageTemplate.replace("%s", finalOpportunityTitle)
         : messageTemplate.replace("%s", "the position");
+    
+    
 
     return createNotification({
         applicantId,

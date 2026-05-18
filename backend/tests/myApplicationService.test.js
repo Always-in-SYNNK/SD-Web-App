@@ -317,10 +317,12 @@ describe("myApplicationService", () => {
 
     expect(result.status).toBe("accepted");
     expect(mockNotifyApplicationStatusChange).toHaveBeenCalledWith(
-      applicantId,
-      applicationId,
-      opportunityId,
-      "accepted"
+      expect.objectContaining({
+        applicantId,
+        applicationId,
+        opportunityId,
+        newStatus: "accepted",
+      })
     );
   });
 
