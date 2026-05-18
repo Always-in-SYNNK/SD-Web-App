@@ -172,21 +172,7 @@ const Topbar = ({ user: providerUser, onLogout }) => {
           </button>
 
           {showMenu && (
-            <section className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
-              <button
-                type="button"
-                onClick={() => { setShowMenu(false); navigate("/provider/profile"); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                My Profile
-              </button>              
-              <button
-                type="button"
-                onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                Profile
-              </button>
+            <section className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">          
               <button
                 type="button"
                 onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
@@ -194,7 +180,13 @@ const Topbar = ({ user: providerUser, onLogout }) => {
               >
                 Dashboard
               </button>
-
+              <button
+                type="button"
+                onClick={() => { setShowMenu(false); navigate("/provider/profile"); }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                My Profile
+              </button>
               <button
                 type="button"
                 onClick={() => { setShowMenu(false); logout(); }}
