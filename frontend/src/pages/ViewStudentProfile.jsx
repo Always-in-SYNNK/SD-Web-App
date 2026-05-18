@@ -5,41 +5,43 @@ import { Sidebar } from "../components/dashboard/Sidebar";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 
 export default function ViewStudentProfile() {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cvUrl, setCvUrl] = useState(null);
-
+  const [showMenu, setShowMenu] = useState(false);
   const [skills, setSkills] = useState([]);
 
   useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await fetch(`${API}/api/profile/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.profile) {
-        setProfile(data.profile);
-
-        // fetch skills using applicant_profile_id from the profile
-        const skillsRes = await fetch(`${API}/api/skills/applicant/${data.profile.applicant_profile_id}`, {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const skillsData = await skillsRes.json();
-        //console.log("SKILLS:", skillsData);
-        if (skillsData.success) setSkills(skillsData.applicantSkills || []);
+        const data = await res.json();
+        if (data.profile) {
+          setProfile(data.profile);
+
+          const skillsRes = await fetch(`${API}/api/skills/applicant/${data.profile.applicant_profile_id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const skillsData = await skillsRes.json();
+          if (skillsData.success) setSkills(skillsData.applicantSkills || []);
+        }
+      } catch (err) {
+        console.error("Failed to load profile:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Failed to load profile:", err);
-    } finally {
-      setLoading(false);
+    };
+
+    if (token) {
+      setLoading(true);
+      fetchProfile();
     }
-  };
-  if (token) fetchProfile();
-}, [API, token]);
+  }, [API, token]);
 
   useEffect(() => {
     const fetchSignedUrl = async () => {
@@ -74,10 +76,24 @@ export default function ViewStudentProfile() {
           </section>
           <section className="flex items-center gap-3">
             <NotificationDropdown />
-            <button className="p-2 hover:bg-gray-100 rounded-full">❓</button>
-            <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs">
-              {initials}
-            </figure>
+                <section className="relative" data-user-menu>
+                  <button
+                    type="button"
+                    onClick={() => setShowMenu(!showMenu)}
+                    className="flex items-center gap-2"
+                    >
+                    <section className="text-right hidden sm:block">
+                      <p className="text-sm font-semibold text-gray-700 leading-tight truncate max-w-[160px]">
+                        {profile?.full_name || user?.email || "User"}
+                      </p>
+                      <p className="text-xs text-gray-400 leading-tight">Applicant</p>
+                    </section>
+
+                    <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs shrink-0">
+                    {initials}
+                    </figure>
+                  </button>
+                </section>
           </section>
         </nav>
 
