@@ -11,6 +11,7 @@ export default function StudentDashboard() {
   const API = import.meta.env.VITE_API_URL;
   const [profile, setProfile] = useState(null);
   const [cvUrl, setCvUrl] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
