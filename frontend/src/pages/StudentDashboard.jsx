@@ -5,6 +5,7 @@ import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { QualificationList } from "../components/dashboard/QualificationList";
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 import { CVCard } from "../components/dashboard/CVCard";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentDashboard() {
   const { token, user } = useAuth();
@@ -12,6 +13,7 @@ export default function StudentDashboard() {
   const [profile, setProfile] = useState(null);
   const [cvUrl, setCvUrl] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -27,6 +29,20 @@ export default function StudentDashboard() {
     };
     if (token) fetchProfile();
   }, [token]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.target.closest("[data-user-menu]")) setShowMenu(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);  
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
   useEffect(() => {
     const fetchCv = async () => {
@@ -75,7 +91,25 @@ export default function StudentDashboard() {
                     <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs shrink-0">
                     {initials}
                     </figure>
-                  </button>
+                   </button>
+                    {showMenu && (
+                          <section className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+                            <button
+                              type="button"
+                              onClick={() => { setShowMenu(false); navigate("/dashboard"); }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                        Dashboard
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setShowMenu(false); logout(); }}
+                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                        >
+                        Sign Out
+                        </button>
+                      </section>
+                      )}
                 </section>
           </section>
         </nav>
