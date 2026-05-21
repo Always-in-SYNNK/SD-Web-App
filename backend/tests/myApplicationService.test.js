@@ -215,7 +215,23 @@ describe("myApplicationService", () => {
       }),
     });
 
-    // delete
+    // delete related applicant notifications first
+    mockFrom.mockReturnValueOnce({
+      delete: () => ({
+        eq: () => ({
+          eq: async () => ({ error: null }),
+        }),
+      }),
+    });
+
+    // delete related provider notifications
+    mockFrom.mockReturnValueOnce({
+      delete: () => ({
+        eq: async () => ({ error: null }),
+      }),
+    });
+
+    // delete application
     mockFrom.mockReturnValueOnce({
       delete: () => ({
         eq: () => ({
@@ -262,6 +278,101 @@ describe("myApplicationService", () => {
     await expect(
       deleteApplicationForUser({ userId, applicationId })
     ).rejects.toThrow("Application not found");
+  });
+
+  test("should throw if notification delete fails", async () => {
+    // profile
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({ data: { id: profileId } }),
+        }),
+      }),
+    });
+
+    // applicant
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({ data: { id: applicantId } }),
+        }),
+      }),
+    });
+
+    // existing application
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: { id: applicationId } }),
+          }),
+        }),
+      }),
+    });
+
+    // notification delete fails
+    mockFrom.mockReturnValueOnce({
+      delete: () => ({
+        eq: () => ({
+          eq: async () => ({ error: { message: "Notification delete failed" } }),
+        }),
+      }),
+    });
+
+    await expect(
+      deleteApplicationForUser({ userId, applicationId })
+    ).rejects.toThrow("Notification delete failed");
+  });
+
+  test("should throw if provider notification delete fails", async () => {
+    // profile
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({ data: { id: profileId } }),
+        }),
+      }),
+    });
+
+    // applicant
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          single: async () => ({ data: { id: applicantId } }),
+        }),
+      }),
+    });
+
+    // existing application
+    mockFrom.mockReturnValueOnce({
+      select: () => ({
+        eq: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: { id: applicationId } }),
+          }),
+        }),
+      }),
+    });
+
+    // applicant notification delete succeeds
+    mockFrom.mockReturnValueOnce({
+      delete: () => ({
+        eq: () => ({
+          eq: async () => ({ error: null }),
+        }),
+      }),
+    });
+
+    // provider notification delete fails
+    mockFrom.mockReturnValueOnce({
+      delete: () => ({
+        eq: async () => ({ error: { message: "Provider notification delete failed" } }),
+      }),
+    });
+
+    await expect(
+      deleteApplicationForUser({ userId, applicationId })
+    ).rejects.toThrow("Provider notification delete failed");
   });
 
   // acceptOffer ========================================
