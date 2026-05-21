@@ -127,8 +127,8 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
           </button>
 
           {showMenu && (
-            <menu className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50" role="menu">
-              <li role="menuitem">
+            <ul className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
+              <li>
                 <button
                   type="button"
                   onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
@@ -137,7 +137,7 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
                   Dashboard
                 </button>
               </li>
-              <li role="menuitem">
+              <li>
                 <button
                   type="button"
                   onClick={() => { setShowMenu(false); logout(); }}
@@ -146,7 +146,7 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
                   Sign Out
                 </button>
               </li>
-            </menu>
+            </ul>
           )}
         </section>
       </nav>

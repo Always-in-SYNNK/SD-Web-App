@@ -47,7 +47,7 @@ export default function AuthErrorPage({
   const effectiveMessage = location.state?.message || message;
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center p-4">
+    <main className="min-h-screen flex flex-col items-center justify-center p-4">
 
       {/* ── Minimal nav ── */}
       <nav className="fixed top-0 left-0 right-0 p-6 flex justify-between items-center w-full max-w-7xl mx-auto">
@@ -126,6 +126,6 @@ export default function AuthErrorPage({
       </footer>
 
       <BackgroundLayers />
-    </section>
+    </main>
   );
 }
