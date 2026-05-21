@@ -30,14 +30,14 @@ export default function AdminConsole() {
         {/* Top bar */}
         <AdminTopbar title="Admin Console" source={source} />
 
-        <div className="p-12">
+        <section className="p-12">
           <header className="mb-8">
-            <span className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
+            <p className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
               Admin Panel
-            </span>
-            <h2 className="text-3xl font-extrabold mt-2 tracking-tight">
+            </p>
+            <h1 className="text-3xl font-extrabold mt-2 tracking-tight">
               Manage Opportunities
-            </h2>
+            </h1>
             <p className="text-gray-500 mt-2">
               Review, flag, and manage all live opportunities on the platform.
             </p>
@@ -45,8 +45,8 @@ export default function AdminConsole() {
 
           <StatsGrid />
 
-          <div className="bg-[#f5f3f3] rounded-xl px-8 pb-8 pt-4">
-            <div className="flex justify-between items-center mb-6">
+          <section className="bg-[#f5f3f3] rounded-xl px-8 pb-8 pt-4">
+            <nav className="flex justify-between items-center mb-6" aria-label="Opportunity management tabs">
               {/* Tabs */}
               <div className="flex gap-1 bg-white border border-gray-200 rounded-lg p-1">
                 {TABS.map((tab) => (
@@ -58,16 +58,17 @@ export default function AdminConsole() {
                         ? "bg-[#035b9d] text-white"
                         : "text-gray-500 hover:text-gray-800"
                     }`}
+                    aria-pressed={activeTab === tab.value}
                   >
                     {tab.label}
                   </button>
                 ))}
               </div>
-            </div>
+            </nav>
 
             <OpportunitiesTable mode={activeTab} />
-          </div>
-        </div>
+          </section>
+        </section>
       </main>
     </div>
   );
