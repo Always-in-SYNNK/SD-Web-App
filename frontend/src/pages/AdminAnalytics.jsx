@@ -75,7 +75,7 @@ function PanelSkeleton({ height = 220 }) {
 function StatCard({ label, value, color }) {
   return (
     <article className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <p className="text-sm text-gray-500 mb-1">{label}</p>
+      <h2 className="text-sm font-normal text-gray-500 mb-1">{label}</h2>
       <p className={`text-3xl font-extrabold ${color}`}>{value}</p>
     </article>
   );
@@ -85,11 +85,11 @@ function StatCard({ label, value, color }) {
 
 function StatusDistributionChart({ data }) {
   const applicationStatuses = {
-    received:    0,
+    received:     0,
     shortlisted: 0,
-    offered:     0,
-    accepted:    0,
-    rejected:    0,
+    offered:      0,
+    accepted:     0,
+    rejected:     0,
   };
 
   data.forEach((opportunity) => {
@@ -127,18 +127,18 @@ function StatusDistributionChart({ data }) {
           <p className="text-gray-400 text-xs">Data appears once applications are submitted</p>
         </section>
       ) : (
-        <section className="space-y-3">
+        <dl className="space-y-3">
           {Object.entries(applicationStatuses).map(([status, count]) => {
             const percentage = total ? Math.round((count / total) * 100) : 0;
             return (
               <div key={status} className="space-y-1">
                 <div className="flex justify-between text-sm">
-                  <p className="font-medium text-gray-700 capitalize">
+                  <dt className="font-medium text-gray-700 capitalize">
                     {statusConfig[status].label}
-                  </p>
-                  <p className="font-bold text-gray-600">
+                  </dt>
+                  <dd className="font-bold text-gray-600">
                     {count} ({percentage}%)
-                  </p>
+                  </dd>
                 </div>
                 <figure className="w-full bg-gray-100 rounded-full h-2">
                   <figcaption
@@ -150,7 +150,7 @@ function StatusDistributionChart({ data }) {
               </div>
             );
           })}
-        </section>
+        </dl>
       )}
     </article>
   );
@@ -175,14 +175,14 @@ function TopOpportunitiesChart({ data }) {
           <p className="text-gray-400 text-xs">Data appears once applications are submitted</p>
         </section>
       ) : (
-        <section className="space-y-3">
+        <dl className="space-y-3">
           {top5.map((item, index) => (
             <div key={item.opportunityId} className="space-y-1">
               <div className="flex justify-between text-sm">
-                <p className="font-medium text-gray-700 truncate max-w-[200px]">
+                <dt className="font-medium text-gray-700 truncate max-w-[200px]">
                   #{index + 1} {item.opportunityTitle}
-                </p>
-                <p className="font-bold text-[#035b9d]">{item.count} applications</p>
+                </dt>
+                <dd className="font-bold text-[#035b9d]">{item.count} applications</dd>
               </div>
               <figure className="w-full bg-gray-100 rounded-full h-2">
                 <figcaption
@@ -193,7 +193,7 @@ function TopOpportunitiesChart({ data }) {
               </figure>
             </div>
           ))}
-        </section>
+        </dl>
       )}
     </article>
   );
@@ -230,13 +230,13 @@ function InsightsPanel({ data, totals }) {
           Data-driven observations from approved opportunities only
         </p>
       </header>
-      <section className="space-y-2">
+      <ul className="space-y-2 list-none p-0 m-0">
         {insights.map((insight, index) => (
-          <p key={index} className="text-sm text-gray-700 leading-relaxed">
+          <li key={index} className="text-sm text-gray-700 leading-relaxed">
             {insight}
-          </p>
+          </li>
         ))}
-      </section>
+      </ul>
     </article>
   );
 }
@@ -294,7 +294,6 @@ export default function AdminAnalytics() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Each handler now passes sectorData?.chartData as the third argument
   const handleExport = (fn, label) => async () => {
     try {
       setIsExporting(true);
@@ -316,58 +315,56 @@ export default function AdminAnalytics() {
       <main className="ml-64 min-h-screen w-full min-w-0">
         <AdminTopbar title="Admin Analytics" source={source} />
 
-        <section className="p-12">
+        <div className="p-12">
 
           {/* ── Header ── */}
-          <header className="mb-8">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
-                  System Control Room
-                </p>
-                <h1 className="text-3xl font-extrabold tracking-tight mt-2">
-                  Analytics &amp; Governance
-                </h1>
-                <p className="text-gray-500 mt-2">
-                  Application volume per approved opportunity and placement rates per sector.
-                </p>
-              </div>
-
-              <div className="flex gap-3 mt-1">
-                <button
-                  onClick={handleExport(exportToCSV,  "CSV")}
-                  disabled={exportDisabled}
-                  className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-green-700 disabled:opacity-50 transition"
-                >
-                  📊 CSV
-                </button>
-                <button
-                  onClick={handleExport(exportToPDF,  "PDF")}
-                  disabled={exportDisabled}
-                  className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-red-700 disabled:opacity-50 transition"
-                >
-                  📄 PDF Report
-                </button>
-                <button
-                  onClick={handleExport(exportToJSON, "JSON")}
-                  disabled={exportDisabled}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition"
-                >
-                  📋 JSON
-                </button>
-              </div>
+          <header className="mb-8 flex items-start justify-between">
+            <div>
+              <p className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
+                System Control Room
+              </p>
+              <h1 className="text-3xl font-extrabold tracking-tight mt-2">
+                Analytics &amp; Governance
+              </h1>
+              <p className="text-gray-500 mt-2">
+                Application volume per approved opportunity and placement rates per sector.
+              </p>
             </div>
+
+            <nav className="flex gap-3 mt-1" aria-label="Export Actions">
+              <button
+                onClick={handleExport(exportToCSV,  "CSV")}
+                disabled={exportDisabled}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-green-700 disabled:opacity-50 transition"
+              >
+                📊 CSV
+              </button>
+              <button
+                onClick={handleExport(exportToPDF,  "PDF")}
+                disabled={exportDisabled}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-red-700 disabled:opacity-50 transition"
+              >
+                📄 PDF Report
+              </button>
+              <button
+                onClick={handleExport(exportToJSON, "JSON")}
+                disabled={exportDisabled}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-blue-700 disabled:opacity-50 transition"
+              >
+                📋 JSON
+              </button>
+            </nav>
           </header>
 
           {/* ── Error banner ── */}
           {error && (
-            <aside className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700">
+            <aside className="mb-6 px-4 py-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-700" role="alert">
               {error}
             </aside>
           )}
 
           {/* ── 1. Stat cards — one row of 4 ── */}
-          <section className="grid grid-cols-4 gap-4 mb-6">
+          <section className="grid grid-cols-4 gap-4 mb-6" aria-label="System Overview Statistics">
             {loading ? (
               <>
                 <StatCardSkeleton />
@@ -386,7 +383,7 @@ export default function AdminAnalytics() {
           </section>
 
           {/* ── 2. Application Volume Chart — full width ── */}
-          <section className="mb-6">
+          <section className="mb-6" aria-label="Application Volume Timeline">
             {loading
               ? <ChartSkeleton height={300} />
               : <ApplicationVolumeChart data={tableData} />
@@ -394,7 +391,7 @@ export default function AdminAnalytics() {
           </section>
 
           {/* ── 3. Sector Bar Chart — full width ── */}
-          <section className="mb-6">
+          <section className="mb-6" aria-label="Placement Rates by Sector">
             {loading
               ? <ChartSkeleton height={300} />
               : <SectorBarChart data={sectorData?.chartData || []} />
@@ -402,7 +399,7 @@ export default function AdminAnalytics() {
           </section>
 
           {/* ── 4. Pie chart + Status Distribution — side by side ── */}
-          <section className="grid grid-cols-2 gap-6 mb-6">
+          <section className="grid grid-cols-2 gap-6 mb-6" aria-label="Distribution Breakdown">
             {loading ? (
               <>
                 <ChartSkeleton height={320} />
@@ -417,7 +414,7 @@ export default function AdminAnalytics() {
           </section>
 
           {/* ── 5. Top Opportunities + Key Insights — side by side ── */}
-          <section className="grid grid-cols-2 gap-6 mb-6">
+          <section className="grid grid-cols-2 gap-6 mb-6" aria-label="Performance Insights">
             {loading ? (
               <>
                 <PanelSkeleton height={220} />
@@ -432,7 +429,7 @@ export default function AdminAnalytics() {
           </section>
 
           {/* ── 6. Opportunity Breakdown Table — full width ── */}
-          <section>
+          <section aria-label="Detailed Opportunity Breakdown">
             <OpportunityBreakdownTable 
               data={tableData}
               statusKeys={['received', 'shortlisted', 'offered', 'accepted', 'rejected']}
@@ -440,7 +437,7 @@ export default function AdminAnalytics() {
             />
           </section>
 
-        </section>
+        </div>
       </main>
     </div>
   );
