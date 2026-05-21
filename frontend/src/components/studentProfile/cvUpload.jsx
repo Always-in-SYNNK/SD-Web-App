@@ -18,22 +18,22 @@ export function CVUploadSection({ onFileSelect }) {
         <p className="text-gray-400 text-sm">Upload your latest CV.</p>
       </header>
 
-      <div className="group relative border-2 border-dashed border-gray-200 hover:border-[#035b9d] rounded-2xl p-12 transition-all duration-300 bg-gray-50/30 hover:bg-blue-50/20 flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform text-3xl">
+      <label className="group relative border-2 border-dashed border-gray-200 hover:border-[#035b9d] rounded-2xl p-12 transition-all duration-300 bg-gray-50/30 hover:bg-blue-50/20 flex flex-col items-center justify-center text-center cursor-pointer">
+        <figure className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 group-hover:scale-110 transition-transform text-3xl" aria-hidden="true">
           📄
-        </div>
+        </figure>
         {fileName ? (
           <p className="font-bold text-[#035b9d]">{fileName}</p>
         ) : (
-          <>
+          <section>
             <h4 className="font-bold text-[#1b1c1c] mb-2">
-              Drop your CV here, or <span className="text-[#035b9d] cursor-pointer hover:underline">browse files</span>
+              Drop your CV here, or <strong className="text-[#035b9d] hover:underline">browse files</strong>
             </h4>
             <p className="text-sm text-gray-400">PDF</p>
-          </>
+          </section>
         )}
         <input type="file" accept=".pdf,application/*" onChange={handleChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-      </div>
+      </label>
     </section>
   );
 }

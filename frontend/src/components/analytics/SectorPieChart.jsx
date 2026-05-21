@@ -109,10 +109,10 @@ export default function SectorPieChart({ data = [] }) {
       {/* Increased height to accommodate bottom legend with up to 12 sectors */}
       <figure style={{ height: 320 }}>
         {sectors.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center gap-1">
+          <figcaption className="h-full flex flex-col items-center justify-center gap-1 text-center">
             <p className="text-gray-500 text-sm font-medium">No accepted applications yet</p>
             <p className="text-gray-400 text-xs">Data appears once applications are accepted</p>
-          </div>
+          </figcaption>
         ) : (
           <Doughnut data={chartData} options={options} plugins={[centreLabel]} />
         )}

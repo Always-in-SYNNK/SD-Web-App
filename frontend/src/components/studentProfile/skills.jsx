@@ -139,41 +139,41 @@ export function SkillsSection() {
         </p>
       </header>
 
-      <div className="space-y-8">
+      <section className="space-y-8">
 
         {/* Display all skills that user has selected */}
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-4">
+        <fieldset>
+          <legend className="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-4">
             Your Skills
-          </label>
-          <div className="flex flex-wrap gap-2 min-h-[40px]">
-            {/* show empty message if no skills, otherwise display them */}
+          </legend>
+          <ul className="flex flex-wrap gap-2 min-h-[40px]">
             {selectedSkills.length === 0 ? (
-              <p className="text-gray-300 text-sm">No skills added yet.</p>
+              <li className="text-gray-300 text-sm">No skills added yet.</li>
             ) : (
               selectedSkills.map((skill) => (
-                <span
+                <li
                   key={skill.id}
                   className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm flex items-center gap-2"
                 >
-                  {skill.title}
+                  <span>{skill.title}</span>
                   <button
+                    type="button"
                     onClick={() => removeSkill(skill.id)}
                     className="text-blue-300 hover:text-blue-600 text-xs"
                   >
                     ✕
                   </button>
-                </span>
+                </li>
               ))
             )}
-          </div>
-        </div>
+          </ul>
+        </fieldset>
 
         {/* Field dropdown */}
-        <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-2">
+        <fieldset>
+          <legend className="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-2">
             Browse by Field
-          </label>
+          </legend>
           <select
             value={selectedField}
             onChange={(e) => setSelectedField(e.target.value)}
@@ -184,47 +184,48 @@ export function SkillsSection() {
               <option key={f} value={f}>{f}</option>
             ))}
           </select>
-        </div>
+        </fieldset>
 
         {/* Available skills from selected field */}
         {selectedField && (
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-4">
+          <fieldset>
+            <legend className="text-xs font-semibold uppercase tracking-wider text-gray-400 block mb-4">
               Available Skills
-            </label>
+            </legend>
             {loadingSkills ? (
               <p className="text-gray-400 text-sm">Loading skills...</p>
             ) : availableSkills.length === 0 ? (
               <p className="text-gray-300 text-sm">No skills found for this field.</p>
             ) : (
-              <div className="flex flex-wrap gap-2">
+              <ul className="flex flex-wrap gap-2">
                 {availableSkills.map((skill) => {
-                  // check if this skill is already selected
                   const already = selectedSkills.find((s) => s.id === skill.id);
-                  // button is disabled if skill already selected, shows checkmark or plus sign
                   return (
-                    <button
-                      key={skill.id}
-                      onClick={() => addSkill(skill)}
-                      disabled={!!already}
-                      className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                        already
-                          ? "bg-blue-50 text-[#035b9d] font-bold cursor-default"
-                          : "bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700"
-                      }`}
-                    >
-                      {skill.title} {already ? "✓" : "+"}
-                    </button>
+                    <li key={skill.id}>
+                      <button
+                        type="button"
+                        onClick={() => addSkill(skill)}
+                        disabled={!!already}
+                        className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                          already
+                            ? "bg-blue-50 text-[#035b9d] font-bold cursor-default"
+                            : "bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700"
+                        }`}
+                      >
+                        {skill.title} {already ? "✓" : "+"}
+                      </button>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             )}
-          </div>
+          </fieldset>
         )}
 
         {/* Save button */}
-        <div className="flex items-center gap-4 pt-4 border-t border-gray-100">
+        <footer className="flex items-center gap-4 pt-4 border-t border-gray-100">
           <button
+            type="button"
             onClick={saveSkills}
             disabled={saving}
             className="px-6 py-2 bg-[#035b9d] text-white font-bold rounded-full text-sm hover:opacity-90 transition disabled:opacity-50"
@@ -236,9 +237,9 @@ export function SkillsSection() {
               {saveMessage}
             </p>
           )}
-        </div>
+        </footer>
 
-      </div>
+      </section>
     </section>
   );
 }

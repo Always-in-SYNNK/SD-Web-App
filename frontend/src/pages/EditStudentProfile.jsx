@@ -74,7 +74,7 @@ export default function EditProfile() {
         </nav>
 
         <section className="min-h-screen pb-24 px-8 pt-12">
-          <div className="max-w-4xl mx-auto">
+          <article className="max-w-4xl mx-auto">
             <header className="mb-12">
               <h1 className="text-4xl lg:text-5xl font-extrabold text-[#1b1c1c] tracking-tight mb-4">
                 Edit Profile
@@ -85,13 +85,13 @@ export default function EditProfile() {
             </header>
 
             <EditProfileForm />
-          </div>
+          </article>
         </section>
       </section>
 
-      <div className="fixed bottom-0 right-0 w-64 h-64 opacity-10 pointer-events-none overflow-hidden">
-        <div className="w-full h-full bg-[#035b9d] rounded-full blur-[100px]" />
-      </div>
+      <aside className="fixed bottom-0 right-0 w-64 h-64 opacity-10 pointer-events-none overflow-hidden" aria-hidden="true">
+        <span className="w-full h-full block bg-[#035b9d] rounded-full blur-[100px]" aria-hidden="true" />
+      </aside>
     </main>
   );
 }
