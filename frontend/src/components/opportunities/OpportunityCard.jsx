@@ -88,12 +88,12 @@ export function OpportunityCard({
       </figure>
 
       <section className="flex-1 space-y-1 text-center md:text-left">
-        <div className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
+        <header className="flex items-center gap-2 flex-wrap justify-center md:justify-start">
           <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#035b9d] transition-colors">
             {title}
           </h3>
           {isProvider && statusPill}
-        </div>
+        </header>
 
         {description && (
           <p className="text-gray-500 text-sm mt-1 line-clamp-2">
@@ -149,9 +149,9 @@ export function OpportunityCard({
             )}
 
             {status === "pending" && (
-              <span className="px-4 py-2 bg-yellow-50 text-yellow-600 rounded-lg text-sm font-medium border border-yellow-200">
+              <strong className="px-4 py-2 bg-yellow-50 text-yellow-600 rounded-lg text-sm font-medium border border-yellow-200">
                 Under Review
-              </span>
+              </strong>
             )}
           </>
         ) : isAdmin ? (

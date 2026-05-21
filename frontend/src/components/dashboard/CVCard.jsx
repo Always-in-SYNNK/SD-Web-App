@@ -6,10 +6,10 @@ export function CVCard({ cvUrl }) {
           <figure className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-2xl">
             📄
           </figure>
-          <div>
+          <figcaption>
             <h5 className="font-bold text-gray-900">CV / Resume currently uploaded</h5>
             <p className="text-sm text-gray-400">No CV uploaded yet</p>
-          </div>
+          </figcaption>
         </section>
         <a
           href="/profile/edit"
@@ -27,10 +27,10 @@ export function CVCard({ cvUrl }) {
         <figure className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center text-2xl">
           📄
         </figure>
-        <div>
+        <figcaption>
           <h5 className="font-bold text-gray-900">CV / Resume</h5>
           <p className="text-sm text-green-600 font-semibold">✓ CV uploaded</p>
-        </div>
+        </figcaption>
       </section>
       <a
         href={cvUrl}

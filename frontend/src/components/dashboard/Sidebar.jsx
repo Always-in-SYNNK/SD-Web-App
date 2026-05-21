@@ -50,57 +50,63 @@ export function Sidebar() {
     <aside className="h-screen w-64 fixed left-0 top-0 bg-white flex flex-col p-6 space-y-8 shadow-xl text-sm font-medium z-50">
 
       <header>
-        <strong className="text-xl font-extrabold text-[#0077B6]">
+        <h1 className="text-xl font-extrabold text-[#0077B6]">
           Growthstage
-        </strong>
+        </h1>
         {isAdminMode && (
           <p className="text-xs text-gray-400 mt-1">Admin Portal</p>
         )}
       </header>
 
-      <nav className="flex-1 space-y-2">
-        {links.map(({ icon, label, path }) => (
-          <button
-            key={label}
-            onClick={() => navigate(path, { state: { source: "applicant", from: adminOrigin } })}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
-              location.pathname === path
-                ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
-                : "text-gray-500 hover:bg-gray-50"
-            }`}
-          >
-            <i>{icon}</i>
-            <strong>{label}</strong>
-          </button>
-        ))}
+      <nav className="flex-1">
+        <ul className="space-y-2">
+          {links.map(({ icon, label, path }) => (
+            <li key={label}>
+              <button
+                type="button"
+                onClick={() => navigate(path, { state: { source: "applicant", from: adminOrigin } })}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 text-left ${
+                  location.pathname === path
+                    ? "bg-[#d2e4ff] text-[#0077B6] font-semibold"
+                    : "text-gray-500 hover:bg-gray-50"
+                }`}
+              >
+                <span aria-hidden="true">{icon}</span>
+                <strong>{label}</strong>
+              </button>
+            </li>
+          ))}
+        </ul>
       </nav>
 
       {isAdminMode ? (
-        <div className="space-y-3">
-          <div className="w-full flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-400 rounded-lg text-sm font-semibold cursor-not-allowed">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+        <section className="space-y-3" aria-label="Admin actions">
+          <section className="w-full flex items-center gap-2 px-4 py-3 bg-gray-100 text-gray-400 rounded-lg text-sm font-semibold" aria-label="Admin portal status">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
             </svg>
-            Admin Portal
-          </div>
+            <span>Admin Portal</span>
+          </section>
           <button
+            type="button"
             onClick={() => navigate(returnTo, { state: { source: "applicant" } })}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-[#035b9d] hover:bg-[#d2e4ff] transition-all duration-200 text-left font-semibold text-sm"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[#035b9d] hover:bg-[#d2e4ff] transition-all duration-200 text-left font-semibold text-sm"
           >
             <strong>Back to Portal</strong>
           </button>
-        </div>
+        </section>
       ) : (
-        <div className="space-y-3">
+        <section className="space-y-3" aria-label="User actions">
           <AdminSection isAdmin={isAdmin} source="applicant" />
 
           <button
+            type="button"
             onClick={() => navigate("/profile/view")}
             className="w-full bg-[#035b9d] text-white py-3 rounded-full text-sm font-semibold hover:opacity-90 transition"
           >
             View Profile
           </button>
-        </div>
+        </section>
       )}
 
     </aside>
