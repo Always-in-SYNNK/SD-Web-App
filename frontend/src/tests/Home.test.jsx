@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
 import { vi, describe, test, expect, beforeEach } from "vitest";
 import { BrowserRouter } from "react-router-dom";
 import Home from "../pages/Home";
@@ -40,11 +40,11 @@ describe("Home Page", () => {
     renderHome();
     const header = screen.getAllByRole('banner')[0];
     expect(within(header).getByText("GrowthStageSA")).toBeInTheDocument();
-    expect(within(header).getByText("Opportunities")).toBeInTheDocument();
-    expect(within(header).getByText("For Applicants")).toBeInTheDocument();
+    expect(within(header).getByText("For Learners")).toBeInTheDocument();
     expect(within(header).getByText("For Employers")).toBeInTheDocument();
-    expect(within(header).getByText("Login")).toBeInTheDocument();
-    expect(within(header).getByText("Sign Up")).toBeInTheDocument();
+    expect(within(header).getAllByText("Sign In").length).toBeGreaterThan(0);
+    expect(within(header).getByText("Create Account")).toBeInTheDocument();
+    expect(within(header).getByText("Register Organization")).toBeInTheDocument();
   });
 
   test("renders hero section with correct heading", () => {
@@ -85,7 +85,7 @@ describe("Home Page", () => {
     expect(browseButtons.length).toBeGreaterThan(0);
     
     fireEvent.click(browseButtons[0]);
-    expect(mockNavigate).toHaveBeenCalledWith("/opportunities");
+    expect(mockNavigate).toHaveBeenCalledWith("/app-login");
   });
 
   test("renders Post a Learnership button for Employers card", () => {
@@ -168,17 +168,29 @@ describe("Home Page", () => {
     expect(screen.getByText(/Proudly South African/i)).toBeInTheDocument();
   });
 
-  test("Login button navigates to app-login", () => {
+  test("shows the scroll-to-top button after scrolling", async () => {
     renderHome();
-    const loginButton = screen.getByText("Login");
-    fireEvent.click(loginButton);
-    expect(mockNavigate).toHaveBeenCalledWith("/app-login");
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      value: 400,
+    });
+
+    fireEvent.scroll(window);
+
+    await waitFor(() => {
+      expect(screen.getByText("arrow_upward")).toBeInTheDocument();
+    });
   });
 
-  test("Sign Up button navigates to app-login", () => {
+  test("dropdown nav options point to the right login pages", () => {
     renderHome();
-    const signUpButton = screen.getByText("Sign Up");
-    fireEvent.click(signUpButton);
+
+    const signInButtons = screen.getAllByText("Sign In");
+    fireEvent.click(signInButtons[0]);
     expect(mockNavigate).toHaveBeenCalledWith("/app-login");
+
+    fireEvent.click(signInButtons[1]);
+    expect(mockNavigate).toHaveBeenCalledWith("/prov-login");
   });
 });

@@ -315,7 +315,7 @@ export const deleteOpportunityById = async (id) => {
 };
 
 export async function matchingOpportunity(userId) {
-  console.log("User ID:", userId);
+  //console.log("User ID:", userId);
 
   // 1. Get profile ID from userID
   const { data: profile, profileError } = await supabase
@@ -335,9 +335,9 @@ export async function matchingOpportunity(userId) {
 
   const applicantLocation = applicantProfile.location;
   const applicantNqf = applicantProfile.nqf_level;
-  console.log("Applicant ID:", applicantProfile.id);
-  console.log("Applicant Location:", applicantLocation);
-  console.log("Applicant NQF:", applicantNqf);
+  //console.log("Applicant ID:", applicantProfile.id);
+  //console.log("Applicant Location:", applicantLocation);
+  //console.log("Applicant NQF:", applicantNqf);
 
   // 3. Get distinct fields the applicant has skills in
   const { data: fields, fieldsError } = await supabase.rpc("get_applicant_skill_fields_array",
@@ -361,18 +361,18 @@ export async function matchingOpportunity(userId) {
   };
 
   const fieldArray = rawFieldArray.map(cleanFieldForMatching).filter(f => f !== '');
-  console.log("Cleaned fields:", fieldArray);
+  //console.log("Cleaned fields:", fieldArray);
 
   // 4. Get detailed applicant skills
   const applicantSkills = await getApplicantSkills(applicantProfile.id);
 
   if (!applicantSkills || applicantSkills.length === 0) {
-    console.log("No skills found for applicant");
+    //console.log("No skills found for applicant");
     return [];
   }
 
   const applicantSkillIds = applicantSkills.map(skill => skill.id);
-  console.log("Applicant skill IDs:", applicantSkillIds.length);
+  //console.log("Applicant skill IDs:", applicantSkillIds.length);
 
   // 5. Build NQF levels array
   const nqfLevels = [];
@@ -384,10 +384,10 @@ export async function matchingOpportunity(userId) {
       nqfLevels.push(applicantNqf + 1);
     }
   }
-  console.log("NQF Levels:", nqfLevels);
+  //console.log("NQF Levels:", nqfLevels);
 
   if (fieldArray.length === 0) {
-    console.log("No fields found for applicant, cannot match opportunities");
+    //console.log("No fields found for applicant, cannot match opportunities");
     return [];
   }
 
@@ -397,7 +397,7 @@ export async function matchingOpportunity(userId) {
 
   // Try to find opportunities for each field
   for (const field of fieldArray) {
-    console.log(`Searching for field: "${field}"`);
+    //console.log(`Searching for field: "${field}"`);
 
     let query = supabase
       .from("opportunities")
@@ -407,7 +407,7 @@ export async function matchingOpportunity(userId) {
 
     const { data: fieldMatches, error: fieldError } = await query;
     if (!fieldError && fieldMatches && fieldMatches.length > 0) {
-      console.log(`Found ${fieldMatches.length} opportunities for field "${field}"`);
+      //console.log(`Found ${fieldMatches.length} opportunities for field "${field}"`);
       opportunities.push(...fieldMatches);
     }
   }
@@ -423,10 +423,10 @@ export async function matchingOpportunity(userId) {
   }
 
   opportunities = uniqueOpportunities;
-  console.log(`Total unique opportunities from all fields: ${opportunities.length}`);
+  //console.log(`Total unique opportunities from all fields: ${opportunities.length}`);
 
   if (opportunities.length === 0) {
-    console.log("No opportunities found with matching fields");
+    //console.log("No opportunities found with matching fields");
     return [];
   }
 
@@ -447,10 +447,10 @@ export async function matchingOpportunity(userId) {
     return nqfMatch && locationMatch;
   });
 
-  console.log(`After NQF and location filter: ${filteredByNqfAndLocation.length}`);
+  //console.log(`After NQF and location filter: ${filteredByNqfAndLocation.length}`);
 
   if (filteredByNqfAndLocation.length === 0) {
-    console.log("No opportunities after NQF/location filter, returning all field matches");
+    //console.log("No opportunities after NQF/location filter, returning all field matches");
     // Fall back to all opportunities that matched fields
     return opportunities;
   }
@@ -462,7 +462,7 @@ export async function matchingOpportunity(userId) {
     return hasMatchingSkill;
   });
 
-  console.log(`Found ${matched.length} opportunities with matching skills`);
+  //console.log(`Found ${matched.length} opportunities with matching skills`);
 
   if (matched.length === 0) {
     return [];
@@ -503,7 +503,7 @@ export async function matchingOpportunity(userId) {
   const MATCH_THRESHOLD = 0.7; // Lower threshold to see matches
   const filtered = scored.filter(o => o.score >= MATCH_THRESHOLD);
 
-  console.log(`Found ${filtered.length} opportunities with score >= ${MATCH_THRESHOLD * 100}%`);
+  //console.log(`Found ${filtered.length} opportunities with score >= ${MATCH_THRESHOLD * 100}%`);
 
   if (filtered.length > 0) {
     console.log("Top matches:", filtered.slice(0, 3).map(o => ({

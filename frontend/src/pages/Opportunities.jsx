@@ -6,6 +6,7 @@ import {
   getNqfLevels,
   getOpportunities,
 } from '../lib/api';
+import { fetchMyApplications } from "../services/myApplicationService";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { OpportunityFilters } from "../components/opportunities/OpportunityFilters";
 import { OpportunityList } from "../components/opportunities/OpportunityList";
@@ -13,11 +14,14 @@ import { MatchingOpportunities } from "../components/opportunities/matchingOppor
 import { NotificationDropdown } from "../components/notifications/notificationDropdown";
 import { useNavigate } from "react-router-dom";
 
+function getOpportunityKey(opportunity) {
+  return String(opportunity?.id ?? opportunity?.opportunityId ?? "");
+}
+
 export default function Opportunities() {
   const [locations, setLocations] = useState([]);
   const [fields, setFields] = useState([]);
   const [nqfLevels, setNqfLevels] = useState([]);
-  const [opportunities, setOpportunities] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [showMatches, setShowMatches] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -40,7 +44,7 @@ export default function Opportunities() {
       }
     };
     if (token) fetchProfile();
-  }, [token]);
+  }, [token, API]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -65,6 +69,7 @@ export default function Opportunities() {
   });
 
   const [items, setItems] = useState([]);
+  const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
   const [summary, setSummary] = useState({
     opportunities: 0,
     qualifications: 0,
@@ -74,6 +79,35 @@ export default function Opportunities() {
   const [loadingItems, setLoadingItems] = useState(true);
   const [error, setError] = useState("");
 
+
+  useEffect(() => {
+    const loadAppliedOpportunityIds = async () => {
+      if (!token) {
+        setAppliedOpportunityIds(new Set());
+        return;
+      }
+
+      try {
+        const applications = await fetchMyApplications();
+        const ids = new Set(
+          (applications || [])
+            .map((application) => {
+              const opportunity = Array.isArray(application?.opportunities)
+                ? application.opportunities[0]
+                : application?.opportunities;
+              return getOpportunityKey(opportunity);
+            })
+            .filter(Boolean)
+        );
+
+        setAppliedOpportunityIds(ids);
+      } catch {
+        setAppliedOpportunityIds(new Set());
+      }
+    };
+
+    loadAppliedOpportunityIds();
+  }, [token]);
 
   useEffect(() => {
     const loadDropdowns = async () => {
@@ -288,7 +322,7 @@ export default function Opportunities() {
 
           {showMatches ? (
             <div className="space-y-8">
-              <MatchingOpportunities />
+                <MatchingOpportunities appliedOpportunityIds={appliedOpportunityIds} />
             </div>
           ) : (
             <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -311,6 +345,7 @@ export default function Opportunities() {
               <section className="lg:col-span-9">
                 <OpportunityList
                   items={items}
+                  appliedOpportunityIds={appliedOpportunityIds}
                   loading={loadingItems}
                   error={error}
                   summary={summary}

@@ -130,24 +130,24 @@ const EmployerApplications = () => {
 
     if (!opportunityId) {
         return (
-            <main className="min-h-screen bg-gray-50">
-                <Sidebar />
-                <div className = "ml-64 flex flex-col min-h-screen w-full min-w-0">
-                    <Topbar providerUser={providerUser} title= "Opportunity Applications" />
-                    <section className="p-8">
-                        <p className="text-red-500">No opportunity selected. Please go back to pipeline.</p>
-                        <button onClick={() => navigate('/pipeline')} className="mt-4 text-blue-600">← Back to Pipeline</button>
+                <main className="min-h-screen bg-gray-50">
+                    <Sidebar />
+                    <section className = "ml-64 flex flex-col min-h-screen w-full min-w-0">
+                        <Topbar providerUser={providerUser} title= "Opportunity Applications" />
+                        <section className="p-8">
+                            <p className="text-red-500">No opportunity selected. Please go back to pipeline.</p>
+                            <button onClick={() => navigate('/pipeline')} className="mt-4 text-blue-600">← Back to Pipeline</button>
+                        </section>
                     </section>
-                </div>
-            </main>
-        );
+                </main>
+            );
     }
 
     return (
         <main className="min-h-screen bg-[#faf9f8] flex">
             <Sidebar />
-            
-            <div className="ml-64 flex flex-col min-h-screen w-full min-w-0">
+
+            <section className="ml-64 flex flex-col min-h-screen w-full min-w-0">
                 <Topbar providerUser={providerUser} title = "Opportunity Applications" />
 
                 <section className="p-8">
@@ -240,7 +240,7 @@ const EmployerApplications = () => {
 
                     {loading ? (
                         <section className="flex justify-center py-16">
-                            <div className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin" />
+                            <span role="status" aria-label="Loading" className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin" />
                         </section>
                     ) : filteredApps.length === 0 ? (
                         <section className="text-center py-16 bg-white rounded-xl">
@@ -267,7 +267,7 @@ const EmployerApplications = () => {
                         </section>
                     )}
                 </section>
-            </div>
+            </section>
         </main>
     );
 };

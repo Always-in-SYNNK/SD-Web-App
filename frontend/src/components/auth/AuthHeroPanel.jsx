@@ -4,11 +4,6 @@
  *   - No custom Tailwind tokens (uses standard equivalents)
  *   - No changes to tailwind.config.js or index.html required
  *   - Fonts injected into <head> via useAuthFonts on mount
- *
- * Standard Tailwind → original brand values:
- *   blue-950  ≈ brand-dark   #002356
- *   blue-800  ≈ brand-blue   #003b8e
- *   sky-400   ≈ brand-accent #0ea5e9
  */
 
 import useAuthFonts from "./useAuthFonts";
@@ -44,10 +39,12 @@ const defaultBadges = [
 ];
 
 export default function AuthHeroPanel({
-  headline           = "Build Your Future,",
-  accentLine         = "One skill at a time.",
-  badges             = defaultBadges,
+  headline = "Build Your Future,",
+  accentLine = "One skill at a time.",
+  badges = defaultBadges,
   backgroundImageUrl,
+  accentColor = "text-sky-400", // default blue-sky
+  badgeBgColor = "bg-white/10",
 }) {
   useAuthFonts();
 
@@ -56,7 +53,7 @@ export default function AuthHeroPanel({
       className="hidden md:flex md:w-1/2 lg:w-3/5 relative items-center justify-center bg-blue-950 p-12 overflow-hidden"
       aria-hidden="true"
     >
-      {/* Background layers */}
+      {/* Background layers (same) */}
       <div className="absolute inset-0 z-0">
         {backgroundImageUrl && (
           <img
@@ -71,7 +68,6 @@ export default function AuthHeroPanel({
 
       {/* Content */}
       <div className="relative z-20 max-w-xl">
-        {/* Wordmark */}
         <div className="mb-12 flex items-center gap-3 text-white">
           <GrowthStageLogo />
           <span
@@ -82,31 +78,29 @@ export default function AuthHeroPanel({
           </span>
         </div>
 
-        {/* Headline */}
         <h1
           className="text-white text-6xl lg:text-8xl font-black leading-tight tracking-tight mb-6"
           style={{ fontFamily: "'Public Sans', system-ui, sans-serif" }}
         >
           {headline}
           <br />
-          <span className="text-sky-400">{accentLine}</span>
+          <span className={accentColor}>{accentLine}</span>
         </h1>
 
-        {/* Badges */}
         {badges.length > 0 && (
           <ul className="flex flex-wrap gap-4 list-none p-0 m-0">
             {badges.map(({ icon, label }) => (
               <li
                 key={label}
-                className="flex items-center gap-2 px-5 py-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-white text-sm font-semibold"
+                className={`flex items-center gap-2 px-5 py-3 ${badgeBgColor} backdrop-blur-md rounded-xl border border-white/20 text-white text-sm font-semibold`}
               >
-                <span
-                  className="material-symbols-outlined text-sky-400 text-lg"
+                <i
+                  className={`material-symbols-outlined ${accentColor} text-lg`}
                   aria-hidden="true"
                   style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
                 >
                   {icon}
-                </span>
+                </i>
                 {label}
               </li>
             ))}

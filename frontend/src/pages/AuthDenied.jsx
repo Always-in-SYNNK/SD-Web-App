@@ -13,7 +13,7 @@ const iconStyle = { fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'ops
 const iconStyleFilled = { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24", fontSize: "2.25rem" };
 
 const LogoMark = () => (
-  <div className="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white shrink-0">
+  <figure className="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white shrink-0" aria-hidden="true">
     <svg className="w-6 h-6" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <path
         d="M13.8261 17.4264C16.7203 18.1174 20.2244 18.5217 24 18.5217C27.7756 18.5217 31.2797 18.1174
@@ -23,7 +23,7 @@ const LogoMark = () => (
         fill="currentColor"
       />
     </svg>
-  </div>
+  </figure>
 );
 
 const BackgroundLayers = () => (

@@ -94,55 +94,62 @@ const AdminTopbar = ({ title, source = "applicant" }) => {
       <h1 className="text-lg font-bold text-gray-900 shrink-0">{title}</h1>
 
       {/* Right: Actions + user */}
-      <div className="flex gap-3 items-center">
-        <button className="p-2 hover:bg-gray-100 rounded-full text-lg">🔔</button>
-        <button className="p-2 hover:bg-gray-100 rounded-full text-lg">⚙️</button>
+      <nav className="flex gap-3 items-center" aria-label="User actions">
+        <button className="p-2 hover:bg-gray-100 rounded-full text-lg" aria-label="Notifications">🔔</button>
+        <button className="p-2 hover:bg-gray-100 rounded-full text-lg" aria-label="Settings">⚙️</button>
 
         {/* Divider */}
-        <div className="w-px h-6 bg-gray-200" />
+        <hr className="w-px h-6 bg-gray-200 border-0" />
 
         {/* User info + avatar */}
-        <div className="relative" data-admin-menu>
+        <section className="relative" data-admin-menu>
           <button
             type="button"
             onClick={() => setShowMenu(!showMenu)}
             className="flex items-center gap-2"
+            aria-expanded={showMenu}
+            aria-haspopup="true"
+            aria-label={`User menu: ${fullName}, ${subtitle}`}
           >
             {/* Name + subtitle — hidden on very small screens */}
-            <div className="text-right hidden sm:block">
+            <section className="text-right hidden sm:block">
               <p className="text-sm font-semibold text-gray-700 leading-tight truncate max-w-[160px]">
                 {fullName}
               </p>
               <p className="text-xs text-gray-400 leading-tight truncate max-w-[160px]">
                 {subtitle}
               </p>
-            </div>
+            </section>
 
-            <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs shrink-0">
+            <figure className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#035b9d] font-bold text-xs shrink-0" aria-label={`Avatar: ${avatar}`}>
               {avatar}
             </figure>
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
-              <button
-                type="button"
-                onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-              >
-                Dashboard
-              </button>
-              <button
-                type="button"
-                onClick={() => { setShowMenu(false); logout(); }}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
-              >
-                Sign Out
-              </button>
-            </div>
+            <menu className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50" role="menu">
+              <li role="menuitem">
+                <button
+                  type="button"
+                  onClick={() => { setShowMenu(false); navigate("/pipeline"); }}
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Dashboard
+                </button>
+              </li>
+              <li role="menuitem">
+                <button
+                  type="button"
+                  onClick={() => { setShowMenu(false); logout(); }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                >
+                  Sign Out
+                </button>
+              </li>
+            </menu>
           )}
-        </div>
-      </div>
+        </section>
+      </nav>
     </header>
   );
 };

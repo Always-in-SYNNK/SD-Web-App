@@ -67,17 +67,63 @@ export default function Home() {
   return (
     <main className="bg-[#faf9f8] min-h-screen">
       {/* Navigation Bar */}
-      <header className="bg-white shadow-sm sticky top-0 z-50 h-20 flex items-center">
-        <section className="flex justify-between items-center w-full px-8 h-20 max-w-[1280px] mx-auto">
-          <p className="text-2xl font-extrabold text-[#004377]">GrowthStageSA</p>
-          <nav className="hidden md:flex gap-8 items-center">
-            <a href="/opportunities" className="text-[#414750] hover:text-[#f59e0b] transition-colors duration-200">Opportunities</a>
-            <a href="/app-login" className="text-[#414750] hover:text-[#f59e0b] transition-colors duration-200">For Applicants</a>
-            <a href="/prov-login" className="text-[#414750] hover:text-[#f59e0b] transition-colors duration-200">For Employers</a>
-          </nav>
-          <section className="flex gap-4">
-            <button onClick={() => navigate("/app-login")} className="px-6 py-2 rounded-full text-sm font-semibold text-[#004377] border border-[#004377] hover:bg-[#d2e4ff] transition-colors">Login</button>
-            <button onClick={() => navigate("/app-login")} className="px-6 py-2 rounded-full text-sm font-semibold bg-[#f59e0b] text-white hover:brightness-110 transition-all">Sign Up</button>
+      <header className="bg-white shadow-sm sticky top-0 z-50">
+        <section className="flex justify-between items-center w-full px-4 md:px-8 h-20 max-w-[1280px] mx-auto">
+          
+          {/* Logo */}
+          <a href="/" className="text-2xl font-extrabold text-[#004377] hover:text-[#003060] transition-colors">
+            GrowthStageSA
+          </a>
+
+          {/* CTA Buttons - Clear distinction between applicant and employer */}
+          <section className="flex gap-3">
+            {/* Applicant Dropdown */}
+            <section className="relative group">
+              <button 
+                className="px-5 py-2 rounded-full text-sm font-semibold text-[#004377] border border-[#004377] hover:bg-[#d2e4ff] transition-all flex items-center gap-1"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                For Learners
+                <i className="material-symbols-outlined text-base" aria-hidden="true">expand_more</i>
+              </button>
+              <ul className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <li>
+                  <button onClick={() => navigate("/app-login")} className="w-full text-left px-4 py-3 text-sm text-[#004377] hover:bg-[#d2e4ff] first:rounded-t-xl transition-colors font-medium">
+                    Sign In
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/app-login")} className="w-full text-left px-4 py-3 text-sm text-[#004377] hover:bg-[#d2e4ff] rounded-b-xl transition-colors font-medium border-t border-gray-100">
+                    Create Account
+                  </button>
+                </li>
+              </ul>
+            </section>
+
+            {/* Employer Dropdown */}
+            <section className="relative group">
+              <button 
+                className="px-5 py-2 rounded-full text-sm font-semibold bg-[#f59e0b] text-white hover:brightness-110 transition-all flex items-center gap-1 shadow-sm"
+                aria-haspopup="true"
+                aria-expanded="false"
+              >
+                For Employers
+                <i className="material-symbols-outlined text-base" aria-hidden="true">expand_more</i>
+              </button>
+              <ul className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <li>
+                  <button onClick={() => navigate("/prov-login")} className="w-full text-left px-4 py-3 text-sm text-[#f59e0b] hover:bg-[#fff7ed] first:rounded-t-xl transition-colors font-medium">
+                    Sign In
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/prov-login")} className="w-full text-left px-4 py-3 text-sm text-[#f59e0b] hover:bg-[#fff7ed] rounded-b-xl transition-colors font-medium border-t border-gray-100">
+                    Register Organization
+                  </button>
+                </li>
+              </ul>
+            </section>
           </section>
         </section>
       </header>
@@ -97,7 +143,7 @@ export default function Home() {
               </h1>
               <p className="text-lg text-[#414750] max-w-xl">Connect with SETA-accredited opportunities, build your skills, and launch your career. Employers, find verified talent ready to grow.</p>
               <section className="flex flex-wrap gap-4 mt-4">
-                <button onClick={() => navigate("/opportunities")} className="px-8 py-4 rounded-full bg-[#004377] text-white font-semibold shadow-lg hover:brightness-110 transition-all hover:scale-105 transform duration-200">Find Opportunities</button>
+                <button onClick={() => navigate("/app-login")} className="px-8 py-4 rounded-full bg-[#004377] text-white font-semibold shadow-lg hover:brightness-110 transition-all hover:scale-105 transform duration-200">Find Opportunities</button>
                 <button onClick={() => navigate("/prov-login")} className="px-8 py-4 rounded-full bg-[#f59e0b] text-white font-semibold shadow-lg hover:brightness-110 transition-all hover:scale-105 transform duration-200">Post a Learnership</button>
               </section>
             </section>
@@ -133,7 +179,7 @@ export default function Home() {
             <section className="w-20 h-20 bg-[#d2e4ff] rounded-2xl flex items-center justify-center text-[#004377] mb-6 shadow-sm"><i className="material-symbols-outlined not-italic text-4xl">school</i></section>
             <h3 className="text-xl font-bold mb-4 text-[#004377]">For Learners</h3>
             <p className="text-gray-600 mb-8 flex-grow">Find your learnership from accredited options across various industries in South Africa.</p>
-            <button onClick={() => navigate("/opportunities")} className="w-full py-3 rounded-full border-2 border-[#004377] text-[#004377] font-bold hover:bg-[#004377] hover:text-white transition-all hover:scale-105 transform">Browse Opportunities</button>
+            <button onClick={() => navigate("/app-login")} className="w-full py-3 rounded-full border-2 border-[#004377] text-[#004377] font-bold hover:bg-[#004377] hover:text-white transition-all hover:scale-105 transform">Browse Opportunities</button>
           </article>
 
           {/* For Employers */}
@@ -244,14 +290,14 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-extrabold mb-6 relative z-10">Ready to Start Your Journey?</h2>
           <p className="text-lg mb-8 opacity-90 relative z-10 max-w-2xl mx-auto">Join thousands of South Africans who have transformed their careers through GrowthStageSA.</p>
           <section className="flex flex-wrap gap-4 justify-center relative z-10">
-            <button onClick={() => navigate("/opportunities")} className="px-8 py-4 rounded-full bg-[#f59e0b] text-white font-bold hover:brightness-110 transition-all hover:scale-105 transform shadow-lg">Find Opportunities</button>
+            <button onClick={() => navigate("/app-login")} className="px-8 py-4 rounded-full bg-[#f59e0b] text-white font-bold hover:brightness-110 transition-all hover:scale-105 transform shadow-lg">Find Opportunities</button>
             <button onClick={() => navigate("/prov-login")} className="px-8 py-4 rounded-full bg-white text-[#004377] font-bold hover:bg-gray-100 transition-all hover:scale-105 transform shadow-lg">Post a Learnership</button>
           </section>
         </section>
       </section>
 
       {showScrollButton && (
-        <button onClick={scrollToTop} className="fixed bottom-8 right-8 bg-[#f59e0b] text-white p-3 rounded-full shadow-lg hover:bg-[#ea580c] transition-all z-50">
+        <button onClick={scrollToTop} className="fixed bottom-22 right-8 bg-[#f59e0b] text-white p-3 rounded-full shadow-lg hover:bg-[#ea580c] transition-all z-50">
           <i className="material-symbols-outlined">arrow_upward</i>
         </button>
       )}
@@ -270,10 +316,10 @@ export default function Home() {
           <section>
             <h4 className="font-bold text-sm mb-6 uppercase tracking-widest text-[#f59e0b]">Opportunities</h4>
             <ul className="flex flex-col gap-3 text-sm opacity-80">
-              <li><a href="/opportunities" className="hover:text-[#f59e0b] transition-colors">Learnerships</a></li>
-              <li><a href="/opportunities" className="hover:text-[#f59e0b] transition-colors">Skills Programs</a></li>
-              <li><a href="/opportunities" className="hover:text-[#f59e0b] transition-colors">Internships</a></li>
-              <li><a href="/opportunities" className="hover:text-[#f59e0b] transition-colors">Bursaries</a></li>
+              <li><a href="/app-login" className="hover:text-[#f59e0b] transition-colors">Learnerships</a></li>
+              <li><a href="/app-login" className="hover:text-[#f59e0b] transition-colors">Skills Programs</a></li>
+              <li><a href="/app-login" className="hover:text-[#f59e0b] transition-colors">Internships</a></li>
+              <li><a href="/app-login" className="hover:text-[#f59e0b] transition-colors">Bursaries</a></li>
             </ul>
           </section>
           <section>

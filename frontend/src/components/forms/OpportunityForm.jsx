@@ -53,9 +53,9 @@ const EMPTY_FORM = {
 
 const Field = ({ label, hint, children }) => (
   <label className="block w-full group">
-    <span className="font-label text-xs font-medium tracking-widest uppercase text-[#404850] group-focus-within:text-[#035b9d] transition-colors block mb-2">
+    <strong className="font-label text-xs font-medium tracking-widest uppercase text-[#404850] group-focus-within:text-[#035b9d] transition-colors block mb-2">
       {label}
-    </span>
+    </strong>
     {children}
     {hint && <p className="text-xs text-[#707881] mt-1.5 text-right">{hint}</p>}
   </label>
@@ -66,7 +66,7 @@ const inputCls =
 
 const Section = ({ title, children }) => (
   <section className="relative bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(27,28,28,0.06)] px-10 py-10 border-0 overflow-hidden">
-    <span className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-[#035b9d]" />
+    <i aria-hidden="true" className="absolute left-0 top-0 bottom-0 w-1 rounded-r bg-[#035b9d]" />
     <h3 className="font-headline text-2xl font-semibold text-on-surface mb-8 mb-4">
       {title}
     </h3>
@@ -178,8 +178,6 @@ const OpportunityForm = () => {
     setSelectedSkills((prev) => prev.filter((s) => s.id !== skillId));
   };
 
-  const getSkillLabel = (skill) => skill?.title ?? skill?.name ?? "";
-
   // Save skills to an opportunity that already has an id
   const persistSkills = async (opportunityId) => {
     const { data, error } = await saveOpportunitySkills(
@@ -269,14 +267,14 @@ const OpportunityForm = () => {
 
   if (prefillLoading) {
     return (
-      <div className="max-w-4xl flex items-center justify-center py-32">
+      <section className="max-w-4xl flex items-center justify-center py-32">
         <p className="text-gray-400 text-sm">Loading draft…</p>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="max-w-4xl">
+    <section className="max-w-4xl">
       <header className="mb-12">
         <h2 className="font-headline text-4xl font-bold tracking-tight text-on-surface mb-3">
           {isEditing ? "Edit Draft" : "Architect a New Opportunity"}
@@ -364,19 +362,21 @@ const OpportunityForm = () => {
               <span className="text-xs font-semibold uppercase tracking-wider text-[#404850] block mb-3">
                 Tagged Skills
               </span>
-              <div className="flex flex-wrap gap-2 min-h-[40px]">
+              <ul className="flex flex-wrap gap-2 min-h-[40px]">
                 {selectedSkills.length === 0 ? (
-                  <p className="text-[#707881] text-sm">
-                    No skills tagged yet.{" "}
-                    {!form.field && "Select a field above to browse skills."}
-                  </p>
+                  <li>
+                    <p className="text-[#707881] text-sm">
+                      No skills tagged yet.{" "}
+                      {!form.field && "Select a field above to browse skills."}
+                    </p>
+                  </li>
                 ) : (
                   selectedSkills.map((skill) => (
-                    <span
+                    <li
                       key={skill.id}
                       className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm flex items-center gap-2"
                     >
-                      {skill.title}
+                      <span className="leading-none">{skill.title}</span>
                       <button
                         type="button"
                         onClick={() => removeSkill(skill.id)}
@@ -385,10 +385,10 @@ const OpportunityForm = () => {
                       >
                         ✕
                       </button>
-                    </span>
+                    </li>
                   ))
                 )}
-              </div>
+              </ul>
             </div>
 
             {/* Available skills — only shown once a field is chosen */}
@@ -402,26 +402,27 @@ const OpportunityForm = () => {
                 ) : availableSkills.length === 0 ? (
                   <p className="text-[#707881] text-sm">No skills found for this field.</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2">
+                  <ul className="flex flex-wrap gap-2">
                     {availableSkills.map((skill) => {
                       const already = selectedSkills.find((s) => s.id === skill.id);
                       return (
-                        <button
-                          key={skill.id}
-                          type="button"
-                          onClick={() => addSkill(skill)}
-                          disabled={!!already}
-                          className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                            already
-                              ? "bg-blue-50 text-[#035b9d] font-bold cursor-default"
-                              : "bg-[#e3e2e2] text-[#404850] hover:bg-green-100 hover:text-green-700"
-                          }`}
-                        >
-                          {skill.title} {already ? "✓" : "+"}
-                        </button>
+                        <li key={skill.id}>
+                          <button
+                            type="button"
+                            onClick={() => addSkill(skill)}
+                            disabled={!!already}
+                            className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                              already
+                                ? "bg-blue-50 text-[#035b9d] font-bold cursor-default"
+                                : "bg-[#e3e2e2] text-[#404850] hover:bg-green-100 hover:text-green-700"
+                            }`}
+                          >
+                            {skill.title} {already ? "✓" : "+"}
+                          </button>
+                        </li>
                       );
                     })}
-                  </div>
+                  </ul>
                 )}
               </div>
             )}
@@ -530,7 +531,7 @@ const OpportunityForm = () => {
           </button>
         </footer>
       </form>
-    </div>
+    </section>
   );
 };
 

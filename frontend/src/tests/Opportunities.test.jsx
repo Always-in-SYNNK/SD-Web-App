@@ -378,6 +378,21 @@ describe("Opportunities page", () => {
         screen.getByText("Sign Out")
       ).toBeInTheDocument();
     });
+    
+    it("closes menu on outside click", async () => {
+      renderOpportunities();
+
+      await waitFor(() => expect(screen.getByText("Jane Doe")).toBeInTheDocument());
+      const buttons = await screen.findAllByRole("button");
+      // open menu
+      fireEvent.click(buttons[0]);
+      expect(screen.getByText("Sign Out")).toBeInTheDocument();
+
+      // click outside by dispatching on body so `e.target.closest` exists
+      fireEvent.mouseDown(document.body);
+
+      await waitFor(() => expect(screen.queryByText("Sign Out")).not.toBeInTheDocument());
+    });
 
     it("navigates to dashboard", async () => {
       render(
@@ -446,6 +461,32 @@ describe("Opportunities page", () => {
       );
 
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+    
+    it("falls back to email initial when profile missing", async () => {
+      // simulate no profile returned
+      mockFetch.mockResolvedValueOnce({ json: async () => ({}) });
+      mockAuthUser = { email: 'alice@example.com' };
+
+      renderOpportunities();
+
+      // initial should be 'A' from email
+      await waitFor(() => expect(screen.getByText('A')).toBeInTheDocument());
+    });
+  });
+
+  describe('filters interactions', () => {
+    it('reset filters clears search input', async () => {
+      renderOpportunities();
+
+      const input = await screen.findByPlaceholderText('Search and press Enter...');
+      fireEvent.change(input, { target: { value: 'engineering' } });
+      expect(input.value).toBe('engineering');
+
+      const resetBtn = await screen.findByText('Reset Filters');
+      fireEvent.click(resetBtn);
+
+      await waitFor(() => expect(input.value).toBe(''));
     });
   });
 });

@@ -9,10 +9,16 @@ export function OpportunityList({
   summary = { opportunities: 0 },
   pagination = null,
   onPageChange,
+  appliedOpportunityIds = null,
 }) {
-  const [appliedOpportunityIds, setAppliedOpportunityIds] = useState(new Set());
+  const [localAppliedOpportunityIds, setLocalAppliedOpportunityIds] = useState(new Set());
+  const appliedIds = appliedOpportunityIds ?? localAppliedOpportunityIds;
 
   useEffect(() => {
+    if (appliedOpportunityIds) {
+      return;
+    }
+
     const fetchAppliedOpportunityIds = async () => {
       try {
         const applications = await fetchMyApplications();
@@ -26,13 +32,13 @@ export function OpportunityList({
             })
             .filter(Boolean)
         );
-        setAppliedOpportunityIds(ids);
+        setLocalAppliedOpportunityIds(ids);
       } catch {
-        setAppliedOpportunityIds(new Set());
+        setLocalAppliedOpportunityIds(new Set());
       }
     };
     fetchAppliedOpportunityIds();
-  }, [items]);
+  }, [appliedOpportunityIds, items]);
 
   if (loading) {
     return (
@@ -73,7 +79,7 @@ export function OpportunityList({
           <OpportunityCard
             key={`opportunity-${item?.id ?? index}`}
             {...item}
-            isApplied={appliedOpportunityIds.has(item.id)}
+            isApplied={appliedIds.has(String(item?.id ?? item?.opportunityId ?? ""))}
           />
         ))}
       </section>
