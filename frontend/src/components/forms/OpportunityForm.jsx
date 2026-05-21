@@ -274,7 +274,7 @@ const OpportunityForm = () => {
   }
 
   return (
-    <main className="max-w-4xl">
+    <section className="max-w-4xl">
       <header className="mb-12">
         <h2 className="font-headline text-4xl font-bold tracking-tight text-on-surface mb-3">
           {isEditing ? "Edit Draft" : "Architect a New Opportunity"}
@@ -531,7 +531,7 @@ const OpportunityForm = () => {
           </button>
         </footer>
       </form>
-    </main>
+    </section>
   );
 };
 

@@ -141,7 +141,7 @@ export function EditProviderProfileForm() {
   if (loading) return <p className="text-gray-400 text-sm p-12">Loading your profile...</p>;
 
   return (
-    <main className="space-y-8">
+    <section className="space-y-8">
 
       {/* Completion bar */}
       <section className="bg-white p-6 rounded-xl shadow-sm">
@@ -337,6 +337,6 @@ export function EditProviderProfileForm() {
           {saving ? "Saving..." : "Save Changes"}
         </button>
       </nav>
-    </main>
+    </section>
   );
 }

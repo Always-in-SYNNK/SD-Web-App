@@ -67,10 +67,10 @@ export default function ProviderLogin() {
             <>
               <header className="text-center">
                 <h2 className="text-[#f59e0b] text-3xl font-bold mb-3">
-                  Provider Access
+                  Employer Access
                 </h2>
                 <p className="text-slate-500 font-medium">
-                  Sign in or create your provider account to manage your talent pipelines.
+                  Sign in or create your employer account to manage your talent pipelines.
                 </p>
               </header>
 
@@ -97,7 +97,7 @@ export default function ProviderLogin() {
                       business
                     </i>
                     <h3 className="text-sm font-bold text-[#f59e0b]">
-                      For Providers & Employers
+                      For Employers & Providers
                     </h3>
                   </header>
                   <p className="text-xs leading-relaxed text-slate-600 font-medium mt-2 pl-8">

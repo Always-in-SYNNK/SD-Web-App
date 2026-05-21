@@ -60,7 +60,7 @@ describe('ProviderLogin', () => {
         <ProviderLogin />
       </BrowserRouter>
     );
-    expect(screen.getByRole('heading', { level: 2, name: 'Provider Access' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 2, name: 'Employer Access' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Start Loading' })).toBeDefined();
   });
 
@@ -87,7 +87,7 @@ describe('ProviderLogin', () => {
 
     expect(screen.getByRole('status')).toBeDefined();
     expect(screen.getByText('provider@company.com')).toBeDefined();
-    expect(screen.queryByRole('heading', { level: 2, name: 'Provider Access' })).toBeNull();
+    expect(screen.queryByRole('heading', { level: 2, name: 'Employer Access' })).toBeNull();
   });
 
   it('renders error state when the child reports a failure', () => {
