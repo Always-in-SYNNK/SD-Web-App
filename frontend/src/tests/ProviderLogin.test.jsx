@@ -99,9 +99,7 @@ describe('ProviderLogin', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Trigger Error' }));
 
-    expect(mockNavigate).toHaveBeenCalledWith('/auth-error', {
-      state: { loginPage: 'prov-login', message: 'Login failed' },
-    });
+    expect(screen.getByText('Login failed')).toBeDefined();
   });
 
   it('calls the back navigation handler', () => {
@@ -113,6 +111,6 @@ describe('ProviderLogin', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
 
-    expect(providerButtonProps.onLoadingChange).toBeDefined();
+    expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 });
