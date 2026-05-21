@@ -1,7 +1,7 @@
 // backend/src/services/reminderService.js
 import { supabase } from "../config/supabaseClient.js";
 import { createNotification } from "./notificationService.js";
-import { sendEmailNotification } from "./emailService.js";
+import { sendEmailNotification, isEmailConfigured } from "./emailService.js";
 import { matchingOpportunity } from "./opportunityService.js";
 
 async function sendReminderToApplicant(applicantId, opportunityId, applicationId, title, message, type) {

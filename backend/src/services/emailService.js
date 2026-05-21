@@ -6,7 +6,15 @@ let initializationError = null;
 
 // Initialize email transporter with better error handling
 function initializeTransporter() {
-    if (transporter) return transporter;
+    if (transporter) {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            initializationError = 'Email credentials missing';
+            console.error('❌ Email credentials missing!');
+            transporter = null;
+            return null;
+        }
+        return transporter;
+    }
     
     console.log('📧 Email Service Initializing...');
     console.log('📧 EMAIL_USER:', process.env.EMAIL_USER ? '✅ Set' : '❌ Missing');
@@ -54,6 +62,11 @@ function initializeTransporter() {
         initializationError = error.message;
         return null;
     }
+}
+
+export function resetTransporter() {
+    transporter = null;
+    initializationError = null;
 }
 
 // Helper to check if email is configured
