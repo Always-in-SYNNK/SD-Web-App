@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+
+// Mock useNavigate so we can assert navigation behavior
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 import ProviderLogin from '../pages/ProviderLogin';
 
 let providerButtonProps = {};
@@ -50,7 +60,7 @@ describe('ProviderLogin', () => {
         <ProviderLogin />
       </BrowserRouter>
     );
-    expect(screen.getByRole('heading', { level: 2, name: 'Employer Access' })).toBeDefined();
+    expect(screen.getByRole('heading', { level: 2, name: 'Provider Access' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Start Loading' })).toBeDefined();
   });
 
@@ -77,7 +87,7 @@ describe('ProviderLogin', () => {
 
     expect(screen.getByRole('status')).toBeDefined();
     expect(screen.getByText('provider@company.com')).toBeDefined();
-    expect(screen.queryByRole('heading', { level: 2, name: 'Employer Access' })).toBeNull();
+    expect(screen.queryByRole('heading', { level: 2, name: 'Provider Access' })).toBeNull();
   });
 
   it('renders error state when the child reports a failure', () => {
@@ -89,7 +99,9 @@ describe('ProviderLogin', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Trigger Error' }));
 
-    expect(screen.getByText('Login failed')).toBeDefined();
+    expect(mockNavigate).toHaveBeenCalledWith('/auth-error', {
+      state: { loginPage: 'prov-login', message: 'Login failed' },
+    });
   });
 
   it('calls the back navigation handler', () => {
