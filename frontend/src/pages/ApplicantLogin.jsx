@@ -1,12 +1,13 @@
+// frontend/src/pages/ApplicantLogin.jsx
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import AuthLayout        from "../components/auth/AuthLayout";
-import AuthHeroPanel     from "../components/auth/AuthHeroPanel";
-import AuthFormPanel     from "../components/auth/AuthFormPanel";
+import AuthLayout from "../components/auth/AuthLayout";
+import AuthHeroPanel from "../components/auth/AuthHeroPanel";
+import AuthFormPanel from "../components/auth/AuthFormPanel";
 import GoogleLoginButton from "../components/auth/GoogleLoginButton";
 
 const HERO_IMAGE_URL =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuDxNPyShfIjVGSg0JRX5t6gMdYfWSad3-JBDqPllih_qCrvQI6gj0CkdUZ6FgGjkbWALsM8D8lnpJO1k3L3CKiApnRUHx53SVp-w0qKYzGb0PiezwFvCvQAeJltcACD3F_sFQytmH-BXopRUBDOUUVkz1hGSOOgrpHiHmDCITIhPQiEUhAbAT-czEzzxCJDgArueKQb7uYLuYJEeNx5F4nfdPkhKG36Nyxhajn-jkyO7wFtuj5646YpTAbsvwzASsMdGHvTMJABHVqA";
+  "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
 
 export default function ApplicantLogin() {
   const navigate = useNavigate();
@@ -16,19 +17,21 @@ export default function ApplicantLogin() {
 
   const handleSuccess = (res) => {
     setLoading(false);
-
-    // 🔐 NEW USER → onboarding flow
     if (res.isNewUser) {
       navigate("/onboarding");
       return;
     }
-
-    // 👇 EXISTING USER → role-based routing
-    const role = res.user.role;
-
+    const role = res.user?.role;
     if (role === "applicant") {
       navigate(from || "/dashboard");
-    } 
+    } else {
+      navigate("/auth-error", {
+        state: {
+          loginPage: "app-login",
+          message: "Account type mismatch. Please use the employer login.",
+        },
+      });
+    }
   };
 
   return (
@@ -39,22 +42,25 @@ export default function ApplicantLogin() {
           accentLine="One Skill at a Time."
           backgroundImageUrl={HERO_IMAGE_URL}
           badges={[
-            { icon: "verified", label: "SETA Accredited" },
-            { icon: "school",   label: "Skills Tracking"  },
+            { icon: "verified", label: "SETA ACCREDITED" },
+            { icon: "school", label: "SKILLS TRACKING" },
           ]}
         />
       }
       formPanel={
         <AuthFormPanel onBack={() => navigate("/")}>
+          {/* Errors are routed to the centralized AuthError page */}
 
-          <header className="text-center mb-10">
-            <h2 className="text-blue-950 text-3xl font-bold mb-3">Welcome Back</h2>
+          <header className="text-center">
+            <h2 className="text-[#004377] text-3xl font-bold mb-3">
+              Welcome Back
+            </h2>
             <p className="text-slate-500 font-medium">
               Sign in or create your account and apply for opportunities.
             </p>
           </header>
 
-          <div className="max-w-md mx-auto w-full space-y-8">
+          <section className="max-w-md mx-auto w-full mt-8 space-y-8">
             {loading ? (
               <p className="text-center text-slate-500 py-4">Processing...</p>
             ) : (
@@ -66,20 +72,32 @@ export default function ApplicantLogin() {
               />
             )}
 
-            <div className="relative flex items-center justify-center" role="separator">
-              <div className="flex-grow border-t border-slate-100" />
-              <span className="flex-shrink mx-4 text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold">
-                Secure Access
-              </span>
-              <div className="flex-grow border-t border-slate-100" />
-            </div>
+            <hr className="border-slate-100" />
+
+            <aside className="bg-[#004377]/5 rounded-xl p-6 border border-[#004377]/10">
+              <header className="flex gap-3">
+                <i
+                  className="material-symbols-outlined text-[#004377] mt-0.5 shrink-0"
+                  aria-hidden="true"
+                  style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                >
+                  school
+                </i>
+                <h3 className="text-sm font-bold text-[#004377]">
+                  For Learners & Job Seekers
+                </h3>
+              </header>
+              <p className="text-xs leading-relaxed text-slate-600 font-medium mt-2 pl-8">
+                Find SETA-accredited learnerships, track your applications,
+                and connect with top employers across South Africa.
+              </p>
+            </aside>
 
             <p className="text-slate-500 text-sm leading-relaxed text-center px-4">
-              By continuing, GrowthStageSA will automatically register you if you
-              don&apos;t have an account, or sign you in if you do.
+              By continuing, GrowthStageSA will automatically register you if
+              you don&apos;t have an account, or sign you in if you do.
             </p>
-          </div>
-
+          </section>
         </AuthFormPanel>
       }
     />

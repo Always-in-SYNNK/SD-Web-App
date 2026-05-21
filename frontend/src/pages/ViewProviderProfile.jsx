@@ -50,10 +50,10 @@ export default function ViewProviderProfile() {
   const percentage     = Math.round((completedCount / COMPLETION_FIELDS.length) * 100);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <main className="flex min-h-screen bg-gray-50">
       <Sidebar />
 
-      <div className="ml-64 flex flex-col min-h-screen w-full min-w-0">
+      <section className="ml-64 flex flex-col min-h-screen w-full min-w-0">
         <Topbar user={user} />
 
         <section className="pb-24 px-8 pt-12">
@@ -71,9 +71,9 @@ export default function ViewProviderProfile() {
                     : providerProfile?.organisation_name || profile?.full_name || "Your Profile"}
                 </h1>
                 {providerProfile?.organisation_type && (
-                  <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${orgTypeBadge}`}>
+                  <strong className={`inline-block text-xs font-bold px-3 py-1 rounded-full ${orgTypeBadge}`}>
                     {providerProfile.organisation_type}
-                  </span>
+                  </strong>
                 )}
               </div>
               <button
@@ -99,11 +99,12 @@ export default function ViewProviderProfile() {
                   </span>
                 </div>
                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
+                  <i
+                    aria-hidden="true"
                     className={`h-full rounded-full transition-all duration-500 ${
                       percentage === 100 ? "bg-green-500" : "bg-[#035b9d]"
                     }`}
-                    style={{ width: `${percentage}%` }}
+                    style={{ width: `${percentage}%`, display: 'block' }}
                   />
                 </div>
                 {percentage < 100 && (
@@ -204,13 +205,15 @@ export default function ViewProviderProfile() {
                       </button>
                     </p>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
+                    <ul className="flex flex-wrap gap-2">
                       {focusFields.map((field) => (
-                        <span key={field} className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm">
-                          {field}
-                        </span>
+                        <li key={field} className="list-none px-0">
+                          <strong className="px-4 py-2 bg-blue-50 text-[#035b9d] font-bold rounded-full text-sm block">
+                            {field}
+                          </strong>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   )}
                 </section>
 
@@ -218,7 +221,7 @@ export default function ViewProviderProfile() {
             )}
           </div>
         </section>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

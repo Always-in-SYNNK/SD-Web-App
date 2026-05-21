@@ -182,6 +182,7 @@ export async function getApplicationsForUser(userId) {
 }
 
 export async function deleteApplicationForUser({ userId, applicationId }) {
+  // 1. Get profile
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id")
@@ -192,6 +193,7 @@ export async function deleteApplicationForUser({ userId, applicationId }) {
     throw new Error("Profile not found");
   }
 
+  // 2. Get applicant profile
   const { data: applicant, error: applicantError } = await supabase
     .from("applicant_profiles")
     .select("id")
@@ -202,6 +204,7 @@ export async function deleteApplicationForUser({ userId, applicationId }) {
     throw new Error("Applicant profile not found");
   }
 
+  // 3. Check application exists + belongs to user
   const { data: existing, error: existingError } = await supabase
     .from("applications")
     .select("id")
@@ -217,6 +220,28 @@ export async function deleteApplicationForUser({ userId, applicationId }) {
     throw new Error("Application not found");
   }
 
+  // 4. Remove dependent applicant notifications first to satisfy FK constraints.
+  const { error: notificationDeleteError } = await supabase
+    .from("applicant_notifications")
+    .delete()
+    .eq("application_id", applicationId)
+    .eq("applicant_id", applicant.id);
+
+  if (notificationDeleteError) {
+    throw new Error(notificationDeleteError.message);
+  }
+
+  // 5. Remove provider notifications linked to this application as well.
+  const { error: providerNotificationDeleteError } = await supabase
+    .from("provider_notifications")
+    .delete()
+    .eq("application_id", applicationId);
+
+  if (providerNotificationDeleteError) {
+    throw new Error(providerNotificationDeleteError.message);
+  }
+
+  // 6. Finally, delete the application
   const { error: deleteError } = await supabase
     .from("applications")
     .delete()

@@ -12,7 +12,7 @@ vi.mock('../services/matchingService', () => ({
 }));
 
 vi.mock('../components/opportunities/OpportunityCard', () => ({
-  OpportunityCard: ({ title }) => <div data-testid="opportunity-card">{title}</div>,
+  OpportunityCard: ({ title }) => <article data-testid="opportunity-card">{title}</article>,
 }));
 
 import { useAuth } from '../context/useAuth';
@@ -27,22 +27,18 @@ describe('MatchingOpportunities', () => {
     useAuth.mockReturnValue({ token: 'test-token' });
     getMatchingOpportunities.mockReturnValue(new Promise(() => {})); // Never resolves
 
-    await act(async () => {
-      render(<MatchingOpportunities />);
-    });
+    await act(async () => render(<MatchingOpportunities />));
 
-    expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('shows error message when no token', async () => {
     useAuth.mockReturnValue({ token: null });
 
-    await act(async () => {
-      render(<MatchingOpportunities />);
-    });
+    await act(async () => render(<MatchingOpportunities />));
 
     await waitFor(() => {
-      expect(screen.getByText('Error: Unable to load matches without authentication.')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveTextContent('Error: Unable to load matches without authentication.');
     });
   });
 
@@ -50,12 +46,10 @@ describe('MatchingOpportunities', () => {
     useAuth.mockReturnValue({ token: 'test-token' });
     getMatchingOpportunities.mockRejectedValue(new Error('Fetch error'));
 
-    await act(async () => {
-      render(<MatchingOpportunities />);
-    });
+    await act(async () => render(<MatchingOpportunities />));
 
     await waitFor(() => {
-      expect(screen.getByText('Error: Fetch error')).toBeInTheDocument();
+      expect(screen.getByRole('alert')).toHaveTextContent('Error: Fetch error');
     });
   });
 
@@ -63,9 +57,7 @@ describe('MatchingOpportunities', () => {
     useAuth.mockReturnValue({ token: 'test-token' });
     getMatchingOpportunities.mockResolvedValue({ data: [] });
 
-    await act(async () => {
-      render(<MatchingOpportunities />);
-    });
+    await act(async () => render(<MatchingOpportunities />));
 
     await waitFor(() => {
       expect(screen.getByText('No matching opportunities found yet.')).toBeInTheDocument();
@@ -80,16 +72,13 @@ describe('MatchingOpportunities', () => {
     useAuth.mockReturnValue({ token: 'test-token' });
     getMatchingOpportunities.mockResolvedValue({ data: mockOpportunities });
 
-    await act(async () => {
-      render(<MatchingOpportunities />);
-    });
+    await act(async () => render(<MatchingOpportunities />));
 
-    await waitFor(() => {
-      expect(screen.getByText('Your Matched Opportunities')).toBeInTheDocument();
-      expect(screen.getByText('2 matches found')).toBeInTheDocument();
-      expect(screen.getAllByTestId('opportunity-card')).toHaveLength(2);
-      expect(screen.getByText('Match Score: 85%')).toBeInTheDocument();
-      expect(screen.getByText('Match Score: 92%')).toBeInTheDocument();
-    });
+    // use `findBy`/`findAllByTestId` so assertions wait for async state updates
+    expect(await screen.findByText('Your Matched Opportunities')).toBeInTheDocument();
+    expect(await screen.findByText('2 matches found')).toBeInTheDocument();
+    expect(await screen.findAllByTestId('opportunity-card')).toHaveLength(2);
+    expect(await screen.findByText(/85%/)).toBeInTheDocument();
+    expect(await screen.findByText(/92%/)).toBeInTheDocument();
   });
 });

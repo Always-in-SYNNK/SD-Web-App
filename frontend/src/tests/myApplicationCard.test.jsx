@@ -32,7 +32,7 @@ describe("ApplicationCard", () => {
     expect(screen.getByText("Received")).toBeInTheDocument();
   });
 
-  test("shows Unapply button for Received", () => {
+  test("shows Withdraw button for Received", () => {
     render(
       <ApplicationCard
         title="Test"
@@ -44,7 +44,7 @@ describe("ApplicationCard", () => {
       />
     );
 
-    expect(screen.getByText("Unapply")).toBeInTheDocument();
+    expect(screen.getByText("Withdraw")).toBeInTheDocument();
   });
 
   test("shows Accept button when Offered", () => {
@@ -76,7 +76,7 @@ describe("ApplicationCard", () => {
       />
     );
 
-    fireEvent.click(screen.getByText("Unapply"));
+    fireEvent.click(screen.getByText("Withdraw"));
     expect(mockFn).toHaveBeenCalled();
   });
 
@@ -127,7 +127,7 @@ describe("ApplicationCard", () => {
       />
     );
 
-    fireEvent.click(screen.getByText("Unapply"));
+    fireEvent.click(screen.getByText("Withdraw"));
 
     expect(mockNavigate).not.toHaveBeenCalled();
   });

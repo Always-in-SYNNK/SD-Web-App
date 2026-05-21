@@ -118,7 +118,7 @@ export function ApplicationCard({
             }}
             className="w-full px-6 py-2 rounded-full text-xs font-bold text-red-500 hover:bg-red-50 transition-colors"
           >
-            Unapply
+            Withdraw
           </button>
         ) : null}
       </nav>

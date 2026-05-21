@@ -7,10 +7,10 @@ export default function EditProviderProfile() {
   const { user } = useAuth();
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <main className="flex min-h-screen bg-gray-50">
       <Sidebar />
 
-      <div className="ml-64 flex flex-col min-h-screen w-full min-w-0">
+      <section className="ml-64 flex flex-col min-h-screen w-full min-w-0">
         <Topbar user={user} />
 
         <section className="pb-24 px-8 pt-12">
@@ -31,7 +31,8 @@ export default function EditProviderProfile() {
             <EditProviderProfileForm />
           </div>
         </section>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
+

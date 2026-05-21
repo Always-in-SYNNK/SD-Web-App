@@ -101,13 +101,13 @@ export default function SectorPieChart({ data = [] }) {
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <div className="mb-5">
+    <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <header className="mb-5">
         <h3 className="font-bold text-gray-800 text-base">Acceptance by Sector</h3>
         <p className="text-xs text-gray-400 mt-0.5">Share of accepted applicants across sectors</p>
-      </div>
+      </header>
       {/* Increased height to accommodate bottom legend with up to 12 sectors */}
-      <div style={{ height: 320 }}>
+      <figure style={{ height: 320 }}>
         {sectors.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center gap-1">
             <p className="text-gray-500 text-sm font-medium">No accepted applications yet</p>
@@ -116,7 +116,7 @@ export default function SectorPieChart({ data = [] }) {
         ) : (
           <Doughnut data={chartData} options={options} plugins={[centreLabel]} />
         )}
-      </div>
-    </div>
+      </figure>
+    </section>
   );
 }

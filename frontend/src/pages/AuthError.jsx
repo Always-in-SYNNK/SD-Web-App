@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 /* ─── Sub-components ──────────────────────────────────────────────────────── */
 
 const LogoMark = () => (
-  <div className="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white shrink-0">
+  <figure className="w-8 h-8 bg-blue-900 rounded flex items-center justify-center text-white shrink-0" aria-hidden="true">
     {/* NOTE: This is the chevron/diamond logo from the error page mockup.
         Swap with your GrowthStageLogo SVG if you want them consistent. */}
     <svg className="w-6 h-6" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -16,7 +16,7 @@ const LogoMark = () => (
         fill="currentColor"
       />
     </svg>
-  </div>
+  </figure>
 );
 
 const BackgroundLayers = () => (
@@ -47,11 +47,11 @@ export default function AuthErrorPage({
   const effectiveMessage = location.state?.message || message;
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-4">
+    <section className="min-h-screen flex flex-col items-center justify-center p-4">
 
       {/* ── Minimal nav ── */}
       <nav className="fixed top-0 left-0 right-0 p-6 flex justify-between items-center w-full max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
+        <header className="flex items-center gap-2">
           <LogoMark />
           <span
             className="text-blue-900 font-bold text-xl tracking-tight"
@@ -59,37 +59,37 @@ export default function AuthErrorPage({
           >
             GrowthStageSA
           </span>
-        </div>
+        </header>
 
         <button
           type="button"
           onClick={() => navigate("/")}
           className="flex items-center gap-2 text-sm font-semibold text-blue-900 hover:underline"
         >
-          <span
+          <i
             className="material-symbols-outlined"
             aria-hidden="true"
             style={iconStyle}
           >
             arrow_back
-          </span>
+          </i>
           Back to Home
         </button>
       </nav>
 
       {/* ── Error card ── */}
-      <main className="w-full max-w-md bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+      <article className="w-full max-w-md bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
         <div className="p-8 flex flex-col items-center text-center">
 
           {/* Icon */}
           <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mb-6" aria-hidden="true">
             <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-900">
-              <span
+              <i
                 className="material-symbols-outlined"
                 style={iconStyleFilled}
               >
                 lock_reset
-              </span>
+              </i>
             </div>
           </div>
 
@@ -103,19 +103,19 @@ export default function AuthErrorPage({
               onClick={() => navigate(`/${effectiveLoginPage}`)}
               className="w-full py-3 px-4 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-800 transition-colors flex items-center justify-center gap-2"
             >
-              <span
+              <i
                 className="material-symbols-outlined"
                 aria-hidden="true"
                 style={iconStyle}
               >
                 refresh
-              </span>
+              </i>
               Retry Login
             </button>
           </div>
 
         </div>
-      </main>
+      </article>
 
       {/* ── Footer ── */}
       <footer className="mt-8 text-gray-400 text-xs uppercase tracking-widest font-medium">
@@ -126,6 +126,6 @@ export default function AuthErrorPage({
       </footer>
 
       <BackgroundLayers />
-    </main>
+    </section>
   );
 }
