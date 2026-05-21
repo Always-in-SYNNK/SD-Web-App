@@ -86,31 +86,35 @@ const MOCK_DATA = {
 
 function StatCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse">
-      <div className="h-3 w-28 bg-gray-200 rounded mb-3" />
-      <div className="h-8 w-16 bg-gray-200 rounded" />
-    </div>
+    <article className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse">
+      <header className="mb-3">
+        <i className="h-3 w-28 bg-gray-200 rounded block" aria-hidden="true" />
+      </header>
+      <strong className="h-8 w-16 bg-gray-200 rounded block" aria-hidden="true" />
+    </article>
   );
 }
 
 function ChartSkeleton({ height = 300 }) {
   return (
-    <div
+    <article
       className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 animate-pulse"
       style={{ height: height + 68 }}
     >
-      <div className="h-4 w-40 bg-gray-200 rounded mb-2" />
-      <div className="h-3 w-56 bg-gray-100 rounded mb-6" />
-      <div className="flex items-end gap-3 h-48 px-2">
+      <header className="mb-2">
+        <i className="h-4 w-40 bg-gray-200 rounded block" aria-hidden="true" />
+        <i className="h-3 w-56 bg-gray-100 rounded block mt-2" aria-hidden="true" />
+      </header>
+      <section className="flex items-end gap-3 h-48 px-2" aria-hidden="true">
         {[65, 90, 50, 78, 42, 85, 60, 35, 72, 55, 40, 68].map((h, i) => (
-          <div
+          <i
             key={i}
-            className="flex-1 bg-gray-100 rounded-t"
+            className="flex-1 bg-gray-100 rounded-t block"
             style={{ height: `${h}%` }}
           />
         ))}
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }
 

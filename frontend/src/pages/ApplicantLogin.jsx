@@ -54,7 +54,7 @@ export default function ApplicantLogin() {
             </p>
           </header>
 
-          <div className="max-w-md mx-auto w-full space-y-8">
+          <section className="max-w-md mx-auto w-full space-y-8">
             {loading ? (
               <p className="text-center text-slate-500 py-4">Processing...</p>
             ) : (
@@ -66,19 +66,19 @@ export default function ApplicantLogin() {
               />
             )}
 
-            <div className="relative flex items-center justify-center" role="separator">
-              <div className="flex-grow border-t border-slate-100" />
-              <span className="flex-shrink mx-4 text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold">
+            <section className="relative flex items-center justify-center" aria-label="Secure Access Divider" role="group">
+              <hr className="flex-grow border-t border-slate-100" />
+              <strong className="flex-shrink mx-4 text-slate-400 text-[10px] uppercase tracking-[0.2em] font-bold">
                 Secure Access
-              </span>
-              <div className="flex-grow border-t border-slate-100" />
-            </div>
+              </strong>
+              <hr className="flex-grow border-t border-slate-100" />
+            </section>
 
             <p className="text-slate-500 text-sm leading-relaxed text-center px-4">
               By continuing, GrowthStageSA will automatically register you if you
               don&apos;t have an account, or sign you in if you do.
             </p>
-          </div>
+          </section>
 
         </AuthFormPanel>
       }

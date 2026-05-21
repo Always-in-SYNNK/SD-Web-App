@@ -104,10 +104,10 @@ export default function ApplicationVolumeChart({ data = [] }) {
   const ChartComponent = isLine ? Line : Bar;
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-5">
+      <header className="flex items-start justify-between mb-5">
         <div>
           <h3 className="font-bold text-gray-800 text-base">
             Application Volume per Opportunity
@@ -121,7 +121,7 @@ export default function ApplicationVolumeChart({ data = [] }) {
         </div>
 
         {/* Bar / Line toggle */}
-        <div className="flex gap-1.5">
+        <nav className="flex gap-1.5" aria-label="chart type">
           {["bar", "line"].map((t) => (
             <button
               key={t}
@@ -135,30 +135,30 @@ export default function ApplicationVolumeChart({ data = [] }) {
               {t}
             </button>
           ))}
-        </div>
-      </div>
+        </nav>
+      </header>
 
       {/* Chart canvas */}
-      <div style={{ height: 260 }}>
+      <figure style={{ height: 260 }}>
         {data.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+          <p className="h-full flex items-center justify-center text-gray-400 text-sm">
             No opportunities found
-          </div>
+          </p>
         ) : (
           <ChartComponent data={chartData} options={options} />
         )}
-      </div>
+      </figure>
 
       {/* Legend */}
-      <div className="flex gap-4 mt-3 flex-wrap">
-        <span className="flex items-center gap-1.5 text-xs text-gray-500">
-          <span className="w-2.5 h-2.5 rounded-sm bg-[#035b9d] inline-block" />
-          Applications
-        </span>
-        <span className="text-xs text-gray-400">
+      <footer className="flex gap-4 mt-3 flex-wrap">
+        <p className="flex items-center gap-1.5 text-xs text-gray-500">
+          <i className="w-2.5 h-2.5 rounded-sm bg-[#035b9d] inline-block" aria-hidden="true" />
+          <strong>Applications</strong>
+        </p>
+        <p className="text-xs text-gray-400">
           Hover a bar to see the status breakdown
-        </span>
-      </div>
-    </div>
+        </p>
+      </footer>
+    </section>
   );
 }

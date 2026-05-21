@@ -114,9 +114,9 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
                                 <p className="text-sm text-gray-500">{applicant.email}</p>
                             </section>
                             {matchPercent !== null && (
-                                <p className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-sm font-semibold">
-                                    Match: <span className="text-blue-900">{matchPercent}%</span>
-                                </p>
+                                <aside aria-label="match-score" className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-sm font-semibold">
+                                    {`Match: ${matchPercent}%`}
+                                </aside>
                             )}
                         </section>
                     </section>
@@ -165,16 +165,16 @@ const EmployerApplicationCard = ({ application, onShortlist, onOffer, onReject, 
                             {skills.length === 0 ? (
                                 <p className="text-sm text-gray-400">No skills listed.</p>
                             ) : (
-                                <div className="flex flex-wrap gap-2">
+                                <ul className="flex flex-wrap gap-2">
                                     {skills.map((skill) => (
-                                        <span
+                                        <li
                                             key={skill.id ?? skill.skills_id}
-                                            className="px-3 py-1 bg-blue-50 text-[#035b9d] font-semibold rounded-full text-xs"
+                                            className="px-3 py-1 bg-blue-50 text-[#035b9d] font-semibold rounded-full text-xs list-none"
                                         >
                                             {skill.title ?? skill.skill_title ?? skill.name}
-                                        </span>
+                                        </li>
                                     ))}
-                                </div>
+                                </ul>
                             )}
                         </SectionBlock>
                     )}

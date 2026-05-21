@@ -50,11 +50,11 @@ export default function ProviderLogin() {
 
           {/* Verification success banner */}
           {showVerificationMessage && (
-            <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm text-center space-y-1">
+            <section className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm text-center space-y-1" role="status">
               <p className="font-semibold">✓ Verification email sent!</p>
               <p>Please check <strong>{verificationEmail}</strong> and click the verification link.</p>
               <p className="text-xs text-green-600">Link expires in 24 hours.</p>
-            </div>
+            </section>
           )}
 
           {/* Main content — hidden while verification pending */}
@@ -67,7 +67,7 @@ export default function ProviderLogin() {
                 </p>
               </header>
 
-              <div className="max-w-md mx-auto w-full space-y-8">
+              <section className="max-w-md mx-auto w-full space-y-8">
                 {loading ? (
                   <p className="text-center text-slate-500 py-4">Processing...</p>
                 ) : (
@@ -80,14 +80,14 @@ export default function ProviderLogin() {
 
                 <hr className="border-slate-100" />
 
-                <div className="bg-slate-50 rounded-xl p-6 border border-slate-100 flex gap-4">
-                  <span
+                <aside className="bg-slate-50 rounded-xl p-6 border border-slate-100 flex gap-4" role="note">
+                  <i
                     className="material-symbols-outlined text-sky-600 mt-1 shrink-0"
                     aria-hidden="true"
                     style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
                   >
                     info
-                  </span>
+                  </i>
                   <div className="space-y-1">
                     <h3 className="text-sm font-bold text-slate-900">Employer Access</h3>
                     <p className="text-xs leading-relaxed text-slate-500 font-medium">
@@ -95,13 +95,13 @@ export default function ProviderLogin() {
                       use your verified organization credentials.
                     </p>
                   </div>
-                </div>
+                </aside>
 
                 <p className="text-slate-500 text-sm leading-relaxed text-center px-4">
                   By continuing, GrowthStageSA will automatically register you if you
                   don&apos;t have an account, or sign you in if you do.
                 </p>
-              </div>
+              </section>
             </>
           )}
         </AuthFormPanel>

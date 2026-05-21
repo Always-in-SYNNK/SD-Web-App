@@ -12,10 +12,10 @@ const PostOpportunity = () => {
         <Topbar />
 
         <section className="flex-1 p-8">
-          <div className="max-w-4xl mx-auto">
-              <small className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">Post New Opportunity</small>
+          <section className="max-w-4xl mx-auto">
+            <small className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">Post New Opportunity</small>
             <OpportunityForm />
-          </div>
+          </section>
         </section>
       </section>
     </main>

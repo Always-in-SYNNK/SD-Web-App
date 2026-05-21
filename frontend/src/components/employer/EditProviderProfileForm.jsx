@@ -141,23 +141,23 @@ export function EditProviderProfileForm() {
   if (loading) return <p className="text-gray-400 text-sm p-12">Loading your profile...</p>;
 
   return (
-    
-    <div className="space-y-8">
+    <main className="space-y-8">
 
       {/* Completion bar */}
-      <div className="bg-white p-6 rounded-xl shadow-sm">
+      <section className="bg-white p-6 rounded-xl shadow-sm">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-[#1b1c1c]">Profile completion</span>
-          <span className={`text-sm font-bold ${percentage === 100 ? "text-green-600" : "text-[#035b9d]"}`}>
+          <strong className="text-sm font-semibold text-[#1b1c1c]">Profile completion</strong>
+          <strong className={`text-sm font-bold ${percentage === 100 ? "text-green-600" : "text-[#035b9d]"}`}>
             {percentage}%
-          </span>
+          </strong>
         </div>
         <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
+          <i
+            aria-hidden="true"
             className={`h-full rounded-full transition-all duration-500 ${
               percentage === 100 ? "bg-green-500" : "bg-[#035b9d]"
             }`}
-            style={{ width: `${percentage}%` }}
+            style={{ width: `${percentage}%`, display: 'block' }}
           />
         </div>
         {percentage < 100 && (
@@ -165,15 +165,15 @@ export function EditProviderProfileForm() {
             Missing: {COMPLETION_FIELDS.filter(({ key, check }) => !check(formData[key])).map(f => f.label).join(", ")}
           </p>
         )}
-      </div>
+      </section>
 
       {/* Contact Details */}
       <section className="bg-white p-8 lg:p-12 rounded-xl shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-[#3174b7]" />
-        <div className="mb-8">
+        <i className="absolute top-0 left-0 w-1 h-full bg-[#3174b7]" aria-hidden="true" />
+        <header className="mb-8">
           <h3 className="text-2xl font-bold text-[#1b1c1c] mb-1">Contact Details</h3>
           <p className="text-gray-400 text-sm">Your name as it will appear to applicants.</p>
-        </div>
+        </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -205,11 +205,11 @@ export function EditProviderProfileForm() {
 
       {/* Organisation Details */}
       <section className="bg-white p-8 lg:p-12 rounded-xl shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-amber-400" />
-        <div className="mb-8">
+        <i className="absolute top-0 left-0 w-1 h-full bg-amber-400" aria-hidden="true" />
+        <header className="mb-8">
           <h3 className="text-2xl font-bold text-[#1b1c1c] mb-1">Organisation</h3>
           <p className="text-gray-400 text-sm">Help applicants understand who you are and what you do.</p>
-        </div>
+        </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -282,38 +282,39 @@ export function EditProviderProfileForm() {
       
       {/* Focus Fields */}
       <section className="bg-white p-8 lg:p-12 rounded-xl shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-[#035b9d]" />
-        <div className="mb-8">
+        <i className="absolute top-0 left-0 w-1 h-full bg-[#035b9d]" aria-hidden="true" />
+        <header className="mb-8">
           <h3 className="text-2xl font-bold text-[#1b1c1c] mb-1">Focus Fields</h3>
           <p className="text-gray-400 text-sm">
             Select the SAQA/NQF-aligned fields your opportunities fall under.
             {formData.focus_fields.length > 0 && (
-              <span className="ml-2 text-[#035b9d] font-semibold">
+              <strong className="ml-2 text-[#035b9d] font-semibold">
                 {formData.focus_fields.length} selected
-              </span>
+              </strong>
             )}
           </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
+        </header>
+        <ul className="flex flex-wrap gap-3">
           {FIELDS.map((field) => {
             const selected = formData.focus_fields.includes(field);
             return (
-              <button
-                key={field}
-                type="button"
-                onClick={() => toggleField(field)}
-                className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
-                  selected
-                    ? "bg-[#035b9d] text-white border-[#035b9d] shadow-md shadow-blue-100"
-                    : "bg-gray-50 text-gray-500 border-gray-200 hover:border-[#035b9d] hover:text-[#035b9d]"
-                }`}
-              >
-                {selected && <span className="mr-1.5">✓</span>}
-                {field}
-              </button>
+              <li key={field} className="list-none">
+                <button
+                  type="button"
+                  onClick={() => toggleField(field)}
+                  className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+                    selected
+                      ? "bg-[#035b9d] text-white border-[#035b9d] shadow-md shadow-blue-100"
+                      : "bg-gray-50 text-gray-500 border-gray-200 hover:border-[#035b9d] hover:text-[#035b9d]"
+                  }`}
+                >
+                  {selected && <i className="mr-1.5">✓</i>}
+                  {field}
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </section>
 
       {/* Feedback */}
@@ -336,6 +337,6 @@ export function EditProviderProfileForm() {
           {saving ? "Saving..." : "Save Changes"}
         </button>
       </nav>
-    </div>
+    </main>
   );
 }

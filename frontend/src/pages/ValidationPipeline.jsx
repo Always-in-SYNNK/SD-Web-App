@@ -93,16 +93,16 @@ const ValidationPipeline = () => {
   if (!authChecked) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin" />
+        <span role="status" aria-label="Loading" className="w-8 h-8 border-4 border-[#035b9d] border-t-transparent rounded-full animate-spin" />
       </main>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <main className="flex min-h-screen bg-gray-50">
       <Sidebar />
 
-      <div className="ml-64 flex flex-col min-h-screen w-full min-w-0">
+      <section className="ml-64 flex flex-col min-h-screen w-full min-w-0">
         <Topbar user={user} onLogout={handleLogout} />
 
         <section className="p-8">
@@ -125,9 +125,7 @@ const ValidationPipeline = () => {
                 <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
                   Total
                 </p>
-                <span className="material-symbols-outlined text-[#035b9d] text-xl">
-                  work
-                </span>
+                <i aria-hidden="true" className="material-symbols-outlined text-[#035b9d] text-xl">work</i>
               </div>
               <p className="text-2xl font-bold text-[#0d1b2a] mt-1">
                 {counts.all}
@@ -139,9 +137,7 @@ const ValidationPipeline = () => {
                 <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
                   Approved
                 </p>
-                <span className="material-symbols-outlined text-green-600 text-xl">
-                  verified
-                </span>
+                <i aria-hidden="true" className="material-symbols-outlined text-green-600 text-xl">verified</i>
               </div>
               <p className="text-2xl font-bold text-green-600 mt-1">
                 {counts.approved}
@@ -153,9 +149,7 @@ const ValidationPipeline = () => {
                 <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
                   Pending
                 </p>
-                <span className="material-symbols-outlined text-yellow-500 text-xl">
-                  hourglass_empty
-                </span>
+                <i aria-hidden="true" className="material-symbols-outlined text-yellow-500 text-xl">hourglass_empty</i>
               </div>
               <p className="text-2xl font-bold text-yellow-600 mt-1">
                 {counts.pending}
@@ -167,9 +161,7 @@ const ValidationPipeline = () => {
                 <p className="text-xs uppercase tracking-wide text-[#707881] font-medium">
                   Rejected
                 </p>
-                <span className="material-symbols-outlined text-red-500 text-xl">
-                  cancel
-                </span>
+                <i aria-hidden="true" className="material-symbols-outlined text-red-500 text-xl">cancel</i>
               </div>
               <p className="text-2xl font-bold text-red-700 mt-1">
                 {counts.rejected}
@@ -235,8 +227,8 @@ const ValidationPipeline = () => {
               ))}
           </section>
         </section>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

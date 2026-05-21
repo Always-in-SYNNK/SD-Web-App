@@ -54,7 +54,7 @@ export default function GoogleLoginButton({ selectedRole, from, onLoadingChange,
   }, [navigate]);
 
   return (
-    <div className="w-full flex items-center justify-center">
+    <section className="w-full flex items-center justify-center">
       <GoogleLogin
         onSuccess={handleSuccess}
         onError={handleError}
@@ -62,6 +62,6 @@ export default function GoogleLoginButton({ selectedRole, from, onLoadingChange,
         auto_select={false}
         prompt="select_account"
       />
-    </div>
+    </section>
   );
 }

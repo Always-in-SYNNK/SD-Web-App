@@ -65,13 +65,13 @@ export default function OpportunityBreakdownTable({
   const total = data.reduce((s, d) => s + d.count, 0) || 1;
 
   return (
-    <div className="bg-[#f5f3f3] rounded-xl p-8">
+    <section className="bg-[#f5f3f3] rounded-xl p-8">
       <h3 className="font-bold text-lg mb-6">Opportunity Breakdown</h3>
 
       {data.length === 0 ? (
         <p className="text-gray-400 text-sm py-8 text-center">No data available.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <section className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-gray-400 uppercase tracking-wider border-b border-gray-200">
@@ -114,20 +114,20 @@ export default function OpportunityBreakdownTable({
 
                     {/* Count + mini bar */}
                     <td className="py-4 pr-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-800 min-w-[24px]">
+                      <section className="flex items-center gap-2">
+                        <strong className="font-semibold text-gray-800 min-w-[24px]">
                           {row.count}
-                        </span>
-                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[50px]">
-                          <div
-                            className="h-full rounded-full transition-all duration-700"
+                        </strong>
+                        <figure className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden min-w-[50px]">
+                          <i
+                            className="h-full rounded-full block transition-all duration-700"
                             style={{
                               width:      `${barWidth}%`,
                               background: PALETTE[i % PALETTE.length],
                             }}
                           />
-                        </div>
-                      </div>
+                        </figure>
+                      </section>
                     </td>
 
                     {/* Share */}
@@ -153,8 +153,8 @@ export default function OpportunityBreakdownTable({
               })}
             </tbody>
           </table>
-        </div>
+        </section>
       )}
-    </div>
+    </section>
   );
 }
