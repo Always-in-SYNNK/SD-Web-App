@@ -14,8 +14,8 @@ export function EducationSection({ formData, setFormData }) {
         <p className="text-gray-400 text-sm">Map your academic journey through the NQF framework.</p>
       </header>
 
-      <div className="space-y-2">
-        <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">Current NQF Level</label>
+      <fieldset className="space-y-2">
+        <legend className="text-xs font-semibold uppercase tracking-wider text-gray-400">Current NQF Level</legend>
         <select
           value={formData.nqf_level}
           onChange={(e) => setFormData((prev) => ({ ...prev, nqf_level: Number(e.target.value) }))}
@@ -26,7 +26,7 @@ export function EducationSection({ formData, setFormData }) {
             <option key={l.value} value={l.value}>{l.label}</option>
           ))}
         </select>
-      </div>
+      </fieldset>
     </section>
   );
 }

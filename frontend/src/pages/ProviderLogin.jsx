@@ -17,6 +17,7 @@ const HERO_IMAGE_URL =
 export default function ProviderLogin() {
   const navigate = useNavigate();
 
+  const [error,                   setError]                   = useState(null);
   const [loading,                 setLoading]                 = useState(false);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [verificationEmail,       setVerificationEmail]       = useState("");
@@ -43,22 +44,19 @@ export default function ProviderLogin() {
       }
       formPanel={
         <AuthFormPanel onBack={() => navigate("/")}>
-          {/* Error banner 
+          {/* Error banner */}
           {error && (
             <p className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm text-center">
               {error}
             </p>
           )}
-*/}
+
           {/* Verification success banner */}
           {showVerificationMessage && (
-            <section role="status" aria-live="polite" className="p-4 bg-orange-50 border border-orange-200 text-orange-700 rounded-lg text-sm text-center space-y-1">
+            <section className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm text-center space-y-1" role="status">
               <p className="font-semibold">✓ Verification email sent!</p>
-              <p>
-                Please check <strong>{verificationEmail}</strong> and click the
-                verification link.
-              </p>
-              <p className="text-xs text-orange-600">Link expires in 24 hours.</p>
+              <p>Please check <strong>{verificationEmail}</strong> and click the verification link.</p>
+              <p className="text-xs text-green-600">Link expires in 24 hours.</p>
             </section>
           )}
 
@@ -80,7 +78,7 @@ export default function ProviderLogin() {
                 ) : (
                   <ProviderGoogleLoginButton
                     onVerificationRequired={handleVerificationRequired}
-                    onError={(msg) => navigate('/auth-error', { state: { loginPage: 'prov-login', message: msg } })}
+                    onError={setError}
                     onLoadingChange={setLoading}
                   />
                 )}
@@ -89,13 +87,13 @@ export default function ProviderLogin() {
 
                 <aside className="bg-[#f59e0b]/5 rounded-xl p-6 border border-[#f59e0b]/10">
                   <header className="flex gap-3">
-                    <i
+                  <i
                       className="material-symbols-outlined text-[#f59e0b] mt-0.5 shrink-0"
-                      aria-hidden="true"
-                      style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
-                    >
+                    aria-hidden="true"
+                    style={{ fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                  >
                       business
-                    </i>
+                  </i>
                     <h3 className="text-sm font-bold text-[#f59e0b]">
                       For Employers & Providers
                     </h3>
@@ -106,7 +104,7 @@ export default function ProviderLogin() {
                   </p>
                   <p className="text-xs leading-relaxed text-slate-600 font-medium mt-2 pl-8">
                     Please ensure you use your verified organization credentials.
-                  </p>
+                    </p>
                 </aside>
 
                 <p className="text-slate-500 text-sm leading-relaxed text-center px-4">

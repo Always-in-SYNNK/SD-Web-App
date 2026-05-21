@@ -88,7 +88,7 @@ export function ProfileForm() {
   if (loading) return <p className="text-gray-400 text-sm">Loading your profile...</p>;
 
   return (
-    <div className="space-y-8">
+    <section className="space-y-8">
       <PersonalInfoSection formData={formData} setFormData={setFormData} />
       <EducationSection formData={formData} setFormData={setFormData} />
       <QualificationsSection />
@@ -111,6 +111,6 @@ export function ProfileForm() {
           {saving ? "Saving..." : "Complete Profile"}
         </button>
       </nav>
-    </div>
+    </section>
   );
 }

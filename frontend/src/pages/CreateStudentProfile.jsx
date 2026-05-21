@@ -15,7 +15,7 @@ export default function CompleteProfile() {
         </nav>
 
         <section className="min-h-screen pb-24 px-8 pt-12">
-          <div className="max-w-4xl mx-auto">
+          <article className="max-w-4xl mx-auto">
 
             <header className="mb-12 text-center">
               <h1 className="text-4xl lg:text-5xl font-extrabold text-[#1b1c1c] tracking-tight mb-4">
@@ -27,29 +27,29 @@ export default function CompleteProfile() {
             </header>
 
             <section className="mb-10 grid gap-6 sm:grid-cols-2">
-              <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
+              <article className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                <section className="flex items-center justify-between gap-4">
+                  <section>
                     <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Progress</p>
                     <p className="mt-2 text-3xl font-extrabold text-slate-900">25%</p>
-                  </div>
+                  </section>
                   <div className="h-3 w-24 rounded-full bg-slate-200 overflow-hidden">
                     <div className="h-full w-1/4 rounded-full bg-gradient-to-r from-[#035b9d] to-[#3174b7]" />
                   </div>
-                </div>
-              </div>
+                </section>
+              </article>
             </section>
 
             <ProfileForm />
 
-          </div>
+          </article>
         </section>
       </section>
 
       {/* Ambient glow */}
-      <div className="fixed bottom-0 right-0 w-64 h-64 opacity-10 pointer-events-none overflow-hidden">
+      <aside className="fixed bottom-0 right-0 w-64 h-64 opacity-10 pointer-events-none overflow-hidden" aria-hidden="true">
         <div className="w-full h-full bg-[#035b9d] rounded-full blur-[100px]" />
-      </div>
+      </aside>
     </main>
   );
 }
