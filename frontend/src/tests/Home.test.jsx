@@ -42,9 +42,23 @@ describe("Home Page", () => {
     expect(within(header).getByText("GrowthStageSA")).toBeInTheDocument();
     expect(within(header).getByText("For Learners")).toBeInTheDocument();
     expect(within(header).getByText("For Employers")).toBeInTheDocument();
+    expect(within(header).getByRole("button", { name: /For Learners/i })).toHaveAttribute("aria-expanded", "false");
+    expect(within(header).getByRole("button", { name: /For Employers/i })).toHaveAttribute("aria-expanded", "false");
     expect(within(header).getAllByText("Sign In").length).toBeGreaterThan(0);
     expect(within(header).getByText("Create Account")).toBeInTheDocument();
     expect(within(header).getByText("Register Organization")).toBeInTheDocument();
+  });
+
+  test("opens learner dropdown on keyboard focus", () => {
+    renderHome();
+
+    const learnersButton = screen.getByRole("button", { name: /For Learners/i });
+    expect(learnersButton).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.focus(learnersButton);
+
+    expect(learnersButton).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByText("Create Account")).toBeInTheDocument();
   });
 
   test("renders hero section with correct heading", () => {
@@ -186,11 +200,17 @@ describe("Home Page", () => {
   test("dropdown nav options point to the right login pages", () => {
     renderHome();
 
-    const signInButtons = screen.getAllByText("Sign In");
-    fireEvent.click(signInButtons[0]);
+    const learnersButton = screen.getByRole("button", { name: /For Learners/i });
+    const employersButton = screen.getByRole("button", { name: /For Employers/i });
+    const learnersMenu = learnersButton.closest("section");
+    const employersMenu = employersButton.closest("section");
+
+    fireEvent.click(learnersButton);
+    fireEvent.click(within(learnersMenu).getByRole("button", { name: "Sign In" }));
     expect(mockNavigate).toHaveBeenCalledWith("/app-login");
 
-    fireEvent.click(signInButtons[1]);
+    fireEvent.click(employersButton);
+    fireEvent.click(within(employersMenu).getByRole("button", { name: "Sign In" }));
     expect(mockNavigate).toHaveBeenCalledWith("/prov-login");
   });
 });

@@ -33,16 +33,15 @@ function ChartSkeleton({ height = 300 }) {
     >
       <h3 className="h-4 w-40 bg-gray-200 rounded mb-2" aria-hidden="true" />
       <p className="h-3 w-56 bg-gray-100 rounded mb-6" aria-hidden="true" />
-      <figure className="flex items-end gap-3 px-2" style={{ height }}>
+      <div className="flex items-end gap-3 px-2" style={{ height }} aria-hidden="true">
         {[65, 90, 50, 78, 42, 85, 60, 35, 72, 55, 40, 68].map((h, i) => (
-          <figcaption
+          <div
             key={i}
             className="flex-1 bg-gray-100 rounded-t"
             style={{ height: `${h}%` }}
-            aria-hidden="true"
           />
         ))}
-      </figure>
+      </div>
     </article>
   );
 }

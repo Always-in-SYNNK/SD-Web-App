@@ -98,10 +98,9 @@ export default function AdminSection({ isAdmin, source = "applicant" }) {
       <section className="space-y-2">
         <article className={`w-full px-4 py-3 rounded-lg border ${cfg.pill} opacity-80 cursor-not-allowed`}>
           <header className="flex items-center gap-3">
-            {/* material icon via svg — replaced span with svg and aria-hidden */}
-            <svg className={`material-symbols-outlined text-base leading-none ${cfg.icon_color}`} aria-hidden="true" width="16" height="16">
-              <use href={`#icon-${cfg.icon}`} />
-            </svg>
+            <span className={`material-symbols-outlined text-base leading-none ${cfg.icon_color}`} aria-hidden="true">
+              {cfg.icon}
+            </span>
             <div className="min-w-0">
               <p className="text-sm font-semibold whitespace-nowrap">Admin Portal</p>
               <p className="mt-1 inline-flex text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-current/20 bg-white/60">

@@ -8,6 +8,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -38,6 +39,16 @@ export default function Home() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDropdownFocus = (name) => {
+    setOpenDropdown(name);
+  };
+
+  const handleDropdownBlur = (event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      setOpenDropdown(null);
+    }
   };
 
   const testimonials = [
@@ -78,16 +89,24 @@ export default function Home() {
           {/* CTA Buttons - Clear distinction between applicant and employer */}
           <section className="flex gap-3">
             {/* Applicant Dropdown */}
-            <section className="relative group">
+            <section
+              className="relative group"
+              onMouseEnter={() => setOpenDropdown("learners")}
+              onMouseLeave={() => setOpenDropdown((current) => (current === "learners" ? null : current))}
+              onFocusCapture={() => handleDropdownFocus("learners")}
+              onBlurCapture={handleDropdownBlur}
+            >
               <button 
+                type="button"
+                onClick={() => setOpenDropdown((current) => (current === "learners" ? null : "learners"))}
                 className="px-5 py-2 rounded-full text-sm font-semibold text-[#004377] border border-[#004377] hover:bg-[#d2e4ff] transition-all flex items-center gap-1"
                 aria-haspopup="true"
-                aria-expanded="false"
+                aria-expanded={openDropdown === "learners"}
               >
                 For Learners
                 <i className="material-symbols-outlined text-base" aria-hidden="true">expand_more</i>
               </button>
-              <ul className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <ul className={`absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 transition-all duration-200 z-50 ${openDropdown === "learners" ? "opacity-100 visible" : "opacity-0 invisible"} group-hover:opacity-100 group-hover:visible`}>
                 <li>
                   <button onClick={() => navigate("/app-login")} className="w-full text-left px-4 py-3 text-sm text-[#004377] hover:bg-[#d2e4ff] first:rounded-t-xl transition-colors font-medium">
                     Sign In
@@ -102,16 +121,24 @@ export default function Home() {
             </section>
 
             {/* Employer Dropdown */}
-            <section className="relative group">
+            <section
+              className="relative group"
+              onMouseEnter={() => setOpenDropdown("employers")}
+              onMouseLeave={() => setOpenDropdown((current) => (current === "employers" ? null : current))}
+              onFocusCapture={() => handleDropdownFocus("employers")}
+              onBlurCapture={handleDropdownBlur}
+            >
               <button 
+                type="button"
+                onClick={() => setOpenDropdown((current) => (current === "employers" ? null : "employers"))}
                 className="px-5 py-2 rounded-full text-sm font-semibold bg-[#f59e0b] text-white hover:brightness-110 transition-all flex items-center gap-1 shadow-sm"
                 aria-haspopup="true"
-                aria-expanded="false"
+                aria-expanded={openDropdown === "employers"}
               >
                 For Employers
                 <i className="material-symbols-outlined text-base" aria-hidden="true">expand_more</i>
               </button>
-              <ul className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <ul className={`absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 transition-all duration-200 z-50 ${openDropdown === "employers" ? "opacity-100 visible" : "opacity-0 invisible"} group-hover:opacity-100 group-hover:visible`}>
                 <li>
                   <button onClick={() => navigate("/prov-login")} className="w-full text-left px-4 py-3 text-sm text-[#f59e0b] hover:bg-[#fff7ed] first:rounded-t-xl transition-colors font-medium">
                     Sign In
@@ -297,7 +324,7 @@ export default function Home() {
       </section>
 
       {showScrollButton && (
-        <button onClick={scrollToTop} className="fixed bottom-22 right-8 bg-[#f59e0b] text-white p-3 rounded-full shadow-lg hover:bg-[#ea580c] transition-all z-50">
+        <button onClick={scrollToTop} className="fixed bottom-24 right-8 bg-[#f59e0b] text-white p-3 rounded-full shadow-lg hover:bg-[#ea580c] transition-all z-50">
           <i className="material-symbols-outlined">arrow_upward</i>
         </button>
       )}
