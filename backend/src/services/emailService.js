@@ -1,41 +1,103 @@
+// backend/src/services/emailService.js
 import nodemailer from "nodemailer";
 
-// Check if email is configured on startup
-// console.log('📧 Email Service Loading...');
-// console.log('📧 EMAIL_USER configured:', !!process.env.EMAIL_USER);
-// console.log('📧 EMAIL_PASS configured:', !!process.env.EMAIL_PASS);
+let transporter = null;
+let initializationError = null;
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    debug: false,
-    logger: false
-});
-
-// Verify transporter connection on startup
-transporter.verify((error, success) => {
-    if (error) {
-        console.error('❌ Email transporter verification failed:', error.message);
-    } else {
-        // console.log('✅ Email transporter ready to send emails');
+// Initialize email transporter with better error handling
+function initializeTransporter() {
+    if (transporter) {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            initializationError = 'Email credentials missing';
+            console.error('❌ Email credentials missing!');
+            transporter = null;
+            return null;
+        }
+        return transporter;
     }
-});
+    
+    console.log('📧 Email Service Initializing...');
+    console.log('📧 EMAIL_USER:', process.env.EMAIL_USER ? '✅ Set' : '❌ Missing');
+    console.log('📧 EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ Set' : '❌ Missing');
+    console.log('📧 NODE_ENV:', process.env.NODE_ENV || 'development');
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        initializationError = 'Email credentials missing';
+        console.error('❌ Email credentials missing!');
+        return null;
+    }
+    
+    try {
+        transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            },
+            // Better production settings
+            pool: true,
+            maxConnections: 5,
+            maxMessages: 100,
+            rateLimit: 5,
+            secure: true,
+            debug: process.env.NODE_ENV === 'development',
+            logger: process.env.NODE_ENV === 'development'
+        });
+        
+        // Verify connection asynchronously
+        transporter.verify((error, success) => {
+            if (error) {
+                console.error('❌ Email verification failed:', error.message);
+                initializationError = error.message;
+                transporter = null;
+            } else {
+                console.log('✅ Email transporter ready');
+                initializationError = null;
+            }
+        });
+        
+        return transporter;
+    } catch (error) {
+        console.error('❌ Failed to create transporter:', error.message);
+        initializationError = error.message;
+        return null;
+    }
+}
+
+export function resetTransporter() {
+    transporter = null;
+    initializationError = null;
+}
+
+// Helper to check if email is configured
+export function isEmailConfigured() {
+    return !!process.env.EMAIL_USER && !!process.env.EMAIL_PASS && transporter !== null;
+}
 
 async function sendVerificationEmail(to, verificationToken, name) {
-    const backendUrl = process.env.BASE_URL || 'http://localhost:3000';
-    const verificationLink = `${backendUrl}/verify-email?token=${verificationToken}`;
+    const transporter = initializeTransporter();
+    
+    if (!transporter) {
+        console.error('❌ Cannot send email:', initializationError || 'Transporter not initialized');
+        return { success: false, error: initializationError || 'Email service not configured' };
+    }
+    
+    // Use environment URLs with fallbacks
+    const frontendUrl = process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:5173';
+    const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
+    
+    console.log(`📧 Sending verification email to: ${to}`);
+    console.log(`🔗 Verification link: ${verificationLink}`);
     
     const htmlContent = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Verify Your Email</title>
         </head>
-        <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
             <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
                 <tr>
                     <td align="center">
@@ -59,42 +121,52 @@ async function sendVerificationEmail(to, verificationToken, name) {
                                 </td>
                             </tr>
                         </table>
-                    </tr>
+                    </td>
                 </tr>
             </table>
         </body>
         </html>
     `;
     
-    try {
-        await transporter.sendMail({
-            from: `"SA Learnerships Portal" <${process.env.EMAIL_USER}>`,
-            to: to,
-            subject: 'Verify Your Email - SA Learnerships Portal',
-            html: htmlContent
-        });
-        // console.log(`✅ Verification email sent to ${to}`);
-        return { success: true };
-    } catch (error) {
-        console.error('❌ Failed to send email:', error.message);
-        throw error;
+    // Retry logic (3 attempts)
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            const result = await transporter.sendMail({
+                from: `"SA Learnerships Portal" <${process.env.EMAIL_USER}>`,
+                to: to,
+                subject: 'Verify Your Email - SA Learnerships Portal',
+                html: htmlContent
+            });
+            
+            console.log(`✅ Verification email sent to ${to} (attempt ${attempt})`);
+            console.log(`📧 Message ID: ${result.messageId}`);
+            return { success: true, messageId: result.messageId };
+        } catch (error) {
+            lastError = error;
+            console.error(`❌ Attempt ${attempt} failed:`, error.message);
+            
+            if (attempt < 3) {
+                // Wait 2 seconds before retry
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
     }
+    
+    console.error('❌ All attempts failed for verification email');
+    throw lastError;
 }
 
 export async function sendEmailNotification({ to, name, type, title, message, metadata }) {
-    // Debug logging
-    // console.log(`📧 Attempting to send email to: ${to}`);
-    // console.log(`📧 Email subject: ${title}`);
-    // console.log(`📧 Email type: ${type}`);
+    const transporter = initializeTransporter();
     
-    // Check if email is configured
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error('❌ Email not configured. Missing EMAIL_USER or EMAIL_PASS in .env');
-        return { success: false, error: 'Email not configured' };
+    if (!transporter) {
+        console.error('❌ Cannot send notification:', initializationError || 'Transporter not initialized');
+        return { success: false, error: initializationError || 'Email service not configured' };
     }
     
     const appName = "GrowthStageSA";
-    const backendUrl = process.env.BASE_URL || 'http://localhost:3000';
+    const frontendUrl = process.env.FRONTEND_URL || process.env.BASE_URL || 'http://localhost:5173';
     
     // Different styling based on notification type
     let headerColor = '#035b9d';
@@ -109,6 +181,9 @@ export async function sendEmailNotification({ to, name, type, title, message, me
     } else if (type === '24_hour_reminder') {
         headerColor = '#ef4444';
         emoji = '⚠️';
+    } else if (type === 'matching_opportunity') {
+        headerColor = '#8b5cf6';
+        emoji = '🎯';
     }
     
     const htmlContent = `
@@ -116,6 +191,7 @@ export async function sendEmailNotification({ to, name, type, title, message, me
         <html lang="en">
         <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>${title} | ${appName}</title>
         </head>
         <body style="font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; background-color: #f0eeea;">
@@ -134,12 +210,12 @@ export async function sendEmailNotification({ to, name, type, title, message, me
                                 <td style="padding: 35px;">
                                     <h2 style="color: #1b1c1c; margin-top: 0; font-size: 20px;">Hello ${name || 'there'},</h2>
                                     <p style="color: #404850; line-height: 1.6; margin: 15px 0; font-size: 16px;">${message}</p>
-                                    <p style="color: #404850; line-height: 1.6; margin: 15px 0;">Please log in to your GrowthStageSA account to view this opportunity and submit your application.</p>
+                                    <p style="color: #404850; line-height: 1.6; margin: 15px 0;">Please log in to your ${appName} account to view this opportunity and submit your application.</p>
                                     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;">
                                     <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">
                                         You're receiving this because you have a student profile on ${appName}.
                                         <br>
-                                        <a href="${backendUrl}/settings/notifications" style="color: #035b9d;">Manage preferences</a>
+                                        <a href="${frontendUrl}/settings/notifications" style="color: #035b9d;">Manage preferences</a>
                                     </p>
                                 </td>
                             </tr>
@@ -157,21 +233,31 @@ export async function sendEmailNotification({ to, name, type, title, message, me
         </html>
     `;
     
-    try {
-        const result = await transporter.sendMail({
-            from: `"${appName}" <${process.env.EMAIL_USER}>`,
-            to: to,
-            subject: title,
-            html: htmlContent
-        });
-        // console.log(`✅ Notification email sent to ${to}: ${title}`);
-        // console.log(`📧 Message ID: ${result.messageId}`);
-        return { success: true, messageId: result.messageId };
-    } catch (error) {
-        console.error('❌ Failed to send notification email:', error.message);
-        // console.error('❌ Error details:', error);
-        return { success: false, error: error.message };
+    // Retry logic (3 attempts)
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+            const result = await transporter.sendMail({
+                from: `"${appName}" <${process.env.EMAIL_USER}>`,
+                to: to,
+                subject: title,
+                html: htmlContent
+            });
+            
+            console.log(`✅ Notification email sent to ${to}: ${title} (attempt ${attempt})`);
+            return { success: true, messageId: result.messageId };
+        } catch (error) {
+            lastError = error;
+            console.error(`❌ Attempt ${attempt} failed for ${to}:`, error.message);
+            
+            if (attempt < 3) {
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
     }
+    
+    console.error(`❌ All attempts failed for notification to ${to}`);
+    return { success: false, error: lastError.message };
 }
 
 export default sendVerificationEmail;

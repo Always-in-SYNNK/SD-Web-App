@@ -5,6 +5,7 @@ const mockFrom = jest.fn();
 const mockRpc = jest.fn();
 const mockCreateNotification = jest.fn();
 const mockSendEmailNotification = jest.fn();
+const mockIsEmailConfigured = jest.fn(() => true);
 const mockMatchingOpportunity = jest.fn();
 
 jest.unstable_mockModule("../src/config/supabaseClient.js", () => ({
@@ -20,6 +21,7 @@ jest.unstable_mockModule("../src/services/notificationService.js", () => ({
 
 jest.unstable_mockModule("../src/services/emailService.js", () => ({
   sendEmailNotification: mockSendEmailNotification,
+  isEmailConfigured: mockIsEmailConfigured,
 }));
 
 jest.unstable_mockModule("../src/services/opportunityService.js", () => ({
@@ -39,7 +41,9 @@ describe("reminderService", () => {
     mockRpc.mockReset();
     mockCreateNotification.mockReset();
     mockSendEmailNotification.mockReset();
+    mockIsEmailConfigured.mockReset();
     mockMatchingOpportunity.mockReset();
+    mockIsEmailConfigured.mockReturnValue(true);
     // Suppress console logs during tests
     jest.spyOn(console, "log").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -51,6 +55,7 @@ describe("reminderService", () => {
 
   describe("sendClosingDateReminders", () => {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(today.getDate() + 7);
     const oneDayLater = new Date(today);
