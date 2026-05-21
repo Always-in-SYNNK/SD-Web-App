@@ -16,6 +16,9 @@ export default function OpportunityDetail() {
   const [provider, setProvider] = useState(null);
 
   useEffect(() => {
+    // When the opportunity loads and includes a provider_id,
+    // fetch that provider's profile details from Supabase.
+    // This keeps provider data separate from the main opportunity object.
     if (!opportunity?.provider_id) return;
 
     const fetchProvider = async () => {
@@ -31,6 +34,8 @@ export default function OpportunityDetail() {
   }, [opportunity?.provider_id]);
 
   useEffect(() => {
+    // Fetch skill tags associated with this opportunity from the API.
+    // The skills are shown below the opportunity details once loaded.
     const fetchSkills = async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/skills/opportunity/${id}`);
@@ -44,6 +49,8 @@ export default function OpportunityDetail() {
   }, [id]);
 
   useEffect(() => {
+    // Load the main opportunity record from Supabase by its id.
+    // This effect runs once when the id param changes.
     const fetchOpportunity = async () => {
       const { data, error } = await supabase
         .from("opportunities")
@@ -63,6 +70,8 @@ export default function OpportunityDetail() {
   }, [id]);
 
   useEffect(() => {
+    // Check whether the current user has already applied for this opportunity.
+    // This determines whether the Apply button should be disabled.
     const fetchAppliedState = async () => {
       try {
         const applications = await fetchMyApplications();
@@ -86,7 +95,9 @@ export default function OpportunityDetail() {
   const handleApply = async (event) => {
     event.stopPropagation();
 
-    if (applied || applying) return;
+    if (applied || applying) {
+      return;
+    }
 
     try {
       setApplying(true);
@@ -94,6 +105,7 @@ export default function OpportunityDetail() {
       setApplied(true);
     } catch (err) {
       const message = err?.response?.data?.error || "Failed to apply";
+
       if (String(message).toLowerCase().includes("already applied")) {
         setApplied(true);
       }
@@ -139,6 +151,7 @@ export default function OpportunityDetail() {
     );
   }
 
+  // Format stipend and closing date for display in the UI.
   const formattedStipend = opportunity.stipend
     ? `R${Number(opportunity.stipend).toLocaleString()}/month`
     : "Unpaid";
@@ -200,12 +213,12 @@ export default function OpportunityDetail() {
         {/* Info cards */}
         <section className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           {[
-            { label: "Stipend",            value: formattedStipend },
-            { label: "Duration",           value: opportunity.duration   || "Not specified" },
-            { label: "Location",           value: opportunity.location   || "Not specified" },
-            { label: "Closing Date",       value: formattedDate },
-            { label: "Field",              value: opportunity.field      || "Not specified" },
-            { label: "Required NQF Level", value: opportunity.nqf_level  ? `NQF Level ${opportunity.nqf_level}` : "Not specified" },
+            { label: "Stipend", value: formattedStipend },
+            { label: "Duration", value: opportunity.duration || "Not specified" },
+            { label: "Location", value: opportunity.location || "Not specified" },
+            { label: "Closing Date", value: formattedDate },
+            { label: "Field", value: opportunity.field || "Not specified" },
+            { label: "Required NQF Level", value: opportunity.nqf_level ? `NQF Level ${opportunity.nqf_level}` : "Not specified" },
           ].map(({ label, value }) => (
             <article key={label} className="bg-white rounded-xl border border-gray-100 p-5">
               <strong className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">

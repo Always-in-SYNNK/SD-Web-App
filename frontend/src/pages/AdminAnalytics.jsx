@@ -130,7 +130,7 @@ function StatusDistributionChart({ data }) {
           {Object.entries(applicationStatuses).map(([status, count]) => {
             const percentage = total ? Math.round((count / total) * 100) : 0;
             return (
-              <div key={status} className="space-y-1">
+              <section key={status} className="space-y-1" aria-label={`${statusConfig[status].label} status`}>
                 <div className="flex justify-between text-sm">
                   <dt className="font-medium text-gray-700 capitalize">
                     {statusConfig[status].label}
@@ -146,7 +146,7 @@ function StatusDistributionChart({ data }) {
                     aria-label={`${percentage} percent`}
                   />
                 </figure>
-              </div>
+              </section>
             );
           })}
         </dl>
@@ -176,7 +176,7 @@ function TopOpportunitiesChart({ data }) {
       ) : (
         <dl className="space-y-3">
           {top5.map((item, index) => (
-            <div key={item.opportunityId} className="space-y-1">
+            <section key={item.opportunityId} className="space-y-1" aria-label={`Top opportunity ${index + 1}`}>
               <div className="flex justify-between text-sm">
                 <dt className="font-medium text-gray-700 truncate max-w-[200px]">
                   #{index + 1} {item.opportunityTitle}
@@ -190,7 +190,7 @@ function TopOpportunitiesChart({ data }) {
                   aria-label={`${Math.round((item.count / maxCount) * 100)} percent`}
                 />
               </figure>
-            </div>
+            </section>
           ))}
         </dl>
       )}
@@ -308,17 +308,17 @@ export default function AdminAnalytics() {
   const exportDisabled = isExporting || tableData.length === 0;
 
   return (
-    <div className="flex min-h-screen bg-[#faf9f8]">
+    <section className="flex min-h-screen bg-[#faf9f8]">
       <SidebarComponent />
 
       <main className="ml-64 min-h-screen w-full min-w-0">
         <AdminTopbar title="Admin Analytics" source={source} />
 
-        <div className="p-12">
+        <section className="p-12">
 
           {/* ── Header ── */}
           <header className="mb-8 flex items-start justify-between">
-            <div>
+            <section>
               <p className="text-sm font-semibold tracking-wider text-[#035b9d] uppercase">
                 System Control Room
               </p>
@@ -328,7 +328,7 @@ export default function AdminAnalytics() {
               <p className="text-gray-500 mt-2">
                 Application volume per approved opportunity and placement rates per sector.
               </p>
-            </div>
+            </section>
 
             <nav className="flex gap-3 mt-1" aria-label="Export Actions">
               <button
@@ -436,8 +436,8 @@ export default function AdminAnalytics() {
             />
           </section>
 
-        </div>
+        </section>
       </main>
-    </div>
+    </section>
   );
 }
