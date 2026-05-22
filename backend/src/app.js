@@ -65,8 +65,8 @@ app.use("/api/notifications", notificationRoutes);
 // ========== NEW ENDPOINTS (ADD THESE ONLY - SAFE TO ADD) ==========
 // Health check (useful for Render to keep alive)
 app.get("/api/health", (req, res) => {
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     message: "API is running",
     timestamp: new Date().toISOString(),
     emailConfigured: isEmailConfigured()
@@ -78,14 +78,22 @@ app.get("/api/trigger-reminders", async (req, res) => {
   await triggerRemindersManually(req, res);
 });
 
+const requireTestEmailConfigSecret = (req, res, next) => {
+  const configuredSecret = process.env.TEST_EMAIL_CONFIG_SECRET;
+  const providedSecret = req.get("x-test-email-config-secret");
+  if (!configuredSecret || providedSecret !== configuredSecret) {
+    return res.status(404).json({
+      success: false,
+      message: "Not found"
+    });
+  }
+  next();
+};
 // Test email config endpoint (remove in production)
-app.get("/api/test-email-config", (req, res) => {
+app.get("/api/test-email-config", requireTestEmailConfigSecret, (req, res) => {
   res.json({
-    emailConfigured: isEmailConfigured(),
-    hasEmailUser: !!process.env.EMAIL_USER,
-    hasEmailPass: !!process.env.EMAIL_PASS,
-    frontendUrl: process.env.FRONTEND_URL,
-    nodeEnv: process.env.NODE_ENV
+    success: true,
+    emailConfigured: isEmailConfigured()
   });
 });
 // ========== END NEW ENDPOINTS ==========
@@ -272,7 +280,7 @@ app.get("/verify-email", async (req, res) => {
       </body>
       </html>
     `;
-    
+
     return res.send(successHtml);
 
   } catch (err) {

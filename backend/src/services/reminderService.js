@@ -33,16 +33,17 @@ async function sendReminderToApplicant(applicantId, opportunityId, applicationId
         });
 
         // Send email if available
-        if (profile.email && isEmailConfigured()) {
-            await sendEmailNotification({
-                to: profile.email,
-                name: profile.full_name,
-                type: type,
-                title: title,
-                message: message,
-                metadata: { opportunity_id: opportunityId, application_id: applicationId }
-            });
-        }
+        //No need for this email to be sent as the createNotification function sends emails
+        // if (profile.email && isEmailConfigured()) {
+        //     await sendEmailNotification({
+        //         to: profile.email,
+        //         name: profile.full_name,
+        //         type: type,
+        //         title: title,
+        //         message: message,
+        //         metadata: { opportunity_id: opportunityId, application_id: applicationId }
+        //     });
+        // }
     } catch (error) {
         console.error(`Error sending reminder to applicant ${applicantId}:`, error);
     }
@@ -196,20 +197,20 @@ export async function notifyMatchingOpportunities() {
                 });
 
                 // Send email if configured
-                if (applicant.profiles?.email && isEmailConfigured()) {
-                    await sendEmailNotification({
-                        to: applicant.profiles.email,
-                        name: applicant.profiles.full_name || "Applicant",
-                        type: "matching_opportunity",
-                        title: title,
-                        message: message,
-                        metadata: {
-                            opportunity_id: opp.id,
-                            score: opp.score,
-                            skill_match_count: opp.skillMatchCount
-                        }
-                    });
-                }
+                // if (applicant.profiles?.email && isEmailConfigured()) {
+                //     await sendEmailNotification({
+                //         to: applicant.profiles.email,
+                //         name: applicant.profiles.full_name || "Applicant",
+                //         type: "matching_opportunity",
+                //         title: title,
+                //         message: message,
+                //         metadata: {
+                //             opportunity_id: opp.id,
+                //             score: opp.score,
+                //             skill_match_count: opp.skillMatchCount
+                //         }
+                //     });
+                // }
 
                 successCount++;
                 console.log(`✅ Matching notification to applicant ${applicant.id} for ${opp.title}`);

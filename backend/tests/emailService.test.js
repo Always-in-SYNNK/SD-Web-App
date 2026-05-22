@@ -46,7 +46,6 @@ describe("emailService", () => {
   });
 
   afterEach(() => {
-    // Clean up
     delete process.env.EMAIL_USER;
     delete process.env.EMAIL_PASS;
     delete process.env.BASE_URL;
@@ -79,9 +78,7 @@ describe("emailService", () => {
       await sendVerificationEmail(mockEmail, mockToken, mockName);
 
       const callArgs = mockSendMail.mock.calls[0][0];
-      expect(callArgs.html).toContain(
-        `verify-email?token=${mockToken}`
-      );
+      expect(callArgs.html).toContain(`verify-email?token=${mockToken}`);
     });
 
     test("should handle missing name", async () => {
@@ -100,11 +97,10 @@ describe("emailService", () => {
       mockSendMail.mockRejectedValue(error);
       mockVerify.mockImplementationOnce((callback) => callback(null, true));
 
-      await expect(
-        sendVerificationEmail(mockEmail, mockToken, mockName)
-      ).rejects.toThrow("SMTP connection failed");
-      
-      // Should have attempted 3 times
+      await expect(sendVerificationEmail(mockEmail, mockToken, mockName)).rejects.toThrow(
+        "SMTP connection failed"
+      );
+
       expect(mockSendMail).toHaveBeenCalledTimes(3);
     });
 
@@ -116,9 +112,7 @@ describe("emailService", () => {
       await sendVerificationEmail(mockEmail, mockToken, mockName);
 
       const callArgs = mockSendMail.mock.calls[0][0];
-      expect(callArgs.html).toContain(
-        "https://myapp.netlify.app/verify-email?token="
-      );
+      expect(callArgs.html).toContain("https://myapp.netlify.app/verify-email?token=");
     });
   });
 
@@ -160,9 +154,7 @@ describe("emailService", () => {
       await sendEmailNotification(mockNotificationData);
 
       const callArgs = mockSendMail.mock.calls[0][0];
-      expect(callArgs.html).toContain(
-        "A new software developer opportunity has been posted."
-      );
+      expect(callArgs.html).toContain("A new software developer opportunity has been posted.");
     });
 
     test("should handle new_opportunity notification type", async () => {
@@ -211,10 +203,11 @@ describe("emailService", () => {
 
     test("should return error when email not configured", async () => {
       delete process.env.EMAIL_USER;
-      
-      // Re-import to trigger new initialization
-      const { sendEmailNotification: sendEmailNotifWithoutConfig } = await import("../src/services/emailService.js");
-      
+
+      const { sendEmailNotification: sendEmailNotifWithoutConfig } = await import(
+        "../src/services/emailService.js"
+      );
+
       const result = await sendEmailNotifWithoutConfig(mockNotificationData);
 
       expect(result.success).toBe(false);
@@ -224,9 +217,11 @@ describe("emailService", () => {
 
     test("should return error when EMAIL_PASS not configured", async () => {
       delete process.env.EMAIL_PASS;
-      
-      const { sendEmailNotification: sendEmailNotifWithoutPass } = await import("../src/services/emailService.js");
-      
+
+      const { sendEmailNotification: sendEmailNotifWithoutPass } = await import(
+        "../src/services/emailService.js"
+      );
+
       const result = await sendEmailNotifWithoutPass(mockNotificationData);
 
       expect(result.success).toBe(false);
@@ -241,7 +236,7 @@ describe("emailService", () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toBe("Network connection failed");
-      expect(mockSendMail).toHaveBeenCalledTimes(3); // Retry logic
+      expect(mockSendMail).toHaveBeenCalledTimes(3);
     });
 
     test("should use correct sender email", async () => {
@@ -272,7 +267,7 @@ describe("emailService", () => {
 
       expect(result.success).toBe(true);
     });
-    
+
     test("should handle matching_opportunity notification type", async () => {
       mockSendMail.mockResolvedValueOnce({ messageId: "msg-456" });
 
