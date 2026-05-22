@@ -53,8 +53,6 @@ cp frontend/.env.example frontend/.env
 
 Recommended keys (examples):
 
-- Backend:
-
 - Backend (examples used in `backend/.env.example`):
 	- `BASE_URL` (e.g. http://localhost:3000)
 	- `CORS_ORIGIN` (frontend origin, e.g. http://localhost:5173)
@@ -71,7 +69,7 @@ Recommended keys (examples):
 - Frontend (Vite env keys):
 	- `VITE_API_URL`
 	- `VITE_SUPABASE_URL`
-	- `VITE_SUPABASE_KEY`
+	- `VITE_SUPABASE_ANON_KEY`
 	- `VITE_GOOGLE_CLIENT_ID`
 
 Production environment variables should be configured via your hosting platform (Render/Netlify/Supabase) and not committed to the repository.
@@ -130,7 +128,7 @@ SD-Web-App/
 ├── backend/
 │   ├── src/
 │   ├── tests/
-|   ├── scripts/
+│   ├── scripts/
 │   ├── .env
 │   ├── .env.example
 │   ├── package.json
@@ -141,7 +139,7 @@ SD-Web-App/
 │   ├── public/
 │   ├── .env
 │   ├── .env.example
-|   ├── README.md
+│   ├── README.md
 │   ├── package.json
 │   └── package-lock.json
 │
