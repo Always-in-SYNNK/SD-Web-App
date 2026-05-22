@@ -18,17 +18,17 @@ import profileRoutes from "./routes/profileRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
-import { startReminderCron } from "./cronJob.js";
+import { startReminderCron, triggerRemindersManually } from "./cronJob.js";
 import chatRoutes from "./routes/chatRoutes.js";
 
 startReminderCron();
 import skillsRoutes from "./routes/skillsRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import { isEmailConfigured } from "./services/emailService.js";
 
 const app = express();
 
-
-// SIMPLE CORS 
+// SIMPLE CORS - UNCHANGED
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   credentials: true,
@@ -48,43 +48,67 @@ app.use(session({
   },
 }));
 
-// ─── Application Routes ───────────────────────────────────────────────────────
+// ─── Application Routes - UNCHANGED ───────────────────────────────────────────
 //app.use('/api/applications', applicationRoutes);
-
-// ─── Skills Routes ───────────────────────────────────────────────────────
 app.use('/api/skills', skillsRoutes);
-
-// ─── Employer Application Routes ──────────────────────────────────────────────
 app.use('/api/employer/applications', employerApplicationRoutes);
-
-// ─── Admin Routes ─────────────────────────────────────────────────────────────
 app.use("/api/admin", adminRoutes);
-
-// ─── Auth routes ─────────────────────────────────────────────────────────────
-
 app.use("/api/auth/applicant", applicantAuthRoutes);
-app.use("/api/auth/provider",  providerAuthRoutes);
-
-// ─── Application routes ────────────────────────────────────────────────────────
-
+app.use("/api/auth/provider", providerAuthRoutes);
 app.use("/applications", myApplicationRoutes);
-
-// ─── Analytics routes ────────────────────────────────────────────────────────
 app.use("/api/analytics", analyticsRoutes);
-//app.use("/api/industries", industryRoutes);
-
-// Chat routes
 app.use("/api/chat", chatRoutes);
+app.use("/api/opportunities", opportunityRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/notifications", notificationRoutes);
 
-// ─── Email verification ───────────────────────────────────────────────────────
+// ========== NEW ENDPOINTS (ADD THESE ONLY - SAFE TO ADD) ==========
+// Health check (useful for Render to keep alive)
+app.get("/api/health", (req, res) => {
+  res.json({
+    success: true,
+    message: "API is running",
+    timestamp: new Date().toISOString(),
+    emailConfigured: isEmailConfigured()
+  });
+});
+
+// Cron trigger endpoint for external services (cron-job.org)
+app.get("/api/trigger-reminders", async (req, res) => {
+  await triggerRemindersManually(req, res);
+});
+
+const requireTestEmailConfigSecret = (req, res, next) => {
+  const configuredSecret = process.env.TEST_EMAIL_CONFIG_SECRET;
+  const providedSecret = req.get("x-test-email-config-secret");
+  if (!configuredSecret || providedSecret !== configuredSecret) {
+    return res.status(404).json({
+      success: false,
+      message: "Not found"
+    });
+  }
+  next();
+};
+// Test email config endpoint (remove in production)
+app.get("/api/test-email-config", requireTestEmailConfigSecret, (req, res) => {
+  res.json({
+    success: true,
+    emailConfigured: isEmailConfigured()
+  });
+});
+// ========== END NEW ENDPOINTS ==========
+
+// ─── Email verification - ONLY FIX THE HARDCODED URLS ─────────────────────────
 import { supabase } from "./config/supabaseClient.js";
 
 app.get("/verify-email", async (req, res) => {
   const { token } = req.query;
 
+  // FIX: Use environment variable instead of hardcoded localhost
+  const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN || "http://localhost:5173";
 
   if (!token) {
-    return res.redirect("http://localhost:5173/auth-error?message=missing-token");
+    return res.redirect(`${frontendUrl}/auth-error?message=missing-token`);
   }
 
   try {
@@ -95,12 +119,12 @@ app.get("/verify-email", async (req, res) => {
       .single();
 
     if (error || !pending) {
-      return res.redirect("http://localhost:5173/auth-error?message=invalid-link");
+      return res.redirect(`${frontendUrl}/auth-error?message=invalid-link`);
     }
 
     if (new Date(pending.token_expires) < new Date()) {
       await supabase.from("pending_verifications").delete().eq("verification_token", token);
-      return res.redirect("http://localhost:5173/auth-error?message=expired-link");
+      return res.redirect(`${frontendUrl}/auth-error?message=expired-link`);
     }
 
     await supabase
@@ -110,8 +134,8 @@ app.get("/verify-email", async (req, res) => {
 
     req.session.pendingVerificationEmail = pending.email;
 
-    return res.send(`
-      <!DOCTYPE html>
+    // FIX: Replace all hardcoded localhost URLs in the HTML response
+    const successHtml = `<!DOCTYPE html>
       <html lang="en">
       <head>
         <meta charset="UTF-8">
@@ -245,7 +269,7 @@ app.get("/verify-email", async (req, res) => {
             <h2>Email Verified</h2>
             <p>Your email has been successfully verified.</p>
             <p class="email">${pending.email}</p>
-            <button onclick="window.location.href='http://localhost:5173/provider-registration'">
+            <button onclick="window.location.href='${frontendUrl}/provider-registration'">
               Continue to Registration →
             </button>
           </section>
@@ -255,17 +279,19 @@ app.get("/verify-email", async (req, res) => {
         </main>
       </body>
       </html>
-    `);
+    `;
+
+    return res.send(successHtml);
 
   } catch (err) {
     console.error("Verification error:", err);
-    return res.redirect("http://localhost:5173/auth-error?message=server-error");
+    return res.redirect(`${frontendUrl}/auth-error?message=server-error`);
   }
 });
 
-// ─── Helper: Error page (redirects to React home) ────────────────────────────
-
+// ─── Helper: Error page - FIX HARDCODED URLS ─────────────────────────────────
 function errorPage(title, message) {
+  const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN || "http://localhost:5173";
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -388,7 +414,7 @@ function errorPage(title, message) {
           <figure class="error-icon">!</figure>
           <h2>${title}</h2>
           <p>${message}</p>
-          <button onclick="window.location.href='http://localhost:5173'">
+          <button onclick="window.location.href='${frontendUrl}'">
             Return to Home
           </button>
         </section>
@@ -401,53 +427,16 @@ function errorPage(title, message) {
   `;
 }
 
-// ─── Mount API routes ────────────────────────────────────────────────────────
+// ─── Mount API routes - UNCHANGED ────────────────────────────────────────────
 app.get("/api/test-route", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "API is running" });
-});
-
-app.use("/api/opportunities", opportunityRoutes);
-
-
-
-// Profile routes
-
-app.use("/api/profile", profileRoutes);
-
-// Notifications routes
-
-app.use("/api/notifications", notificationRoutes);
-
-// ─── 404 fallback ─────────────────────────────────────────────────────────────
-
+// ─── 404 fallback - UNCHANGED ─────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
 });
 
 app.use(errorHandler);
-
-/* Add before the 404 handler
-app.get('/api/test-notification', async (req, res) => {
-    const { sendEmailNotification } = await import('./services/emailService.js');
-    const result = await sendEmailNotification({
-        to: 'dobahnatasha@gmail.com',
-        name: 'Test User',
-        type: 'test',
-        title: 'Test Email from GrowthStage',
-        message: 'This is a test email to verify the notification system is working.'
-    });
-    res.json(result);
-});*/
-
-// ─── Global error handler ─────────────────────────────────────────────────────
-
-// app.use((err, req, res, next) => {
-//   console.error("Unhandled error:", err);
-//   res.status(500).json({ error: "Internal server error" });
-// });
 
 export default app;

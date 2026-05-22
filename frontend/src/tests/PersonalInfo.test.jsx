@@ -5,11 +5,11 @@ import { PersonalInfoSection } from "../components/studentProfile/personalInfo";
 
 const DEFAULT_FORM = {
   full_name: "",
-  surname:   "",
-  bio:       "",
-  location:  "",
+  surname: "",
+  bio: "",
+  location: "",
   nqf_level: "",
-  email:     "",
+  email: "",
 };
 
 function renderSection(formData = DEFAULT_FORM, setFormData = vi.fn()) {
@@ -17,12 +17,16 @@ function renderSection(formData = DEFAULT_FORM, setFormData = vi.fn()) {
 }
 
 describe("PersonalInfoSection", () => {
-
-  // ── Rendering ──────────────────────────────────────────────────────────────
+  //Rendering
 
   it("renders the section title", () => {
     renderSection();
     expect(screen.getByText("Personal Identity")).toBeDefined();
+  });
+
+  it("renders location placeholder text", () => {
+    renderSection();
+    expect(screen.getByRole("combobox")).toBeDefined();
   });
 
   it("renders the subtitle", () => {
@@ -55,10 +59,7 @@ describe("PersonalInfoSection", () => {
     expect(screen.getByPlaceholderText("Tell us about your journey...")).toBeDefined();
   });
 
-  it("renders location placeholder text", () => {
-    renderSection();
-    expect(screen.getByRole("combobox")).toBeDefined();
-  });
+
 
   // ── Pre-populated values ───────────────────────────────────────────────────
 

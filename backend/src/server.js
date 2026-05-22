@@ -8,7 +8,6 @@ dotenv.config();
 
 import cron from "node-cron";
 import app from "./app.js";
-import { triggerUpcomingClosingDateNotifications } from "./services/notificationService.js";
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,43 +1,51 @@
+// backend/src/services/reminderService.js
 import { supabase } from "../config/supabaseClient.js";
 import { createNotification } from "./notificationService.js";
-import { sendEmailNotification } from "./emailService.js";
+import { sendEmailNotification, isEmailConfigured } from "./emailService.js";
 import { matchingOpportunity } from "./opportunityService.js";
 
 async function sendReminderToApplicant(applicantId, opportunityId, applicationId, title, message, type) {
-    const { data: applicantProfile } = await supabase
-        .from("applicant_profiles")
-        .select("profile_id")
-        .eq("id", applicantId)
-        .single();
+    try {
+        const { data: applicantProfile } = await supabase
+            .from("applicant_profiles")
+            .select("profile_id")
+            .eq("id", applicantId)
+            .single();
 
-    if (!applicantProfile) return;
+        if (!applicantProfile) return;
 
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("email, full_name")
-        .eq("id", applicantProfile.profile_id)
-        .single();
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("email, full_name")
+            .eq("id", applicantProfile.profile_id)
+            .single();
 
-    if (!profile) return;
+        if (!profile) return;
 
-    await createNotification({
-        applicantId: applicantId,
-        type: type,
-        title: title,
-        message: message,
-        opportunityId: opportunityId,
-        applicationId: applicationId,
-    });
-
-    if (profile.email) {
-        await sendEmailNotification({
-            to: profile.email,
-            name: profile.full_name,
+        // Create in-app notification
+        await createNotification({
+            applicantId: applicantId,
             type: type,
             title: title,
             message: message,
-            metadata: { opportunity_id: opportunityId, application_id: applicationId }
+            opportunityId: opportunityId,
+            applicationId: applicationId,
         });
+
+        // Send email if available
+        //No need for this email to be sent as the createNotification function sends emails
+        // if (profile.email && isEmailConfigured()) {
+        //     await sendEmailNotification({
+        //         to: profile.email,
+        //         name: profile.full_name,
+        //         type: type,
+        //         title: title,
+        //         message: message,
+        //         metadata: { opportunity_id: opportunityId, application_id: applicationId }
+        //     });
+        // }
+    } catch (error) {
+        console.error(`Error sending reminder to applicant ${applicantId}:`, error);
     }
 }
 
@@ -45,6 +53,7 @@ export async function sendClosingDateReminders() {
     console.log("🔍 Checking for opportunities closing soon...");
 
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const { data: opportunities, error } = await supabase
         .from("opportunities")
@@ -73,9 +82,11 @@ export async function sendClosingDateReminders() {
         return;
     }
 
+    let sentCount = 0;
+
     for (const opp of opportunities || []) {
-        const closingDate = opp.closing_date;
-        const daysUntilClose = Math.ceil((new Date(closingDate) - today) / (1000 * 60 * 60 * 24));
+        const closingDate = new Date(opp.closing_date);
+        const daysUntilClose = Math.ceil((closingDate - today) / (1000 * 60 * 60 * 24));
 
         const shouldSend7Day = daysUntilClose === 7;
         const shouldSend1Day = daysUntilClose === 1;
@@ -93,6 +104,7 @@ export async function sendClosingDateReminders() {
         for (const application of opp.applications || []) {
             if (!application.applicant_profiles?.id) continue;
 
+            // Check if already sent
             const { data: existing } = await supabase
                 .from("applicant_notifications")
                 .select("id")
@@ -112,17 +124,19 @@ export async function sendClosingDateReminders() {
                 notificationType
             );
 
+            sentCount++;
             console.log(`✅ ${notificationType} sent for "${opp.title}"`);
         }
     }
 
-    console.log("✅ Closing date reminder check completed");
+    console.log(`✅ Closing date reminder check completed. Sent: ${sentCount}`);
+    return sentCount;
 }
 
 export async function notifyMatchingOpportunities() {
     console.log("🔍 Checking for new matching opportunities for all applicants...");
 
-    // Fetch all applicant profiles with their linked profile (user, email, name)
+    // Fetch all applicant profiles with their linked profile
     const { data: applicants, error } = await supabase
         .from("applicant_profiles")
         .select(`
@@ -141,16 +155,11 @@ export async function notifyMatchingOpportunities() {
     }
 
     if (!applicants || applicants.length === 0) {
-        console.log("📭 No applicants found in the system. No notifications sent.");
+        console.log("📭 No applicants found in the system");
         return;
     }
 
-    console.log(`📊 Found ${applicants.length} applicants to notify`);
-
-    // Improved notification content
-    //const title = "🎉 New Opportunity Available!";
-    //const message = `Exciting news! "${opportunityTitle}" has been approved and is now open for applications. This opportunity matches your profile - don't wait, apply today!`;
-    
+    console.log(`📊 Found ${applicants.length} applicants to check`);
     let successCount = 0;
 
     for (const applicant of applicants || []) {
@@ -164,7 +173,7 @@ export async function notifyMatchingOpportunities() {
             if (!matchingOpps || matchingOpps.length === 0) continue;
 
             for (const opp of matchingOpps) {
-                // Avoid duplicate notifications
+                // Avoid duplicate notifications (only send once per opportunity)
                 const { data: existing } = await supabase
                     .from("applicant_notifications")
                     .select("id")
@@ -187,73 +196,114 @@ export async function notifyMatchingOpportunities() {
                     opportunityId: opp.id,
                 });
 
-                // Send email notification
-                if (applicant.profiles?.email) {
-                    await sendEmailNotification({
-                        to: applicant.profiles.email,
-                        name: applicant.profiles.full_name || "Applicant",
-                        type: "matching_opportunity",
-                        title: title,
-                        message: message,
-                        metadata: {
-                            opportunity_id: opp.id,
-                            score: opp.score,
-                            skill_match_count: opp.skillMatchCount
-                        }
-                    });
-                }
+                // Send email if configured
+                // if (applicant.profiles?.email && isEmailConfigured()) {
+                //     await sendEmailNotification({
+                //         to: applicant.profiles.email,
+                //         name: applicant.profiles.full_name || "Applicant",
+                //         type: "matching_opportunity",
+                //         title: title,
+                //         message: message,
+                //         metadata: {
+                //             opportunity_id: opp.id,
+                //             score: opp.score,
+                //             skill_match_count: opp.skillMatchCount
+                //         }
+                //     });
+                // }
 
-                console.log(`✅ Matching notification sent to applicant ${applicant.id} for opportunity ${opp.id}`);
+                successCount++;
+                console.log(`✅ Matching notification to applicant ${applicant.id} for ${opp.title}`);
             }
         } catch (err) {
             console.error(`Error processing applicant ${applicant.id}:`, err);
         }
     }
 
-    console.log("✅ Matching opportunities check completed");
+    console.log(`✅ Matching opportunities check completed. Sent: ${successCount}`);
+    return successCount;
 }
 
-// export async function notifyAllApplicantsNewOpportunity(opportunityId, opportunityTitle) {
-//     console.log(`📢 Sending new opportunity notifications for: ${opportunityTitle}`);
-
-//     const { data: applicants, error } = await supabase
-//         .from("applicant_profiles")
-//         .select("id, profile_id");
-
-//     if (error) {
-//         console.error("Error fetching applicants:", error);
-//         return;
-//     }
-
-//     for (const applicant of applicants || []) {
-//         const { data: profile } = await supabase
-//             .from("profiles")
-//             .select("email, full_name")
-//             .eq("id", applicant.profile_id)
-//             .single();
-
-//         const title = "New Matching Opportunity Available! 🎉";
-//         const message = `A new opportunity "${opportunityTitle}" has been posted that matches your profile.`;
-
-//         await createNotification({
-//             applicantId: applicant.id,
-//             type: "new_opportunity",
-//             title: title,
-//             message: message,
-//             opportunityId: opportunityId,
-//         });
-
-//         if (profile?.email) {
-//             await sendEmailNotification({
-//                 to: profile.email,
-//                 name: profile.full_name,
-//                 type: "new_opportunity",
-//                 title: title,
-//                 message: message,
-//                 metadata: { opportunity_id: opportunityId }
-//             });
-//         }
-//     }
-
-//     console.log(`✅ New opportunity notification sent to ${applicants?.length || 0} applicants`);
-// }
+// NEW: Check reminders for a specific user (called on login)
+export async function checkUserRemindersOnLogin(userId) {
+    console.log(`🔍 Checking pending reminders for user ${userId}`);
+    
+    // Get applicant profile
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("user_id", userId)
+        .single();
+    
+    if (!profile) return;
+    
+    const { data: applicant } = await supabase
+        .from("applicant_profiles")
+        .select("id")
+        .eq("profile_id", profile.id)
+        .single();
+    
+    if (!applicant) return;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Get all applications with upcoming closing dates
+    const { data: applications } = await supabase
+        .from("applications")
+        .select(`
+            id,
+            opportunity_id,
+            opportunities (
+                title,
+                closing_date,
+                status
+            )
+        `)
+        .eq("applicant_id", applicant.id)
+        .eq("opportunities.status", "approved")
+        .not("opportunities.closing_date", "is", null);
+    
+    if (!applications) return;
+    
+    let remindersSent = 0;
+    
+    for (const app of applications) {
+        const closingDate = new Date(app.opportunities.closing_date);
+        const daysUntil = Math.ceil((closingDate - today) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntil === 7 || daysUntil === 1) {
+            const type = daysUntil === 7 ? "7_day_reminder" : "24_hour_reminder";
+            const title = daysUntil === 7 
+                ? `Opportunity Closing in 7 Days! ⏰`
+                : `Final Reminder: Closing Tomorrow! ⚠️`;
+            const message = daysUntil === 7
+                ? `"${app.opportunities.title}" closes in 7 days. Make sure your application is submitted!`
+                : `"${app.opportunities.title}" closes TOMORROW! Submit your application now before it's too late.`;
+            
+            // Check if already sent
+            const { data: existing } = await supabase
+                .from("applicant_notifications")
+                .select("id")
+                .eq("applicant_id", applicant.id)
+                .eq("opportunity_id", app.opportunity_id)
+                .eq("type", type)
+                .maybeSingle();
+            
+            if (!existing) {
+                await sendReminderToApplicant(
+                    applicant.id,
+                    app.opportunity_id,
+                    app.id,
+                    title,
+                    message,
+                    type
+                );
+                remindersSent++;
+            }
+        }
+    }
+    
+    console.log(`✅ Sent ${remindersSent} pending reminders to user ${userId}`);
+    return remindersSent;
+}
