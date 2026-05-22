@@ -1,325 +1,175 @@
+# GrowthStageSA - A Learnerships and Skills Development Portal
+
+## Prerequisites
+
+Before running the project locally, ensure the following are installed on your machine:
+
+- Node.js
+- npm (comes with Node.js)
+- Git
+
+---
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/Always-in-SYNNK/SD-Web-App.git
+cd SD-Web-App
+```
+
+---
+
+## Install Dependencies
+
+### Backend
+
+Navigate to the backend folder and install dependencies:
+
+```bash
+cd backend
+npm install
+```
+
+### Frontend
+
+Open a new terminal, navigate to the frontend folder, and install dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+---
+
+## Environment Variables
+
+Example templates are provided at [backend/.env.example](backend/.env.example) and [frontend/.env.example](frontend/.env.example).
+Copy the templates to `.env` and fill with your values before running the app:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+Recommended keys (examples):
+
+- Backend:
+
+- Backend (examples used in `backend/.env.example`):
+	- `BASE_URL` (e.g. http://localhost:3000)
+	- `CORS_ORIGIN` (frontend origin, e.g. http://localhost:5173)
+	- `PORT` (server port, optional)
+	- `GOOGLE_CLIENT_ID`
+	- `GOOGLE_CLIENT_SECRET`
+	- `SESSION_SECRET`
+	- `JWT_SECRET`
+	- `EMAIL_USER` / `EMAIL_PASS` (SMTP credentials for verification emails)
+	- `SUPABASE_URL`
+	- `SUPABASE_ANON_KEY`
+	- `SUPABASE_SERVICE_ROLE_KEY`
+	- `OPENAI_API_KEY` (if using chatbot features)
+- Frontend (Vite env keys):
+	- `VITE_API_URL`
+	- `VITE_SUPABASE_URL`
+	- `VITE_SUPABASE_KEY`
+	- `VITE_GOOGLE_CLIENT_ID`
+
+Production environment variables should be configured via your hosting platform (Render/Netlify/Supabase) and not committed to the repository.
+
+---
+
+## Running the Application
+
+### Start the Backend Server
+
+From the backend folder:
+
+```bash
+npm run dev
+```
+
+### Start the Frontend Application
+
+From the frontend folder:
+
+```bash
+npm run dev
+```
+
+The frontend development server link will appear in the terminal after startup.
+
+
+## Coverage
+
+- **Backend:** From the `backend` folder run:
+
+```bash
+npm run test:coverage
+```
+
+Coverage output is written to `backend/coverage` (HTML and lcov formats).
+
+- **Frontend:** From the `frontend` folder run:
+
+```bash
+npx vitest run --coverage
+```
+
+Frontend coverage artifacts are written to `frontend/coverage`.
+
+---
+
+## Project Structure
 
 ```
-SD1
-├─ backend
-│  ├─ debug_search_10.html
-│  ├─ jest.config.js
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ scripts
-│  │  └─ scrapeSaqua.js
-│  ├─ src
-│  │  ├─ app.js
-│  │  ├─ config
-│  │  │  ├─ googleAuth.js
-│  │  │  └─ supabaseClient.js
-│  │  ├─ controllers
-│  │  │  ├─ adminController.js
-│  │  │  ├─ analyticsController.js
-│  │  │  ├─ authController.js
-│  │  │  ├─ employerApplicationController.js
-│  │  │  ├─ myApplicationController.js
-│  │  │  ├─ notificationController.js
-│  │  │  ├─ opportunityController.js
-│  │  │  ├─ profileController.js
-│  │  │  └─ skillsController.js
-│  │  ├─ cronJob.js
-│  │  ├─ middleware
-│  │  │  ├─ authMiddleware.js
-│  │  │  ├─ errorHandler.js
-│  │  │  ├─ preventSelfModeration.js
-│  │  │  ├─ providerAuthMiddleware.js
-│  │  │  ├─ requireAdmin.js
-│  │  │  ├─ requireAuth.js
-│  │  │  ├─ roleMiddleware.js
-│  │  │  └─ uploadMiddleware.js
-│  │  ├─ routes
-│  │  │  ├─ adminRoutes.js
-│  │  │  ├─ analyticsRoutes.js
-│  │  │  ├─ applicantAuthRoutes.js
-│  │  │  ├─ chatRoutes.js
-│  │  │  ├─ employerApplicationRoutes.js
-│  │  │  ├─ industryRoutes.js
-│  │  │  ├─ myApplicationRoutes.js
-│  │  │  ├─ notificationRoutes.js
-│  │  │  ├─ opportunityRoutes.js
-│  │  │  ├─ profileRoutes.js
-│  │  │  ├─ providerAuthRoutes.js
-│  │  │  └─ skillsRoutes.js
-│  │  ├─ server.js
-│  │  ├─ services
-│  │  │  ├─ adminService.js
-│  │  │  ├─ analyticsService.js
-│  │  │  ├─ emailService.js
-│  │  │  ├─ employerApplicationService.js
-│  │  │  ├─ myApplicationService.js
-│  │  │  ├─ notificationService.js
-│  │  │  ├─ opportunityService.js
-│  │  │  ├─ profileService.js
-│  │  │  ├─ reminderService.js
-│  │  │  └─ skillsService.js
-│  │  └─ utils
-│  │     └─ generateJWT.js
-│  └─ tests
-│     ├─ adminController.test.js
-│     ├─ adminRoutes.test.js
-│     ├─ adminService.test.js
-│     ├─ analyticsController.test.js
-│     ├─ analyticsRoutes.test.js
-│     ├─ analyticsService.test.js
-│     ├─ applicantAuthRoutes.test.js
-│     ├─ authController.test.js
-│     ├─ authMiddleware.test.js
-│     ├─ emailService.test.js
-│     ├─ employerApplicationController.test.js
-│     ├─ employerApplicationRoutes.test.js
-│     ├─ employerApplicationService.test.js
-│     ├─ errorHandler.test.js
-│     ├─ myApplicationController.test.js
-│     ├─ myApplicationRoutes.test.js
-│     ├─ myApplicationService.test.js
-│     ├─ notificationController.test.js
-│     ├─ notificationRoutes.test.js
-│     ├─ notificationService.test.js
-│     ├─ opportunityController.test.js
-│     ├─ opportunityRoutes.test.js
-│     ├─ opportunityService.test.js
-│     ├─ preventSelfModeration.test.js
-│     ├─ profileController.test.js
-│     ├─ profileRoutes.test.js
-│     ├─ profileService.test.js
-│     ├─ providerAuthMiddleware.test.js
-│     ├─ providerAuthRoutes.test.js
-│     ├─ reminderService.test.js
-│     ├─ requireAdmin.test.js
-│     ├─ requireAuth.test.js
-│     ├─ roleMiddleware.test.js
-│     ├─ skillsController.test.js
-│     ├─ skillsRoutes.test.js
-│     ├─ skillsService.test.js
-│     └─ uploadMiddleware.test.js
-├─ codecov.yml
-├─ frontend
-│  ├─ babel.config.cjs
-│  ├─ coverage-run-output.txt
-│  ├─ eslint.config.js
-│  ├─ full-test-output.txt
-│  ├─ index.html
-│  ├─ jest.config.js
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ postcss.config.js
-│  ├─ public
-│  │  ├─ favicon.svg
-│  │  ├─ icons.svg
-│  │  ├─ web.config
-│  │  └─ _redirects
-│  ├─ README.md
-│  ├─ src
-│  │  ├─ App.css
-│  │  ├─ App.jsx
-│  │  ├─ assets
-│  │  │  ├─ hero.png
-│  │  │  ├─ react.svg
-│  │  │  └─ vite.svg
-│  │  ├─ components
-│  │  │  ├─ admin
-│  │  │  │  ├─ AdminSection.jsx
-│  │  │  │  ├─ OpportunitiesTable.jsx
-│  │  │  │  ├─ OpportunityRow.jsx
-│  │  │  │  ├─ StatsGrid.jsx
-│  │  │  │  └─ TopBar.jsx
-│  │  │  ├─ analytics
-│  │  │  │  ├─ ApplicationVolumeChart.jsx
-│  │  │  │  ├─ OpportunityBreakdownTable.jsx
-│  │  │  │  ├─ SectorBarChart.jsx
-│  │  │  │  └─ SectorPieChart.jsx
-│  │  │  ├─ applications
-│  │  │  │  ├─ myApplicationCard.jsx
-│  │  │  │  ├─ myApplicationList.jsx
-│  │  │  │  └─ RecommendedPanel.jsx
-│  │  │  ├─ auth
-│  │  │  │  ├─ AuthFormPanel.jsx
-│  │  │  │  ├─ AuthHeroPanel.jsx
-│  │  │  │  ├─ AuthLayout.jsx
-│  │  │  │  ├─ GoogleLoginButton.jsx
-│  │  │  │  ├─ ProviderGoogleLoginButton.jsx
-│  │  │  │  └─ useAuthFonts.js
-│  │  │  ├─ chat
-│  │  │  │  └─ AIChatWidget.jsx
-│  │  │  ├─ common
-│  │  │  │  └─ FloatingActionButton.jsx
-│  │  │  ├─ dashboard
-│  │  │  │  ├─ ActivityItem.jsx
-│  │  │  │  ├─ AnalyticsCard.jsx
-│  │  │  │  ├─ CVCard.jsx
-│  │  │  │  ├─ DashboardHeader.jsx
-│  │  │  │  ├─ QualificationItem.jsx
-│  │  │  │  ├─ QualificationList.jsx
-│  │  │  │  ├─ Sidebar.jsx
-│  │  │  │  ├─ UploadBanner.jsx
-│  │  │  │  └─ VerificationCard.jsx
-│  │  │  ├─ employer
-│  │  │  │  ├─ EditProviderProfileForm.jsx
-│  │  │  │  └─ EmployerApplicationCard.jsx
-│  │  │  ├─ forms
-│  │  │  │  └─ OpportunityForm.jsx
-│  │  │  ├─ Hero.jsx
-│  │  │  ├─ home
-│  │  │  │  └─ SAMap.jsx
-│  │  │  ├─ HowItWorks.jsx
-│  │  │  ├─ layout
-│  │  │  │  ├─ AdminTopbar.jsx
-│  │  │  │  ├─ Sidebar.jsx
-│  │  │  │  └─ Topbar.jsx
-│  │  │  ├─ Navbar.jsx
-│  │  │  ├─ notifications
-│  │  │  │  ├─ notificationDropdown.jsx
-│  │  │  │  └─ ProviderNotificationDropdown.jsx
-│  │  │  ├─ opportunities
-│  │  │  │  ├─ matchingOpportunity.jsx
-│  │  │  │  ├─ OpportunityCard.jsx
-│  │  │  │  ├─ OpportunityFilters.jsx
-│  │  │  │  └─ OpportunityList.jsx
-│  │  │  ├─ PortalCard.jsx
-│  │  │  ├─ qualifications
-│  │  │  │  ├─ QualificationCard.jsx
-│  │  │  │  └─ QualificationFilters.jsx
-│  │  │  └─ studentProfile
-│  │  │     ├─ connectivity.jsx
-│  │  │     ├─ cvUpload.jsx
-│  │  │     ├─ editProfileForm.jsx
-│  │  │     ├─ education.jsx
-│  │  │     ├─ personalInfo.jsx
-│  │  │     ├─ profileForm.jsx
-│  │  │     ├─ qualifications.jsx
-│  │  │     └─ skills.jsx
-│  │  ├─ context
-│  │  │  ├─ AuthContext.jsx
-│  │  │  ├─ authContextValue.js
-│  │  │  └─ useAuth.js
-│  │  ├─ index.css
-│  │  ├─ lib
-│  │  │  ├─ api.js
-│  │  │  └─ supabaseClient.js
-│  │  ├─ main.jsx
-│  │  ├─ pages
-│  │  │  ├─ AdminAccessApplications.jsx
-│  │  │  ├─ AdminAnalytics.jsx
-│  │  │  ├─ AdminConsole.jsx
-│  │  │  ├─ AnalyticsPage.jsx
-│  │  │  ├─ ApplicantLogin.jsx
-│  │  │  ├─ AuthDenied.jsx
-│  │  │  ├─ AuthError.jsx
-│  │  │  ├─ CreateStudentProfile.jsx
-│  │  │  ├─ EditProviderProfile.jsx
-│  │  │  ├─ EditStudentProfile.jsx
-│  │  │  ├─ EmployerApplications.jsx
-│  │  │  ├─ Home.jsx
-│  │  │  ├─ MyApplications.jsx
-│  │  │  ├─ Notifications.jsx
-│  │  │  ├─ Opportunities.jsx
-│  │  │  ├─ OpportunityDetail.jsx
-│  │  │  ├─ PostOpportunity.jsx
-│  │  │  ├─ ProviderLogin.jsx
-│  │  │  ├─ ProviderRegistration.jsx
-│  │  │  ├─ QualificationDetail.jsx
-│  │  │  ├─ Qualifications.jsx
-│  │  │  ├─ StudentDashboard.jsx
-│  │  │  ├─ ValidationPipeline.jsx
-│  │  │  ├─ ViewProviderProfile.jsx
-│  │  │  └─ ViewStudentProfile.jsx
-│  │  ├─ routes
-│  │  │  └─ protectedRoute.jsx
-│  │  ├─ services
-│  │  │  ├─ adminAnalyticsService.js
-│  │  │  ├─ adminService.js
-│  │  │  ├─ analyticsService.js
-│  │  │  ├─ authService.js
-│  │  │  ├─ countryService.js
-│  │  │  ├─ employerApplicationService.js
-│  │  │  ├─ exportService.js
-│  │  │  ├─ matchingService.js
-│  │  │  ├─ myApplicationService.js
-│  │  │  ├─ opportunityService.js
-│  │  │  └─ providerProfileService.js
-│  │  ├─ setupTests.js
-│  │  └─ tests
-│  │     ├─ AdminAccessApplications.test.jsx
-│  │     ├─ AdminAnalytics.test.jsx
-│  │     ├─ adminAnalyticsService.test.js
-│  │     ├─ AdminSection.test.jsx
-│  │     ├─ adminService.test.js
-│  │     ├─ AdminTopbar.test.jsx
-│  │     ├─ AIChatWidget.test.jsx
-│  │     ├─ analyticsService.test.js
-│  │     ├─ api.test.js
-│  │     ├─ ApplicationVolumeChart.test.jsx
-│  │     ├─ authDenied.test.jsx
-│  │     ├─ authError.test.jsx
-│  │     ├─ AuthFormPanel.test.jsx
-│  │     ├─ AuthHeroPanel.test.jsx
-│  │     ├─ AuthLayout.test.jsx
-│  │     ├─ authService.test.js
-│  │     ├─ connectivity.test.jsx
-│  │     ├─ countryService.test.js
-│  │     ├─ CreateStudentProfile.test.jsx
-│  │     ├─ cvUpload.test.jsx
-│  │     ├─ Dashboard.test.jsx
-│  │     ├─ editProfileForm.test.jsx
-│  │     ├─ EditProviderProfile.test.jsx
-│  │     ├─ EditProviderProfileForm.test.jsx
-│  │     ├─ EmployerApplicationCard.test.jsx
-│  │     ├─ EmployerApplications.test.jsx
-│  │     ├─ employerApplicationService.test.js
-│  │     ├─ exportService.test.js
-│  │     ├─ FloatingActionButton.test.jsx
-│  │     ├─ GoogleLoginButton.test.jsx
-│  │     ├─ Home.test.jsx
-│  │     ├─ matchingOpportunity.test.jsx
-│  │     ├─ matchingService.test.js
-│  │     ├─ myApplicationCard.test.jsx
-│  │     ├─ MyApplications.test.jsx
-│  │     ├─ myApplicationService.test.js
-│  │     ├─ notificationDropdown.test.jsx
-│  │     ├─ Notifications.test.jsx
-│  │     ├─ Opportunities.test.jsx
-│  │     ├─ OpportunitiesTable.test.jsx
-│  │     ├─ OpportunityBreakdownTable.test.jsx
-│  │     ├─ OpportunityCard.test.jsx
-│  │     ├─ OpportunityDetail.test.jsx
-│  │     ├─ OpportunityFilters.test.jsx
-│  │     ├─ OpportunityForm.test.jsx
-│  │     ├─ OpportunityList.test.jsx
-│  │     ├─ OpportunityRow.test.jsx
-│  │     ├─ opportunityService.test.js
-│  │     ├─ PersonalInfo.test.jsx
-│  │     ├─ PostOpportunity.test.jsx
-│  │     ├─ profileForm.test.jsx
-│  │     ├─ protectedRoute.test.jsx
-│  │     ├─ ProviderGoogleLoginButton.test.jsx
-│  │     ├─ ProviderLogin.test.jsx
-│  │     ├─ providerProfileService.test.js
-│  │     ├─ ProviderRegistration.test.jsx
-│  │     ├─ QualificationCard.test.jsx
-│  │     ├─ QualificationFilters.test.jsx
-│  │     ├─ QualificationList.test.jsx
-│  │     ├─ Qualifications.test.jsx
-│  │     ├─ SAMap.test.jsx
-│  │     ├─ SectorBarChart.test.jsx
-│  │     ├─ SectorPieChart.test.jsx
-│  │     ├─ Sidebar.test.jsx
-│  │     ├─ Skills.test.jsx
-│  │     ├─ StatsGrid.test.jsx
-│  │     ├─ StudentDashboard.test.jsx
-│  │     ├─ TopBar.test.jsx
-│  │     ├─ ValidationPipeline.test.jsx
-│  │     └─ ViewProviderProfile.test.jsx
-│  ├─ tailwind.config.js
-│  ├─ test-output.txt
-│  └─ vite.config.js
-├─ package-lock.json
-├─ package.json
-└─ README.md
-
+SD-Web-App/
+│
+├── .github/
+│   └── workflows/
+│
+├── backend/
+│   ├── src/
+│   ├── tests/
+|   ├── scripts/
+│   ├── .env
+│   ├── .env.example
+│   ├── package.json
+│   └── package-lock.json
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── .env
+│   ├── .env.example
+|   ├── README.md
+│   ├── package.json
+│   └── package-lock.json
+│
+├── .gitignore
+├── README.md
+├── codecov.yml
+├── package.json
+└── package-lock.json
 ```
+
+---
+
+## Technology Stack
+
+- Frontend: React.js, JavaScript, HTML5, CSS3
+- Backend: Node.js, Express.js
+- Database: Supabase (PostgreSQL)
+- Authentication: Google OAuth 2.0
+- Deployment: Render & Netlify
+- CI/CD: GitHub Actions
+- Testing: Jest & Vitest
+
+---
+
+## Team
+
+Always in SYNNK!
+
+### Members
+ 
+Shannon Chisanga, Yannis Njanfang Patu, Nhlamulo Mabuza, Natasha Dobah and Kirsten Strydom
