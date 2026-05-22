@@ -1,4 +1,18 @@
+Before touching the project, you must have these installed globally:
+Node.js
 
+Clone the repo:
+git clone <repo-url>
+cd <repo-folder>
+
+Install project dependencies:
+npm install
+
+To run backend and frontend at the same time:
+npm run dev
+click on the frontend link
+
+File Structure down below:
 ```
 SD1
 ├─ backend
